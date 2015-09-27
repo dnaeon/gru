@@ -5,7 +5,7 @@ import "time"
 // Classifiers expire after this period of time
 const MinionClassifierTTL = time.Hour * 1
 
-var RegisteredClassifiers []MinionClassifier
+var ClassifierRegistry []MinionClassifier
 
 // Interface for classifying minion
 type MinionClassifier interface {
@@ -19,6 +19,41 @@ type MinionClassifier interface {
 	GetValue(m Minion) (string, error)
 }
 
+// Register new classifiers
+func RegisterClassifier(c ...MinionClassifier) error {
+	ClassifierRegistry = append(ClassifierRegistry, c...)
+
+	return nil
+}
+
+// Simple classifier
+type SimpleClassifier struct {
+	Key, Description, Value string
+}
+
+// Creates a new simple classifier
+func NewSimpleClassifier(key, description, value string) (MinionClassifier, error) {
+	c = &SimpleClassifier{
+		Key: key,
+		Description: description,
+		Value: value,
+	}
+
+	return c, nil
+}
+
+func (c *SimpleClassifier) GetKey() (string, error) {
+	return c.Key, nil
+}
+
+func (c *SimpleClassifier) GetDescription() (string, error) {
+	return c.Description, nil
+}
+
+func (c *SimpleClassifier) GetValue() (string, error) {
+	return c.Value, nil
+}
+
 // Classifier that uses callbacks for classifying minions
 type cbClassifier func(Minion) (string, error)
 type CallbackClassifier struct {
@@ -28,16 +63,14 @@ type CallbackClassifier struct {
 	Callback cbClassifier
 }
 
-func NewCallbackClassifier(key, description string, callback cbClassifier) error {
+func NewCallbackClassifier(key, description string, callback cbClassifier) (MinionClassifier, error) {
 	c := &CallbackClassifier{
 		Key:         key,
 		Description: description,
 		Callback:    callback,
 	}
 
-	RegisteredClassifiers = append(RegisteredClassifiers, c)
-
-	return nil
+	return c, nil
 }
 
 func (c *CallbackClassifier) GetKey() (string, error) {
