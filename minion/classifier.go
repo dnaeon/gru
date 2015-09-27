@@ -50,7 +50,7 @@ func (c *SimpleClassifier) GetDescription() (string, error) {
 	return c.Description, nil
 }
 
-func (c *SimpleClassifier) GetValue() (string, error) {
+func (c *SimpleClassifier) GetValue(m Minion) (string, error) {
 	return c.Value, nil
 }
 
