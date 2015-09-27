@@ -32,14 +32,14 @@ type SimpleClassifier struct {
 }
 
 // Creates a new simple classifier
-func NewSimpleClassifier(key, description, value string) (MinionClassifier, error) {
-	c = &SimpleClassifier{
+func NewSimpleClassifier(key, description, value string) MinionClassifier {
+	c := &SimpleClassifier{
 		Key: key,
 		Description: description,
 		Value: value,
 	}
 
-	return c, nil
+	return c
 }
 
 func (c *SimpleClassifier) GetKey() (string, error) {
@@ -63,14 +63,14 @@ type CallbackClassifier struct {
 	Callback cbClassifier
 }
 
-func NewCallbackClassifier(key, description string, callback cbClassifier) (MinionClassifier, error) {
+func NewCallbackClassifier(key, description string, callback cbClassifier) MinionClassifier {
 	c := &CallbackClassifier{
 		Key:         key,
 		Description: description,
 		Callback:    callback,
 	}
 
-	return c, nil
+	return c
 }
 
 func (c *CallbackClassifier) GetKey() (string, error) {
