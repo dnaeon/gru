@@ -20,14 +20,25 @@ type Minion interface {
 	SetLastseen(s int64) error
 
 	// Get a classifier for a minion
-	GetClassifier(key string) (string, error)
+	GetClassifier(key string) (MinionClassifier, error)
 
 	// Classify minion a with given a key and value
-	SetClassifier(key, value, description string) error
+	SetClassifier(c MinionClassifier) error
 
 	// Runs periodic functions, e.g. refreshes classifies and lastseen
 	Refresh(t *time.Ticker) error
 
+	// Listens for new tasks and processes them
+	TaskListener(c chan<- int) error
+	
 	// Start serving
 	Serve() error
+}
+
+type MinionTask interface {
+	// Gets the command to be executed
+	GetCommand() (string, error)
+
+	// Gets the time the task was sent for processing
+	GetTimestamp() (int64, error)
 }
