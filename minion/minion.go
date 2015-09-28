@@ -29,8 +29,8 @@ type Minion interface {
 	Refresh(t *time.Ticker) error
 
 	// Listens for new tasks and processes them
-	TaskListener(c chan<- int) error
-	
+	TaskListener(c chan<- MinionTask) error
+
 	// Start serving
 	Serve() error
 }
