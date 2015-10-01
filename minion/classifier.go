@@ -1,10 +1,5 @@
 package minion
 
-import "time"
-
-// Classifiers expire after this period of time
-const MinionClassifierTTL = time.Hour * 1
-
 var ClassifierRegistry []MinionClassifier
 
 // Interface for classifying minion

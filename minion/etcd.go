@@ -78,9 +78,7 @@ func (t *EtcdTask) Process() error {
 	command, _ := t.GetCommand()
 	log.Printf("Processing task: %s\n", command)
 
-	err := t.Process()
-
-	return err
+	return nil
 }
 
 // Create a new minion
@@ -160,9 +158,10 @@ func (m *EtcdMinion) GetClassifier(key string) (MinionClassifier, error) {
 
 // Classify a minion  a given key and value
 func (m *EtcdMinion) SetClassifier(c MinionClassifier) error {
+	// Classifiers in etcd expire after an hour
 	opts := &client.SetOptions{
 		PrevExist: client.PrevIgnore,
-		TTL: MinionClassifierTTL,
+		TTL: time.Hour,
 	}
 
 	// Get classifier values
@@ -266,6 +265,8 @@ func (m *EtcdMinion) TaskRunner(c <-chan MinionTask) error {
 		task := <-c
 		task.Process()
 	}
+
+	return nil
 }
 
 // Checks for any tasks in backlog
@@ -309,8 +310,8 @@ func (m *EtcdMinion) Serve() error {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 
-	// Start the periodic runner
-	ticker := time.NewTicker(time.Minute * 1)
+	// Run any periodic tasks every hour
+	ticker := time.NewTicker(time.Minute * 15)
 	go m.Refresh(ticker)
 
 	// Check for backlog tasks and start task listener and runner
