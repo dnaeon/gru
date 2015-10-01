@@ -320,7 +320,7 @@ func (m *EtcdMinion) Serve() error {
 	go m.CheckForBacklog(tasks)
 	go m.TaskRunner(tasks)
 
-	// Block until a signal is received
+	// Block until a stop signal is received
 	s := <-quit
 	log.Printf("Received %s signal, shutting down", s)
 	close(quit)
