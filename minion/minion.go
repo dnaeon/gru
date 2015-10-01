@@ -41,4 +41,10 @@ type MinionTask interface {
 
 	// Gets the time the task was sent for processing
 	GetTimestamp() (int64, error)
+
+	// Processes the task
+	Process() error
+
+	// Submits a task to a minion
+	Submit(m Minion) error
 }
