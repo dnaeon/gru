@@ -78,6 +78,8 @@ func (t *EtcdTask) Process() error {
 	command := t.GetCommand()
 	log.Printf("Processing task: %s\n", command)
 
+	err := t.Process()
+
 	return nil
 }
 
