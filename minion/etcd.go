@@ -274,11 +274,8 @@ func (m *EtcdMinion) TaskListener(c chan<- MinionTask) error {
 // Processes new tasks
 func (m *EtcdMinion) TaskRunner(c <-chan MinionTask) error {
 	for {
-		select {
-		case task := <-c:
-			command, _ := task.GetCommand()
-			log.Printf("Processing task: %s\n", command)
-		}
+		task := <-c:
+		task.Process()
 	}
 }
 
