@@ -84,6 +84,8 @@ func (t *EtcdTask) Process() error {
 	id := t.GetUUID()
 	log.Printf("Processing task %s\n", id.String())
 
+	// TODO: Actually process the command
+
 	return nil
 }
 
