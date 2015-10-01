@@ -31,6 +31,9 @@ type Minion interface {
 	// Listens for new tasks and processes them
 	TaskListener(c chan<- MinionTask) error
 
+	// Runs new tasks as received by the TaskListener
+	TaskRunner (c <-chan MinionTask) error
+
 	// Start serving
 	Serve() error
 }
