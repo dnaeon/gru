@@ -68,6 +68,13 @@ func (t *EtcdTask) GetTimestamp() (int64, error) {
 	return t.Timestamp, nil
 }
 
+func (t *EtcdTask) Process() error {
+	command := t.GetCommand()
+	log.Printf("Processing task: %s\n", command)
+
+	return nil
+}
+
 // Create a new minion
 func NewEtcdMinion(name, keyspace string, kapi client.KeysAPI) Minion {
 	minionUUID := uuid.NewSHA1(uuid.NameSpace_DNS, []byte(name))
