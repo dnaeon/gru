@@ -75,12 +75,12 @@ func (t *EtcdTask) GetTimestamp() (int64, error) {
 
 // Processes a task
 func (t *EtcdTask) Process() error {
-	command := t.GetCommand()
+	command, _ := t.GetCommand()
 	log.Printf("Processing task: %s\n", command)
 
 	err := t.Process()
 
-	return nil
+	return err
 }
 
 // Create a new minion
@@ -276,7 +276,7 @@ func (m *EtcdMinion) TaskListener(c chan<- MinionTask) error {
 // Processes new tasks
 func (m *EtcdMinion) TaskRunner(c <-chan MinionTask) error {
 	for {
-		task := <-c:
+		task := <-c
 		task.Process()
 	}
 }
