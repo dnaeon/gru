@@ -210,7 +210,7 @@ func (m *EtcdMinion) Refresh(ticker *time.Ticker) error {
 }
 
 // Unmarshals task from etcd and removes it from the queue
-func (m *EtcdMinion) UnmarshalEtcdTask(node *client.Node) (*EtcdTask, error) {
+func UnmarshalEtcdTask(node *client.Node) (*EtcdTask, error) {
 	var task *EtcdTask = new(EtcdTask)
 	err := json.Unmarshal([]byte(node.Value), &task)
 
@@ -245,7 +245,7 @@ func (m *EtcdMinion) TaskListener(c chan<- MinionTask) error {
 			continue
 		}
 
-		task, err := m.UnmarshalEtcdTask(resp.Node)
+		task, err := UnmarshalEtcdTask(resp.Node)
 		m.KAPI.Delete(context.Background(), resp.Node.Key, nil)
 
 		if err != nil {
@@ -291,7 +291,7 @@ func (m *EtcdMinion) CheckForBacklog(c chan<- MinionTask) error {
 
 	log.Printf("Found %d tasks in backlog", len(backlog))
 	for _, node := range backlog {
-		task, err := m.UnmarshalEtcdTask(node)
+		task, err := UnmarshalEtcdTask(node)
 		m.KAPI.Delete(context.Background(), node.Key, nil)
 
 		if err != nil {
