@@ -50,17 +50,23 @@ type EtcdTask struct {
 	// Time when the command was sent for processing
 	Timestamp int64
 
-	// ID of task
-	// Task Node == task ID ?
+	// Task unique identifier
+	UUID uuid.UUID
 }
 
 func NewEtcdTask(command string, timestamp int64) MinionTask {
 	t := &EtcdTask{
 		Command: command,
 		Timestamp: timestamp,
+		UUID: uuid.NewRandom(),
 	}
 
 	return t
+}
+
+// Gets the task unique identifier
+func (t *EtcdTask) GetUUID() uuid.UUID {
+	return t.UUID
 }
 
 // Gets the task command to be executed
@@ -75,8 +81,8 @@ func (t *EtcdTask) GetTimestamp() (int64, error) {
 
 // Processes a task
 func (t *EtcdTask) Process() error {
-	command, _ := t.GetCommand()
-	log.Printf("Processing task: %s\n", command)
+	id := t.GetUUID()
+	log.Printf("Processing task %s\n", id.String())
 
 	return nil
 }
