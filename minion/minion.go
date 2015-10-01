@@ -47,7 +47,4 @@ type MinionTask interface {
 
 	// Processes the task
 	Process() error
-
-	// Submits a task to a minion
-	Submit(m Minion) error
 }
