@@ -143,29 +143,22 @@ func (m *EtcdMinion) SetLastseen(s int64) error {
 
 // Get classifier for a minion
 func (m *EtcdMinion) GetClassifier(key string) (MinionClassifier, error) {
-	valueKey := filepath.Join(m.ClassifierDir, key, "value")
-	descriptionKey := filepath.Join(m.ClassifierDir, key, "description")
+	klassifier := new(SimpleClassifier)
+	klassifierNode := filepath.Join(m.ClassifierDir, key, "info")
 
-	// Get value
-	resp, err := m.KAPI.Get(context.Background(), valueKey, nil)
+	// Get classifier from etcd and deserialize
+	resp, err := m.KAPI.Get(context.Background(), klassifierNode, nil)
+
 	if err != nil {
-		return &SimpleClassifier{}, err
+		return klassifier, err
 	}
-	value := resp.Node.Value
 
-	// Get description
-	resp, err = m.KAPI.Get(context.Background(), descriptionKey, nil)
-	if err != nil {
-		return &SimpleClassifier{}, nil
-	}
-	description := resp.Node.Value
+	err = json.Unmarshal([]byte(resp.Node.Value), &klassifier)
 
-	c := NewSimpleClassifier(key, description, value)
-
-	return c, nil
+	return klassifier, err
 }
 
-// Classify a minion with a given key and value
+// Classify a minion  a given key and value
 func (m *EtcdMinion) SetClassifier(c MinionClassifier) error {
 	opts := &client.SetOptions{
 		PrevExist: client.PrevIgnore,
@@ -178,29 +171,23 @@ func (m *EtcdMinion) SetClassifier(c MinionClassifier) error {
 	value, err := c.GetValue(m)
 
 	if err != nil {
-		log.Printf("Failed to classify %s\n", key)
 		return err
 	}
 
-	// TODO: Use JSON object for the classifier value/description/etc
-
-	// Set classifier value
-	valueKey := filepath.Join(m.ClassifierDir, key, "value")
-	_, err = m.KAPI.Set(context.Background(), valueKey, value, opts)
+	// Create a simple classifier and serialize to JSON
+	klassifier := NewSimpleClassifier(key, value, description)
+	data, err := json.Marshal(klassifier)
 
 	if err != nil {
+		log.Printf("Failed to serialize classifier: %s\n", key)
 		return err
 	}
 
-	// Set classifier description
-	descriptionKey := filepath.Join(m.ClassifierDir, key, "description")
-	_, err = m.KAPI.Set(context.Background(), descriptionKey, description, opts)
+	// Set classifier in etcd
+	klassifierNode := filepath.Join(m.ClassifierDir, key, "info")
+	_, err = m.KAPI.Set(context.Background(), klassifierNode, string(data), opts)
 
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 // Runs periodic jobs such as refreshing classifiers and updating lastseen
@@ -226,7 +213,7 @@ func (m *EtcdMinion) Refresh(ticker *time.Ticker) error {
 
 // Unmarshals task from etcd and removes it from the queue
 func UnmarshalEtcdTask(node *client.Node) (*EtcdTask, error) {
-	var task *EtcdTask = new(EtcdTask)
+	task := new(EtcdTask)
 	err := json.Unmarshal([]byte(node.Value), &task)
 
 	if err != nil {

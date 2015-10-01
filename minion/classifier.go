@@ -28,15 +28,15 @@ func RegisterClassifier(c ...MinionClassifier) error {
 
 // Simple classifier
 type SimpleClassifier struct {
-	Key, Description, Value string
+	Key, Value, Description string
 }
 
 // Creates a new simple classifier
-func NewSimpleClassifier(key, description, value string) MinionClassifier {
+func NewSimpleClassifier(key, value, description string) MinionClassifier {
 	c := &SimpleClassifier{
 		Key: key,
-		Description: description,
 		Value: value,
+		Description: description,
 	}
 
 	return c
