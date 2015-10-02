@@ -16,7 +16,7 @@ import (
 )
 
 // Root keyspace in etcd
-const etcdKeySpace = "/gru"
+const EtcdKeySpace = "/gru"
 
 // Etcd Minion
 type EtcdMinion struct {
@@ -92,7 +92,7 @@ func (t *EtcdTask) Process() error {
 // Create a new minion
 func NewEtcdMinion(name string, kapi client.KeysAPI) Minion {
 	minionUUID := uuid.NewSHA1(uuid.NameSpace_DNS, []byte(name))
-	minionRootDir := filepath.Join(etcdKeySpace, "minion", minionUUID.String())
+	minionRootDir := filepath.Join(EtcdKeySpace, "minion", minionUUID.String())
 	queueDir := filepath.Join(minionRootDir, "queue")
 //	resultDir := filepath.Join(...)
 	classifierDir := filepath.Join(minionRootDir, "classifier")
