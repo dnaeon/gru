@@ -3,16 +3,8 @@ package minion
 import "runtime"
 
 func init() {
-	os := NewCallbackClassifier("os", "Operating System", osClassifier)
-	arch := NewCallbackClassifier("arch", "Architecture", archClassifier)
+	os := NewSimpleClassifier("os", "Operating System", runtime.GOOS)
+	arch := NewSimpleClassifier("arch", "Architecture", runtime.GOARCH)
 
 	RegisterClassifier(os, arch)
-}
-
-func osClassifier(m Minion) (string, error) {
-	return runtime.GOOS, nil
-}
-
-func archClassifier(m Minion) (string, error) {
-	return runtime.GOARCH, nil
 }
