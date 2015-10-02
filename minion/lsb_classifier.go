@@ -10,7 +10,7 @@ import (
 )
 
 func init() {
-	lsbdistid := NewCallbackClassifier("lsbdistid", "Distributor ID ", lsbdistidClassifier)
+	lsbdistid := NewCallbackClassifier("lsbdistid", "Distributor ID", lsbdistidClassifier)
 	lsbdistdesc := NewCallbackClassifier("lsbdistdesc", "Short description of the distribution", lsbdistdescClassifier)
 	lsbdistrelease := NewCallbackClassifier("lsbdistrelease", "Release number of the distribution", lsbdistreleaseClassifier)
 	lsbdistcodename := NewCallbackClassifier("lsbdistcodename", "Distribution codename", lsbdistcodenameClassifier)
