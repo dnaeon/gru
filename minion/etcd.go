@@ -2,8 +2,10 @@ package minion
 
 import (
 	"os"
+	"os/exec"
 	"os/signal"
 	"log"
+	"bytes"
 	"time"
 	"strings"
 	"strconv"
@@ -30,8 +32,8 @@ type EtcdMinion struct {
 	// Minion queue node in etcd
 	QueueDir string
 
-	// Root node for results in etcd
-	//ResultRootDir string
+	// Log directory to keep previously executed tasks
+	LogDir string
 
 	// Root node for classifiers in etcd
 	ClassifierDir string
@@ -48,16 +50,37 @@ type EtcdTask struct {
 	// Command to be executed by the minion
 	Command string
 
+	// Command arguments
+	Args []string
+
 	// Time when the command was sent for processing
 	Timestamp int64
 
 	// Task unique identifier
 	UUID uuid.UUID
+
+	// Result of task after processing
+	Result bytes.Buffer
 }
 
-func NewEtcdTask(command string) MinionTask {
+// Unmarshals task from etcd and removes it from the queue
+func UnmarshalEtcdTask(node *etcdclient.Node) (*EtcdTask, error) {
+	task := new(EtcdTask)
+	err := json.Unmarshal([]byte(node.Value), &task)
+
+	if err != nil {
+		log.Printf("Invalid task: key: %s\n", node.Key)
+		log.Printf("Invalid task: value: %s\n", node.Value)
+		log.Printf("Invalid task: error: %s\n", err)
+	}
+
+	return task, err
+}
+
+func NewEtcdTask(command string, args ...string) MinionTask {
 	t := &EtcdTask{
 		Command: command,
+		Args: args,
 		Timestamp: time.Now().Unix(),
 		UUID: uuid.NewRandom(),
 	}
@@ -75,18 +98,39 @@ func (t *EtcdTask) GetCommand() (string, error) {
 	return t.Command, nil
 }
 
+// Gets the task arguments
+func (t *EtcdTask) GetArgs() ([]string, error) {
+	return t.Args, nil
+}
+
 // Returns the time a task has been received for processing
 func (t *EtcdTask) GetTimestamp() (int64, error) {
 	return t.Timestamp, nil
 }
 
+// Returns the result of the task
+func (t *EtcdTask) GetResult() (string, error) {
+	return t.Result.String(), nil
+}
+
 // Processes a task
 func (t *EtcdTask) Process() error {
-	log.Printf("Processing task %s\n", t.GetUUID())
+	taskUUID := t.GetUUID()
+	command, _ := t.GetCommand()
+	args, _ := t.GetArgs()
+	cmd := exec.Command(command, args...)
+	cmd.Stdout = &t.Result
 
-	// TODO: Actually process the command
+	log.Printf("Processing task %s\n", taskUUID)
+	cmdError := cmd.Run()
 
-	return nil
+	if cmdError != nil {
+		log.Printf("Failed to process task %s\n", taskUUID)
+	} else {
+		log.Printf("Finished processing task %s\n", taskUUID)
+	}
+
+	return cmdError
 }
 
 // Create a new minion
@@ -95,7 +139,7 @@ func NewEtcdMinion(name string, kapi etcdclient.KeysAPI) Minion {
 	minionRootDir := filepath.Join(EtcdMinionSpace, minionUUID.String())
 	queueDir := filepath.Join(minionRootDir, "queue")
 	classifierDir := filepath.Join(minionRootDir, "classifier")
-//	resultDir := filepath.Join(...)
+	logDir := filepath.Join(minionRootDir, "log")
 
 	log.Printf("Created minion with uuid %s\n", minionUUID)
 
@@ -103,8 +147,8 @@ func NewEtcdMinion(name string, kapi etcdclient.KeysAPI) Minion {
 		Name: name,
 		MinionRootDir: minionRootDir,
 		QueueDir: queueDir,
-//		ResultRootDir: resultRootDir,
 		ClassifierDir: classifierDir,
+		LogDir: resultDir,
 		UUID: minionUUID,
 		KAPI: kapi,
 	}
@@ -218,20 +262,6 @@ func (m *EtcdMinion) Refresh(ticker *time.Ticker) error {
 	return nil
 }
 
-// Unmarshals task from etcd and removes it from the queue
-func UnmarshalEtcdTask(node *etcdclient.Node) (*EtcdTask, error) {
-	task := new(EtcdTask)
-	err := json.Unmarshal([]byte(node.Value), &task)
-
-	if err != nil {
-		log.Printf("Invalid task: key: %s\n", node.Key)
-		log.Printf("Invalid task: value: %s\n", node.Value)
-		log.Printf("Invalid task: error: %s\n", err)
-	}
-
-	return task, err
-}
-
 // Monitors etcd for new tasks for processing
 func (m *EtcdMinion) TaskListener(c chan<- MinionTask) error {
 	log.Printf("Starting task listener")
@@ -274,9 +304,24 @@ func (m *EtcdMinion) TaskRunner(c <-chan MinionTask) error {
 	for {
 		task := <-c
 		task.Process()
+		m.SaveTaskResult(task)
 	}
 
 	return nil
+}
+
+// Saves a task in the minion's log of previously executed tasks
+func (m *EtcdMinion) SaveTaskResult(t MinionTask) error {
+	taskUUID := t.GetUUID()
+
+	data, err := json.Marshal(t)
+	if err != nil {
+		log.Printf("Failed to save task %s in log: %s\n", taskUUID, err)
+		return err
+	}
+	_, err := m.KAPI.CreateInOrder(context.Background(), m.LogDir, string(data), nil)
+
+	return err
 }
 
 // Checks for any tasks in backlog
