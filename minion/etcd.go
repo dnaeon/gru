@@ -148,7 +148,7 @@ func NewEtcdMinion(name string, kapi etcdclient.KeysAPI) Minion {
 		MinionRootDir: minionRootDir,
 		QueueDir: queueDir,
 		ClassifierDir: classifierDir,
-		LogDir: resultDir,
+		LogDir: logDir,
 		UUID: minionUUID,
 		KAPI: kapi,
 	}
@@ -319,7 +319,7 @@ func (m *EtcdMinion) SaveTaskResult(t MinionTask) error {
 		log.Printf("Failed to save task %s in log: %s\n", taskUUID, err)
 		return err
 	}
-	_, err := m.KAPI.CreateInOrder(context.Background(), m.LogDir, string(data), nil)
+	_, err = m.KAPI.CreateInOrder(context.Background(), m.LogDir, string(data), nil)
 
 	return err
 }
