@@ -4,8 +4,7 @@ import (
 	"encoding/json"
 	"path/filepath"
 
-	// "github.com/dnaeon/gru/minion"
-	"gru/minion"
+	"github.com/dnaeon/gru/minion"
 
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/coreos/etcd/Godeps/_workspace/src/golang.org/x/net/context"

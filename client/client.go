@@ -3,8 +3,7 @@ package client
 import (
 	"code.google.com/p/go-uuid/uuid"
 
-//	"github.com/dnaeon/gru/minion"
-	"gru/minion"
+	"github.com/dnaeon/gru/minion"
 )
 
 type Client interface {
