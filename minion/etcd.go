@@ -39,7 +39,7 @@ type EtcdMinion struct {
 	UUID uuid.UUID
 
 	// KeysAPI client to etcd
-	KAPI client.KeysAPI
+	KAPI etcdclient.KeysAPI
 }
 
 // Etcd minion task
@@ -90,7 +90,7 @@ func (t *EtcdTask) Process() error {
 }
 
 // Create a new minion
-func NewEtcdMinion(name string, kapi client.KeysAPI) Minion {
+func NewEtcdMinion(name string, kapi etcdclient.KeysAPI) Minion {
 	minionUUID := uuid.NewSHA1(uuid.NameSpace_DNS, []byte(name))
 	minionRootDir := filepath.Join(EtcdKeySpace, "minion", minionUUID.String())
 	queueDir := filepath.Join(minionRootDir, "queue")
@@ -125,8 +125,8 @@ func (m *EtcdMinion) GetName() (string, error) {
 // Set the human-readable name of the minion
 func (m *EtcdMinion) SetName(name string) error {
 	key := filepath.Join(m.MinionRootDir, "name")
-	opts := &client.SetOptions{
-		PrevExist: client.PrevIgnore,
+	opts := &etcdclient.SetOptions{
+		PrevExist: etcdclient.PrevIgnore,
 	}
 
 	_, err := m.KAPI.Set(context.Background(), key, m.Name, opts)
@@ -138,8 +138,8 @@ func (m *EtcdMinion) SetName(name string) error {
 func (m *EtcdMinion) SetLastseen(s int64) error {
 	key := filepath.Join(m.MinionRootDir, "lastseen")
 	lastseen := strconv.FormatInt(s, 10)
-	opts := &client.SetOptions{
-		PrevExist: client.PrevIgnore,
+	opts := &etcdclient.SetOptions{
+		PrevExist: etcdclient.PrevIgnore,
 	}
 
 	_, err := m.KAPI.Set(context.Background(), key, lastseen, opts)
@@ -167,8 +167,8 @@ func (m *EtcdMinion) GetClassifier(key string) (MinionClassifier, error) {
 // Classify a minion  a given key and value
 func (m *EtcdMinion) SetClassifier(c MinionClassifier) error {
 	// Classifiers in etcd expire after an hour
-	opts := &client.SetOptions{
-		PrevExist: client.PrevIgnore,
+	opts := &etcdclient.SetOptions{
+		PrevExist: etcdclient.PrevIgnore,
 		TTL: time.Hour,
 	}
 
@@ -219,7 +219,7 @@ func (m *EtcdMinion) Refresh(ticker *time.Ticker) error {
 }
 
 // Unmarshals task from etcd and removes it from the queue
-func UnmarshalEtcdTask(node *client.Node) (*EtcdTask, error) {
+func UnmarshalEtcdTask(node *etcdclient.Node) (*EtcdTask, error) {
 	task := new(EtcdTask)
 	err := json.Unmarshal([]byte(node.Value), &task)
 
@@ -236,7 +236,7 @@ func UnmarshalEtcdTask(node *client.Node) (*EtcdTask, error) {
 func (m *EtcdMinion) TaskListener(c chan<- MinionTask) error {
 	log.Printf("Starting task listener")
 
-	watcherOpts := &client.WatcherOptions{
+	watcherOpts := &etcdclient.WatcherOptions{
 		Recursive: true,
 	}
 	watcher := m.KAPI.Watcher(m.QueueDir, watcherOpts)
@@ -279,7 +279,7 @@ func (m *EtcdMinion) TaskRunner(c <-chan MinionTask) error {
 
 // Checks for any tasks in backlog
 func (m *EtcdMinion) CheckForBacklog(c chan<- MinionTask) error {
-	opts := &client.GetOptions{
+	opts := &etcdclient.GetOptions{
 		Recursive: true,
 		Sort: true,
 	}
