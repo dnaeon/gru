@@ -82,8 +82,7 @@ func (t *EtcdTask) GetTimestamp() (int64, error) {
 
 // Processes a task
 func (t *EtcdTask) Process() error {
-	id := t.GetUUID()
-	log.Printf("Processing task %s\n", id.String())
+	log.Printf("Processing task %s\n", t.GetUUID())
 
 	// TODO: Actually process the command
 
@@ -261,6 +260,8 @@ func (m *EtcdMinion) TaskListener(c chan<- MinionTask) error {
 		if err != nil {
 			continue
 		}
+
+		log.Printf("Received task %s\n", task.GetUUID())
 
 		c <- task
 	}
