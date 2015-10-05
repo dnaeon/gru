@@ -60,7 +60,7 @@ type EtcdTask struct {
 	UUID uuid.UUID
 
 	// Result of task after processing
-	Result bytes.Buffer
+	Result string
 }
 
 // Unmarshals task from etcd and removes it from the queue
@@ -110,19 +110,22 @@ func (t *EtcdTask) GetTimestamp() (int64, error) {
 
 // Returns the result of the task
 func (t *EtcdTask) GetResult() (string, error) {
-	return t.Result.String(), nil
+	return t.Result, nil
 }
 
 // Processes a task
 func (t *EtcdTask) Process() error {
+	var buf bytes.Buffer
 	taskUUID := t.GetUUID()
 	command, _ := t.GetCommand()
 	args, _ := t.GetArgs()
 	cmd := exec.Command(command, args...)
-	cmd.Stdout = &t.Result
+	cmd.Stdout = &buf
 
 	log.Printf("Processing task %s\n", taskUUID)
+
 	cmdError := cmd.Run()
+	t.Result = buf.String()
 
 	if cmdError != nil {
 		log.Printf("Failed to process task %s\n", taskUUID)
