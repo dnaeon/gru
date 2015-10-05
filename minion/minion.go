@@ -34,6 +34,9 @@ type Minion interface {
 	// Runs new tasks as received by the TaskListener
 	TaskRunner (c <-chan MinionTask) error
 
+	// Saves a task result in the minion's log directory
+	SaveTaskResult(t MinionTask) error
+
 	// Start serving
 	Serve() error
 }
