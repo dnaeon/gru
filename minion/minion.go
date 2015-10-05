@@ -37,3 +37,10 @@ type Minion interface {
 	// Start serving
 	Serve() error
 }
+
+// Generates a uuid for a minion
+func GenerateUUID(name string) uuid.UUID {
+	u := uuid.NewSHA1(uuid.NameSpace_DNS, []byte(name))
+
+	return u
+}

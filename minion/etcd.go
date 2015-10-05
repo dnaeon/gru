@@ -92,7 +92,7 @@ func (t *EtcdTask) Process() error {
 
 // Create a new minion
 func NewEtcdMinion(name string, kapi etcdclient.KeysAPI) Minion {
-	minionUUID := uuid.NewSHA1(uuid.NameSpace_DNS, []byte(name))
+	minionUUID := GenerateUUID(name)
 	minionRootDir := filepath.Join(EtcdKeySpace, "minion", minionUUID.String())
 	queueDir := filepath.Join(minionRootDir, "queue")
 //	resultDir := filepath.Join(...)
