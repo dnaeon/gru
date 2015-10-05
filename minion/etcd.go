@@ -57,10 +57,13 @@ type EtcdTask struct {
 	Timestamp int64
 
 	// Task unique identifier
-	UUID uuid.UUID
+	TaskID uuid.UUID
 
 	// Result of task after processing
 	Result string
+
+	// Task error, if any
+	Error string
 }
 
 // Unmarshals task from etcd and removes it from the queue
@@ -82,15 +85,15 @@ func NewEtcdTask(command string, args ...string) MinionTask {
 		Command: command,
 		Args: args,
 		Timestamp: time.Now().Unix(),
-		UUID: uuid.NewRandom(),
+		TaskID: uuid.NewRandom(),
 	}
 
 	return t
 }
 
 // Gets the task unique identifier
-func (t *EtcdTask) GetUUID() uuid.UUID {
-	return t.UUID
+func (t *EtcdTask) GetTaskID() uuid.UUID {
+	return t.TaskID
 }
 
 // Gets the task command to be executed
@@ -113,24 +116,30 @@ func (t *EtcdTask) GetResult() (string, error) {
 	return t.Result, nil
 }
 
+// Returns the task error, if any
+func (t *EtcdTask) GetError() string {
+	return t.Error
+}
+
 // Processes a task
 func (t *EtcdTask) Process() error {
 	var buf bytes.Buffer
-	taskUUID := t.GetUUID()
+	taskID := t.GetTaskID()
 	command, _ := t.GetCommand()
 	args, _ := t.GetArgs()
 	cmd := exec.Command(command, args...)
 	cmd.Stdout = &buf
 
-	log.Printf("Processing task %s\n", taskUUID)
+	log.Printf("Processing task %s\n", taskID)
 
 	cmdError := cmd.Run()
 	t.Result = buf.String()
+	t.Error = cmdError.Error()
 
 	if cmdError != nil {
-		log.Printf("Failed to process task %s\n", taskUUID)
+		log.Printf("Failed to process task %s\n", taskID)
 	} else {
-		log.Printf("Finished processing task %s\n", taskUUID)
+		log.Printf("Finished processing task %s\n", taskID)
 	}
 
 	return cmdError
@@ -294,7 +303,7 @@ func (m *EtcdMinion) TaskListener(c chan<- MinionTask) error {
 			continue
 		}
 
-		log.Printf("Received task %s\n", task.GetUUID())
+		log.Printf("Received task %s\n", task.GetTaskID())
 
 		c <- task
 	}
@@ -315,14 +324,15 @@ func (m *EtcdMinion) TaskRunner(c <-chan MinionTask) error {
 
 // Saves a task in the minion's log of previously executed tasks
 func (m *EtcdMinion) SaveTaskResult(t MinionTask) error {
-	taskUUID := t.GetUUID()
+	taskID := t.GetTaskID()
+	taskNode := filepath.Join(m.LogDir, taskID.String())
 
 	data, err := json.Marshal(t)
 	if err != nil {
-		log.Printf("Failed to save task %s in log: %s\n", taskUUID, err)
+		log.Printf("Failed to save task %s: %s\n", taskID, err)
 		return err
 	}
-	_, err = m.KAPI.CreateInOrder(context.Background(), m.LogDir, string(data), nil)
+	_, err = m.KAPI.Create(context.Background(), taskNode, string(data))
 
 	return err
 }

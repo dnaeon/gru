@@ -4,7 +4,7 @@ import "code.google.com/p/go-uuid/uuid"
 
 type MinionTask interface {
 	// Gets the UUID of the task
-	GetUUID() uuid.UUID
+	GetTaskID() uuid.UUID
 
 	// Gets the command to be executed
 	GetCommand() (string, error)
@@ -17,6 +17,9 @@ type MinionTask interface {
 
 	// Gets the task result
 	GetResult() (string, error)
+
+	// Gets the task error, if any
+	GetError() string
 
 	// Processes the task
 	Process() error
