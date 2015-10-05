@@ -12,11 +12,12 @@ import (
 
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/coreos/etcd/Godeps/_workspace/src/golang.org/x/net/context"
-	"github.com/coreos/etcd/client"
+	etcdclient "github.com/coreos/etcd/client"
 )
 
 // Root keyspace in etcd
 const EtcdKeySpace = "/gru"
+const EtcdMinionSpace = "/gru/minion"
 
 // Etcd Minion
 type EtcdMinion struct {
@@ -54,10 +55,10 @@ type EtcdTask struct {
 	UUID uuid.UUID
 }
 
-func NewEtcdTask(command string, timestamp int64) MinionTask {
+func NewEtcdTask(command string) MinionTask {
 	t := &EtcdTask{
 		Command: command,
-		Timestamp: timestamp,
+		Timestamp: time.Now().Unix(),
 		UUID: uuid.NewRandom(),
 	}
 
