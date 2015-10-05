@@ -247,7 +247,7 @@ func (m *EtcdMinion) SetClassifier(c MinionClassifier) error {
 	}
 
 	// Set classifier in etcd
-	klassifierNode := filepath.Join(m.ClassifierDir, key, "info")
+	klassifierNode := filepath.Join(m.ClassifierDir, key)
 	_, err = m.KAPI.Set(context.Background(), klassifierNode, string(data), opts)
 
 	return err
