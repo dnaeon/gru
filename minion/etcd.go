@@ -15,9 +15,9 @@ import (
 	etcdclient "github.com/coreos/etcd/client"
 )
 
-// Root keyspace in etcd
-const EtcdKeySpace = "/gru"
-const EtcdMinionSpace = "/gru/minion"
+// Key spaces in etcd
+const EtcdRootKeySpace = "/gru"
+var EtcdMinionSpace = filepath.Join(EtcdRootKeySpace, "minion")
 
 // Etcd Minion
 type EtcdMinion struct {
@@ -93,10 +93,10 @@ func (t *EtcdTask) Process() error {
 // Create a new minion
 func NewEtcdMinion(name string, kapi etcdclient.KeysAPI) Minion {
 	minionUUID := GenerateUUID(name)
-	minionRootDir := filepath.Join(EtcdKeySpace, "minion", minionUUID.String())
+	minionRootDir := filepath.Join(EtcdMinionSpace, minionUUID.String())
 	queueDir := filepath.Join(minionRootDir, "queue")
-//	resultDir := filepath.Join(...)
 	classifierDir := filepath.Join(minionRootDir, "classifier")
+//	resultDir := filepath.Join(...)
 
 	log.Printf("Created minion with uuid %s\n", minionUUID)
 
