@@ -134,10 +134,10 @@ func (t *EtcdTask) Process() error {
 
 	cmdError := cmd.Run()
 	t.Result = buf.String()
-	t.Error = cmdError.Error()
 
 	if cmdError != nil {
 		log.Printf("Failed to process task %s\n", taskID)
+		t.Error = cmdError.Error()
 	} else {
 		log.Printf("Finished processing task %s\n", taskID)
 	}
