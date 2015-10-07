@@ -132,6 +132,7 @@ func (t *EtcdTask) Process() error {
 	args, _ := t.GetArgs()
 	cmd := exec.Command(command, args...)
 	cmd.Stdout = &buf
+	cmd.Stderr = &buf
 
 	log.Printf("Processing task %s\n", taskID)
 
