@@ -137,7 +137,7 @@ func (t *EtcdTask) Process() error {
 	log.Printf("Processing task %s\n", taskID)
 
 	cmdError := cmd.Run()
-	t.TimeProcessed = time.Unix().Now()
+	t.TimeProcessed = time.Now().Unix()
 	t.Result = buf.String()
 
 	if cmdError != nil {
