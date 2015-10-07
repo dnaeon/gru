@@ -13,7 +13,10 @@ type MinionTask interface {
 	GetArgs() ([]string, error)
 
 	// Gets the time the task was sent for processing
-	GetTimestamp() (int64, error)
+	GetTimeReceived() (int64, error)
+
+	// Gets the time when the task has been processed
+	GetTimeProcessed() (int64, error)
 
 	// Gets the task result
 	GetResult() (string, error)

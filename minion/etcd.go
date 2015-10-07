@@ -110,8 +110,13 @@ func (t *EtcdTask) GetArgs() ([]string, error) {
 }
 
 // Returns the time a task has been received for processing
-func (t *EtcdTask) GetTimestamp() (int64, error) {
-	return t.Timestamp, nil
+func (t *EtcdTask) GetTimeReceived() (int64, error) {
+	return t.TimeReceived, nil
+}
+
+// Returns the titme when a task has been processed
+func (t *EtcdTask) GetTimeProcessed() (int64, error) {
+	return t.TimeProcessed, nil
 }
 
 // Returns the result of the task
