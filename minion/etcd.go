@@ -57,7 +57,7 @@ type EtcdTask struct {
 	TimeReceived int64
 
 	// Time when the command was processed
-	TimeProccessed int64
+	TimeProcessed int64
 
 	// Task unique identifier
 	TaskID uuid.UUID
