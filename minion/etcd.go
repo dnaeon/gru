@@ -54,7 +54,10 @@ type EtcdTask struct {
 	Args []string
 
 	// Time when the command was sent for processing
-	Timestamp int64
+	TimeReceived int64
+
+	// Time when the command was processed
+	TimeProccessed int64
 
 	// Task unique identifier
 	TaskID uuid.UUID
@@ -84,7 +87,7 @@ func NewEtcdTask(command string, args ...string) MinionTask {
 	t := &EtcdTask{
 		Command: command,
 		Args: args,
-		Timestamp: time.Now().Unix(),
+		TimeReceived: time.Now().Unix(),
 		TaskID: uuid.NewRandom(),
 	}
 
@@ -133,6 +136,7 @@ func (t *EtcdTask) Process() error {
 	log.Printf("Processing task %s\n", taskID)
 
 	cmdError := cmd.Run()
+	t.TimeProcessed = time.Unix().Now()
 	t.Result = buf.String()
 
 	if cmdError != nil {
