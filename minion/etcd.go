@@ -114,7 +114,7 @@ func (t *EtcdTask) GetTimeReceived() (int64, error) {
 	return t.TimeReceived, nil
 }
 
-// Returns the titme when a task has been processed
+// Returns the time when a task has been processed
 func (t *EtcdTask) GetTimeProcessed() (int64, error) {
 	return t.TimeProcessed, nil
 }
@@ -236,7 +236,7 @@ func (m *EtcdMinion) GetClassifier(key string) (MinionClassifier, error) {
 	return klassifier, err
 }
 
-// Classify a minion  a given key and value
+// Classify a minion with a given key and value
 func (m *EtcdMinion) SetClassifier(c MinionClassifier) error {
 	// Classifiers in etcd expire after an hour
 	opts := &etcdclient.SetOptions{
