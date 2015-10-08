@@ -17,7 +17,7 @@ type EtcdClient struct {
 	KAPI etcdclient.KeysAPI
 }
 
-func NewEtcdClient(cfg etcdclient.Config) *EtcdClient {
+func NewEtcdClient(cfg etcdclient.Config) Client {
 	c, err := etcdclient.New(cfg)
 	if err != nil {
 		log.Fatal(err)
