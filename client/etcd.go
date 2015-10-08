@@ -1,6 +1,7 @@
 package client
 
 import (
+	"log"
 	"encoding/json"
 	"path/filepath"
 
@@ -12,16 +13,22 @@ import (
 )
 
 type EtcdClient struct {
-	// etcd keys api client
+	// KeysAPI client to etcd
 	KAPI etcdclient.KeysAPI
 }
 
-func NewEtcdClient(kapi etcdclient.KeysAPI) *EtcdClient {
-	c := &EtcdClient{
+func NewEtcdClient(cfg etcdclient.Config) *EtcdClient {
+	c, err := etcdclient.New(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	kapi := etcdclient.NewKeysAPI(c)
+	klient := &EtcdClient{
 		KAPI: kapi,
 	}
 
-	return c
+	return klient
 }
 
 func (c *EtcdClient) SubmitTask(u uuid.UUID, t minion.MinionTask) error {
