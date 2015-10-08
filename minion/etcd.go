@@ -295,7 +295,7 @@ func (m *EtcdMinion) SetClassifier(c MinionClassifier) error {
 }
 
 // Runs periodic jobs such as refreshing classifiers and updating lastseen
-func (m *EtcdMinion) Refresh(ticker *time.Ticker) error {
+func (m *EtcdMinion) PeriodicRunner(ticker *time.Ticker) error {
 	for {
 		// Update classifiers
 		for _, classifier := range ClassifierRegistry {
@@ -424,7 +424,7 @@ func (m *EtcdMinion) Serve() error {
 
 	// Run any periodic tasks every hour
 	ticker := time.NewTicker(time.Minute * 15)
-	go m.Refresh(ticker)
+	go m.PeriodicRunner(ticker)
 
 	// Check for backlog tasks and start task listener and runner
 	tasks := make(chan MinionTask)

@@ -26,7 +26,7 @@ type Minion interface {
 	SetClassifier(c MinionClassifier) error
 
 	// Runs periodic functions, e.g. refreshes classifies and lastseen
-	Refresh(t *time.Ticker) error
+	PeriodicRunner(t *time.Ticker) error
 
 	// Listens for new tasks and processes them
 	TaskListener(c chan<- MinionTask) error
