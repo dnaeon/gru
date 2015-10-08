@@ -21,18 +21,6 @@ import (
 const EtcdRootKeySpace = "/gru"
 var EtcdMinionSpace = filepath.Join(EtcdRootKeySpace, "minion")
 
-// Etcd settings that the minion uses for connecting to etcd
-type EtcdMinionConfig struct {
-	// Username to use for authentication to etcd
-	Username string
-
-	// Password to use for authentication to etcd
-	Password string
-
-	// Etcd endpoints to which the minion connects
-	Endpoints []string
-}
-
 // Etcd Minion
 type EtcdMinion struct {
 	// Name of this minion
@@ -168,21 +156,13 @@ func (t *EtcdTask) Process() error {
 }
 
 // Creates a new etcd minion
-func NewEtcdMinion(name string, config EtcdMinionConfig) Minion {
-	etcdconfig := etcdclient.Config{
-		Endpoints: config.Endpoints,
-		Username: config.Username,
-		Password: config.Password,
-		Transport: etcdclient.DefaultTransport,
-		HeaderTimeoutPerRequest: time.Second,
-	}
-
-	c, err := etcdclient.New(etcdconfig)
+func NewEtcdMinion(name string, cfg etcdclient.Config) Minion {
+	c, err := etcdclient.New(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
-	kapi := etcdclient.NewKeysAPI(c)
 
+	kapi := etcdclient.NewKeysAPI(c)
 	minionUUID := GenerateUUID(name)
 	minionRootDir := filepath.Join(EtcdMinionSpace, minionUUID.String())
 	queueDir := filepath.Join(minionRootDir, "queue")
