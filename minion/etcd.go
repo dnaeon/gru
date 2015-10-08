@@ -19,7 +19,19 @@ import (
 
 // Key spaces in etcd
 const EtcdRootKeySpace = "/gru"
+
+// Global keyspace
+var EtcdGlobalSpace = filepath.Join(EtcdRootKeySpace, "global")
+
+// Global keyspace for task logs
+var EtcdGlobalLogSpace = filepath.Join(EtcdGlobalSpace, "log")
+
+// Global keyspace for classifiers
+var EtcdGlobalClassifierSpace = filepath.Join(EtcdGlobalSpace, "classifier")
+
+// Keyspace where minions store their configuration
 var EtcdMinionSpace = filepath.Join(EtcdRootKeySpace, "minion")
+
 
 // Etcd Minion
 type EtcdMinion struct {
@@ -245,26 +257,39 @@ func (m *EtcdMinion) SetClassifier(c MinionClassifier) error {
 	}
 
 	// Get classifier values
-	key, err := c.GetKey()
-	description, err := c.GetDescription()
-	value, err := c.GetValue(m)
+	classifierKey, err := c.GetKey()
+	classifierDescription, err := c.GetDescription()
+	classifierValue, err := c.GetValue(m)
 
 	if err != nil {
 		return err
 	}
 
 	// Create a simple classifier and serialize to JSON
-	klassifier := NewSimpleClassifier(key, value, description)
+	klassifier := NewSimpleClassifier(classifierKey, classifierValue, classifierDescription)
 	data, err := json.Marshal(klassifier)
 
 	if err != nil {
-		log.Printf("Failed to serialize classifier: %s\n", key)
+		log.Printf("Failed to serialize classifier: %s\n", classifierKey)
 		return err
 	}
 
-	// Set classifier in etcd
-	klassifierNode := filepath.Join(m.ClassifierDir, key)
+	// Set classifier in the minion's space
+	klassifierNode := filepath.Join(m.ClassifierDir, classifierKey)
 	_, err = m.KAPI.Set(context.Background(), klassifierNode, string(data), opts)
+
+	if err != nil {
+		log.Printf("Failed to set classifier %s: %s\n", classifierKey, err)
+	}
+
+	// Set a classifier reference in the global classifier space as well
+	// The global classifier is simply a reference to the minion's classifier key
+	globalKlassifierNode := filepath.Join(EtcdGlobalClassifierSpace, classifierKey, m.UUID.String())
+	_, err = m.KAPI.Set(context.Background(), globalKlassifierNode, klassifierNode, opts)
+
+	if err != nil {
+		log.Printf("Failed to set global classifier ref %s: %s\n", classifierKey, err)
+	}
 
 	return err
 }
