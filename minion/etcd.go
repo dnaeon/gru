@@ -415,6 +415,9 @@ func (m *EtcdMinion) CheckForBacklog(c chan<- MinionTask) error {
 
 // Main entry point of the minion
 func (m *EtcdMinion) Serve() error {
+	// Set name of the minion
+	m.SetName(m.Name)
+
 	// Channel on which we send the quit signal
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
