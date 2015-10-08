@@ -370,10 +370,15 @@ func (m *EtcdMinion) SaveTaskResult(t MinionTask) error {
 
 	data, err := json.Marshal(t)
 	if err != nil {
+		log.Printf("Failed to serialize task %s: %s\n", taskID, err)
+		return err
+	}
+
+	_, err = m.KAPI.Create(context.Background(), taskNode, string(data))
+	if err != nil {
 		log.Printf("Failed to save task %s: %s\n", taskID, err)
 		return err
 	}
-	_, err = m.KAPI.Create(context.Background(), taskNode, string(data))
 
 	return err
 }
