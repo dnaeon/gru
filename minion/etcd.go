@@ -58,7 +58,7 @@ type EtcdMinion struct {
 }
 
 // Etcd minion task
-type EtcdTask struct {
+type EtcdMinionTask struct {
 	// Command to be executed by the minion
 	Command string
 
@@ -85,8 +85,8 @@ type EtcdTask struct {
 }
 
 // Unmarshals task from etcd and removes it from the queue
-func UnmarshalEtcdTask(node *etcdclient.Node) (*EtcdTask, error) {
-	task := new(EtcdTask)
+func UnmarshalEtcdMinionTask(node *etcdclient.Node) (*EtcdMinionTask, error) {
+	task := new(EtcdMinionTask)
 	err := json.Unmarshal([]byte(node.Value), &task)
 
 	if err != nil {
@@ -98,8 +98,8 @@ func UnmarshalEtcdTask(node *etcdclient.Node) (*EtcdTask, error) {
 	return task, err
 }
 
-func NewEtcdTask(command string, args ...string) MinionTask {
-	t := &EtcdTask{
+func NewEtcdMinionTask(command string, args ...string) MinionTask {
+	t := &EtcdMinionTask{
 		Command: command,
 		Args: args,
 		TimeReceived: time.Now().Unix(),
@@ -110,56 +110,56 @@ func NewEtcdTask(command string, args ...string) MinionTask {
 }
 
 // Gets the task unique identifier
-func (t *EtcdTask) GetTaskID() uuid.UUID {
+func (t *EtcdMinionTask) GetTaskID() uuid.UUID {
 	return t.TaskID
 }
 
 // Gets the task command to be executed
-func (t *EtcdTask) GetCommand() (string, error) {
+func (t *EtcdMinionTask) GetCommand() (string, error) {
 	return t.Command, nil
 }
 
 // Gets the task arguments
-func (t *EtcdTask) GetArgs() ([]string, error) {
+func (t *EtcdMinionTask) GetArgs() ([]string, error) {
 	return t.Args, nil
 }
 
 // Returns the time a task has been received for processing
-func (t *EtcdTask) GetTimeReceived() (int64, error) {
+func (t *EtcdMinionTask) GetTimeReceived() (int64, error) {
 	return t.TimeReceived, nil
 }
 
 // Returns the time when a task has been processed
-func (t *EtcdTask) GetTimeProcessed() (int64, error) {
+func (t *EtcdMinionTask) GetTimeProcessed() (int64, error) {
 	return t.TimeProcessed, nil
 }
 
 // Returns the result of the task
-func (t *EtcdTask) GetResult() (string, error) {
+func (t *EtcdMinionTask) GetResult() (string, error) {
 	return t.Result, nil
 }
 
 // Returns the task error, if any
-func (t *EtcdTask) GetError() string {
+func (t *EtcdMinionTask) GetError() string {
 	return t.Error
 }
 
 // Returns a boolean whether or not the task can run
 // concurrently with other tasks
-func (t *EtcdTask) IsConcurrent() bool {
+func (t *EtcdMinionTask) IsConcurrent() bool {
 	return t.TaskIsConcurrent
 }
 
 // Sets the flag whether or not this task can run
 // concurrently with other tasks
-func (t *EtcdTask) SetConcurrent(c bool) error {
+func (t *EtcdMinionTask) SetConcurrent(c bool) error {
 	t.TaskIsConcurrent = c
 
 	return nil
 }
 
 // Processes a task
-func (t *EtcdTask) Process() error {
+func (t *EtcdMinionTask) Process() error {
 	var buf bytes.Buffer
 	taskID := t.GetTaskID()
 	command, _ := t.GetCommand()
@@ -355,7 +355,7 @@ func (m *EtcdMinion) TaskListener(c chan<- MinionTask) error {
 		}
 
 		// Remove task from the queue
-		task, err := UnmarshalEtcdTask(resp.Node)
+		task, err := UnmarshalEtcdMinionTask(resp.Node)
 		m.KAPI.Delete(context.Background(), resp.Node.Key, nil)
 
 		if err != nil {
@@ -446,7 +446,7 @@ func (m *EtcdMinion) CheckForBacklog(c chan<- MinionTask) error {
 
 	log.Printf("Found %d tasks in backlog", len(backlog))
 	for _, node := range backlog {
-		task, err := UnmarshalEtcdTask(node)
+		task, err := UnmarshalEtcdMinionTask(node)
 		m.KAPI.Delete(context.Background(), node.Key, nil)
 
 		if err != nil {
