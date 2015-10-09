@@ -12,26 +12,26 @@ import (
 	etcdclient "github.com/coreos/etcd/client"
 )
 
-type EtcdClient struct {
+type EtcdMinionClient struct {
 	// KeysAPI client to etcd
 	KAPI etcdclient.KeysAPI
 }
 
-func NewEtcdClient(cfg etcdclient.Config) Client {
+func NewEtcdMinionClient(cfg etcdclient.Config) MinionClient {
 	c, err := etcdclient.New(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	kapi := etcdclient.NewKeysAPI(c)
-	klient := &EtcdClient{
+	klient := &EtcdMinionClient{
 		KAPI: kapi,
 	}
 
 	return klient
 }
 
-func (c *EtcdClient) SubmitTask(u uuid.UUID, t minion.MinionTask) error {
+func (c *EtcdMinionClient) SubmitTask(u uuid.UUID, t minion.MinionTask) error {
 	minionRootDir := filepath.Join(minion.EtcdMinionSpace, u.String())
 	queueDir := filepath.Join(minionRootDir, "queue")
 

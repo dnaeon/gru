@@ -6,8 +6,8 @@ import (
 	"github.com/dnaeon/gru/minion"
 )
 
-type Client interface {
-	// Submits a new task to a minion
+type MinionClient interface {
+	// Submits a task to a minion
 	SubmitTask(u uuid.UUID, t minion.MinionTask) error
 }
 
