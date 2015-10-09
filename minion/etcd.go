@@ -354,6 +354,7 @@ func (m *EtcdMinion) TaskListener(c chan<- MinionTask) error {
 			continue
 		}
 
+		// Remove task from the queue
 		task, err := UnmarshalEtcdTask(resp.Node)
 		m.KAPI.Delete(context.Background(), resp.Node.Key, nil)
 
@@ -374,9 +375,16 @@ func (m *EtcdMinion) TaskRunner(c <-chan MinionTask) error {
 	for {
 		task := <-c
 
-		// TODO: Run task concurrently with others if task.IsConcurrent()
-		task.Process()
-		m.SaveTaskResult(task)
+		runTask := func() {
+			task.Process()
+			m.SaveTaskResult(task)
+		}
+
+		if task.IsConcurrent() {
+			go runTask()
+		} else {
+			runTask()
+		}
 	}
 
 	return nil
