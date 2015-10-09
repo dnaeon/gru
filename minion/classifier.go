@@ -1,5 +1,9 @@
 package minion
 
+// Global classifier registry
+// Each classifier that is registered in the
+// registry is called by the minions in order to
+// classify themselves
 var ClassifierRegistry []MinionClassifier
 
 // Interface for classifying minion
