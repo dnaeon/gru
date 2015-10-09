@@ -77,6 +77,9 @@ type EtcdTask struct {
 	// Result of task after processing
 	Result string
 
+	// If true this task can run concurrently with other tasks
+	TaskIsConcurrent bool
+
 	// Task error, if any
 	Error string
 }
@@ -139,6 +142,20 @@ func (t *EtcdTask) GetResult() (string, error) {
 // Returns the task error, if any
 func (t *EtcdTask) GetError() string {
 	return t.Error
+}
+
+// Returns a boolean whether or not the task can run
+// concurrently with other tasks
+func (t *EtcdTask) IsConcurrent() bool {
+	return t.TaskIsConcurrent
+}
+
+// Sets the flag whether or not this task can run
+// concurrently with other tasks
+func (t *EtcdTask) SetConcurrent(c bool) error {
+	t.TaskIsConcurrent = c
+
+	return nil
 }
 
 // Processes a task
@@ -356,6 +373,8 @@ func (m *EtcdMinion) TaskListener(c chan<- MinionTask) error {
 func (m *EtcdMinion) TaskRunner(c <-chan MinionTask) error {
 	for {
 		task := <-c
+
+		// TODO: Run task concurrently with others if task.IsConcurrent()
 		task.Process()
 		m.SaveTaskResult(task)
 	}

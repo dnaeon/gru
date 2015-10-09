@@ -24,6 +24,13 @@ type MinionTask interface {
 	// Gets the task error, if any
 	GetError() string
 
+	// Whether or not this task can run concurrently with other tasks
+	IsConcurrent() bool
+
+	// Sets the flag whether or not this task can run
+	// concurrently with other tasks
+	SetConcurrent(bool) error
+
 	// Processes the task
 	Process() error
 }
