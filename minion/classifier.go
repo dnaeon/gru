@@ -14,8 +14,8 @@ type MinionClassifier interface {
 	// Gets the description of a classifier
 	GetDescription() (string, error)
 
-	// Classifies a minion returning the classifier value
-	GetValue(m Minion) (string, error)
+	// Classifies a minion and returns the classifier value
+	GetValue() (string, error)
 }
 
 // Register new classifiers
@@ -49,12 +49,12 @@ func (c *SimpleClassifier) GetDescription() (string, error) {
 	return c.Description, nil
 }
 
-func (c *SimpleClassifier) GetValue(m Minion) (string, error) {
+func (c *SimpleClassifier) GetValue() (string, error) {
 	return c.Value, nil
 }
 
 // Classifier that uses callbacks for classifying minions
-type cbClassifier func(Minion) (string, error)
+type cbClassifier func() (string, error)
 type CallbackClassifier struct {
 	Key, Description string
 
@@ -80,8 +80,8 @@ func (c *CallbackClassifier) GetDescription() (string, error) {
 	return c.Description, nil
 }
 
-func (c *CallbackClassifier) GetValue(m Minion) (string, error) {
-	value, err := c.Callback(m)
+func (c *CallbackClassifier) GetValue() (string, error) {
+	value, err := c.Callback()
 
 	return value, err
 }

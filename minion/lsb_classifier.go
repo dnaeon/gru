@@ -36,7 +36,7 @@ func runLsbReleaseTool(args ...string) (string, error) {
 	return result, nil
 }
 
-func lsbdistidClassifier(m Minion) (string, error) {
+func lsbdistidClassifier() (string, error) {
 	id, err := runLsbReleaseTool("--id")
 
 	if err != nil {
@@ -47,7 +47,7 @@ func lsbdistidClassifier(m Minion) (string, error) {
 	return id, nil
 }
 
-func lsbdistdescClassifier(m Minion) (string, error) {
+func lsbdistdescClassifier() (string, error) {
 	desc, err := runLsbReleaseTool("--description")
 
 	if err != nil {
@@ -58,7 +58,7 @@ func lsbdistdescClassifier(m Minion) (string, error) {
 	return desc, nil
 }
 
-func lsbdistreleaseClassifier(m Minion) (string, error) {
+func lsbdistreleaseClassifier() (string, error) {
 	release, err := runLsbReleaseTool("--release")
 
 	if err != nil {
@@ -69,7 +69,7 @@ func lsbdistreleaseClassifier(m Minion) (string, error) {
 	return release, nil
 }
 
-func lsbdistcodenameClassifier(m Minion) (string, error) {
+func lsbdistcodenameClassifier() (string, error) {
 	codename, err := runLsbReleaseTool("--codename")
 
 	if err != nil {
