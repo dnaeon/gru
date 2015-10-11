@@ -31,6 +31,20 @@ func NewEtcdMinionClient(cfg etcdclient.Config) MinionClient {
 	return klient
 }
 
+// Gets the name of the minion
+func (c *EtcdMinionClient) GetName(u uuid.UUID) (string, error) {
+	var name string
+	nameKey := filepath.Join(minion.EtcdMinionSpace, u.String(), "name")
+
+	resp, err := c.KAPI.Get(context.Background(), nameKey, nil)
+	if err == nil {
+		name = resp.Node.Value
+	}
+
+	return name, err
+}
+
+// Submits a task to a minion
 func (c *EtcdMinionClient) SubmitTask(u uuid.UUID, t minion.MinionTask) error {
 	minionRootDir := filepath.Join(minion.EtcdMinionSpace, u.String())
 	queueDir := filepath.Join(minionRootDir, "queue")
