@@ -13,9 +13,6 @@ type Minion interface {
 	// Set the time the minion was last seen in seconds since the Epoch
 	SetLastseen(s int64) error
 
-	// Get a classifier for a minion
-	GetClassifier(key string) (MinionClassifier, error)
-
 	// Classify minion a with given a key and value
 	SetClassifier(c MinionClassifier) error
 
