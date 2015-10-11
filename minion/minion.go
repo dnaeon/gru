@@ -7,14 +7,8 @@ import (
 )
 
 type Minion interface {
-	// Get minion identifier
-	GetUUID() uuid.UUID
-
 	// Set name of minion
 	SetName(name string) error
-
-	// Get name of minion
-	GetName() (string, error)
 
 	// Set the time the minion was last seen in seconds since the Epoch
 	SetLastseen(s int64) error

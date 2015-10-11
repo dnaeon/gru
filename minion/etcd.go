@@ -213,16 +213,6 @@ func NewEtcdMinion(name string, cfg etcdclient.Config) Minion {
 	return m
 }
 
-// Get the minion UUID
-func (m *EtcdMinion) GetUUID() uuid.UUID {
-	return m.UUID
-}
-
-// Get the human-readable name of the minion
-func (m *EtcdMinion) GetName() (string, error) {
-	return m.Name, nil
-}
-
 // Set the human-readable name of the minion
 func (m *EtcdMinion) SetName(name string) error {
 	key := filepath.Join(m.MinionRootDir, "name")
