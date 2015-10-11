@@ -84,7 +84,7 @@ type EtcdMinionTask struct {
 	Error string
 }
 
-// Unmarshals task from etcd and removes it from the queue
+// Unmarshals task from etcd
 func UnmarshalEtcdMinionTask(node *etcdclient.Node) (*EtcdMinionTask, error) {
 	task := new(EtcdMinionTask)
 	err := json.Unmarshal([]byte(node.Value), &task)
@@ -197,7 +197,6 @@ func NewEtcdMinion(name string, cfg etcdclient.Config) Minion {
 	queueDir := filepath.Join(minionRootDir, "queue")
 	classifierDir := filepath.Join(minionRootDir, "classifier")
 	logDir := filepath.Join(minionRootDir, "log")
-
 	log.Printf("Created minion with uuid %s\n", minionUUID)
 
 	m := &EtcdMinion{
@@ -274,7 +273,7 @@ func (m *EtcdMinion) SetClassifier(c MinionClassifier) error {
 	}
 
 	// Create a simple classifier and serialize to JSON
-	klassifier := NewSimpleClassifier(classifierKey, classifierValue, classifierDescription)
+	klassifier := NewSimpleClassifier(classifierKey, classifierDescription, classifierValue)
 	data, err := json.Marshal(klassifier)
 
 	if err != nil {
