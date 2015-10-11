@@ -62,6 +62,22 @@ func (c *EtcdMinionClient) GetLastseen(u uuid.UUID) (int64, error) {
 	return lastseen, nil
 }
 
+// Gets a classifier identified with key
+func (c *EtcdMinionClient) GetClassifier(u uuid.UUID, key string) (minion.MinionClassifier, error) {
+	// Classifier key in etcd
+	classifierKey := filepath.Join(minion.EtcdMinionSpace, u.String(), "classifier", key)
+	resp, err := c.KAPI.Get(context.Background(), classifierKey, nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	klassifier := new(minion.SimpleClassifier)
+	err = json.Unmarshal([]byte(resp.Node.Value), &klassifier)
+
+	return klassifier, err
+}
+
 // Submits a task to a minion
 func (c *EtcdMinionClient) SubmitTask(u uuid.UUID, t minion.MinionTask) error {
 	minionRootDir := filepath.Join(minion.EtcdMinionSpace, u.String())
