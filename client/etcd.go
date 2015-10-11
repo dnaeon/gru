@@ -2,6 +2,7 @@ package client
 
 import (
 	"log"
+	"strconv"
 	"encoding/json"
 	"path/filepath"
 
@@ -33,15 +34,32 @@ func NewEtcdMinionClient(cfg etcdclient.Config) MinionClient {
 
 // Gets the name of the minion
 func (c *EtcdMinionClient) GetName(u uuid.UUID) (string, error) {
-	var name string
 	nameKey := filepath.Join(minion.EtcdMinionSpace, u.String(), "name")
-
 	resp, err := c.KAPI.Get(context.Background(), nameKey, nil)
-	if err == nil {
-		name = resp.Node.Value
+
+	if err != nil {
+		return "", err
 	}
 
-	return name, err
+	return resp.Node.Value, nil
+}
+
+// Gets the time the minion was last seen
+func (c *EtcdMinionClient) GetLastseen(u uuid.UUID) (int64, error) {
+	lastseenKey := filepath.Join(minion.EtcdMinionSpace, u.String(), "lastseen")
+	resp, err := c.KAPI.Get(context.Background(), lastseenKey, nil)
+
+	if err != nil {
+		return 0, err
+	}
+
+	lastseen, err := strconv.ParseInt(resp.Node.Value, 10, 64)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return lastseen, nil
 }
 
 // Submits a task to a minion
