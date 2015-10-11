@@ -240,16 +240,17 @@ func (m *EtcdMinion) SetLastseen(s int64) error {
 
 // Get classifier for a minion
 func (m *EtcdMinion) GetClassifier(key string) (MinionClassifier, error) {
-	klassifier := new(SimpleClassifier)
-	klassifierNode := filepath.Join(m.ClassifierDir, key, "info")
+	// Classifier key in etcd
+	klassifierKey := filepath.Join(m.ClassifierDir, key)
 
 	// Get classifier from etcd and deserialize
-	resp, err := m.KAPI.Get(context.Background(), klassifierNode, nil)
+	resp, err := m.KAPI.Get(context.Background(), klassifierKey, nil)
 
 	if err != nil {
-		return klassifier, err
+		return nil, err
 	}
 
+	klassifier := new(SimpleClassifier)
 	err = json.Unmarshal([]byte(resp.Node.Value), &klassifier)
 
 	return klassifier, err
