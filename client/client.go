@@ -10,6 +10,9 @@ type MinionClient interface {
 	// Gets the minion name
 	GetName(u uuid.UUID) (string, error)
 
+	// Gets the time the minion was last seen
+	GetLastseen(u uuid.UUID) (int64, error)
+
 	// Submits a task to a minion
 	SubmitTask(u uuid.UUID, t minion.MinionTask) error
 }
