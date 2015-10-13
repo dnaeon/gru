@@ -3,6 +3,7 @@ package client
 import (
 	"log"
 	"path"
+	"sync"
 	"strconv"
 	"encoding/json"
 	"path/filepath"
@@ -107,36 +108,70 @@ func (c *EtcdMinionClient) GetAllClassifiers(u uuid.UUID) ([]minion.MinionClassi
 	return classifiers, nil
 }
 
-// Gets all minions which are classified with a given classifier key
-// The keys of the map are the minion uuid's represented as a string
+// Gets all minions which are classified with a given key
+// The keys of the result map are the minion uuids
+// represented as a string
 func (c *EtcdMinionClient) GetClassifiedMinions(key string) (map[string]minion.MinionClassifier, error) {
-	minions := make(map[string]minion.MinionClassifier)
-
-	// Get all minions and filter only these that have the given classifier
-	resp, err := c.KAPI.Get(context.Background(), minion.EtcdMinionSpace, nil)
-	if err != nil {
-		return minions, err
+	// Searching for classified minions is performed in a
+	// concurrent way, so we need to make sure any writes to
+	// the result map are synchronized between each goroutine
+	var wg sync.WaitGroup
+	type concurrentMap struct {
+		sync.RWMutex
+		m map[string]minion.MinionClassifier
 	}
 
-	// For each minion uuid from the response get the
-	// classifier with the given key
+	// A channel to which we send minion uuids to be
+	// checked whether or not they have the given classifier
+	tasks := make(chan uuid.UUID, 1024)
+
+	// Concurrent map which we use to store the minions
+	// which have the given clasifier key
+	minionsMap := concurrentMap{m: make(map[string]minion.MinionClassifier)}
+
+	// Get the minions from etcd
+	resp, err := c.KAPI.Get(context.Background(), minion.EtcdMinionSpace, nil)
+	if err != nil {
+		return minionsMap.m, err
+	}
+
+	// Start four worker goroutines that will be
+	// processing the uuids from the tasks channel
+	for i := 0; i < 4; i++ {
+		wg.Add(1)
+		worker := func() {
+			defer wg.Done()
+			for u := range tasks {
+				klassifier, err := c.GetClassifier(u, key)
+				if err != nil {
+					continue
+				}
+
+				minionsMap.Lock()
+				minionsMap.m[u.String()] = klassifier
+				minionsMap.Unlock()
+			}
+		}
+
+		go worker()
+	}
+
+	// Send the minion uuids to our workers for processing
 	for _, node := range resp.Node.Nodes {
 		u := path.Base(node.Key)
-		minionUUID := uuid.Parse(key)
+		minionUUID := uuid.Parse(u)
 		if minionUUID == nil {
 			log.Printf("Bad minion uuid found: %s\n", u)
 			continue
 		}
 
-		klassifier, err := c.GetClassifier(minionUUID, key)
-		if err != nil {
-			continue
-		}
-
-		minions[u] = klassifier
+		tasks <- minionUUID
 	}
+	close(tasks)
 
-	return minions, nil
+	wg.Wait()
+
+	return minionsMap.m, nil
 }
 
 // Submits a task to a minion
