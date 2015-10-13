@@ -2,6 +2,7 @@ package client
 
 import (
 	"log"
+	"path"
 	"strconv"
 	"encoding/json"
 	"path/filepath"
@@ -104,6 +105,38 @@ func (c *EtcdMinionClient) GetAllClassifiers(u uuid.UUID) ([]minion.MinionClassi
 	}
 
 	return classifiers, nil
+}
+
+// Gets all minions which are classified with a given classifier key
+// The keys of the map are the minion uuid's represented as a string
+func (c *EtcdMinionClient) GetClassifiedMinions(key string) (map[string]minion.MinionClassifier, error) {
+	minions := make(map[string]minion.MinionClassifier)
+
+	// Get all minions and filter only these that have the given classifier
+	resp, err := c.KAPI.Get(context.Background(), minion.EtcdMinionSpace, nil)
+	if err != nil {
+		return minions, err
+	}
+
+	// For each minion uuid from the response get the
+	// classifier with the given key
+	for _, node := range resp.Node.Nodes {
+		u := path.Base(node.Key)
+		minionUUID := uuid.Parse(key)
+		if minionUUID == nil {
+			log.Printf("Bad minion uuid found: %s\n", u)
+			continue
+		}
+
+		klassifier, err := c.GetClassifier(minionUUID, key)
+		if err != nil {
+			continue
+		}
+
+		minions[u] = klassifier
+	}
+
+	return minions, nil
 }
 
 // Submits a task to a minion
