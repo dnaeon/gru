@@ -16,6 +16,9 @@ type MinionClient interface {
 	// Gets a classifier of a minion
 	GetClassifier(u uuid.UUID, key string) (minion.MinionClassifier, error)
 
+	// Gets all classifiers for a minion
+	GetAllClassifiers(u uuid.UUID) ([]minion.MinionClassifier, error)
+
 	// Submits a task to a minion
 	SubmitTask(u uuid.UUID, t minion.MinionTask) error
 }
