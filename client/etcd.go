@@ -78,6 +78,34 @@ func (c *EtcdMinionClient) GetClassifier(u uuid.UUID, key string) (minion.Minion
 	return klassifier, err
 }
 
+// Gets all classifiers for a minion
+func (c *EtcdMinionClient) GetAllClassifiers(u uuid.UUID) ([]minion.MinionClassifier, error) {
+	var classifiers []minion.MinionClassifier
+
+	// Classifier directory key in etcd
+	classifierDirKey := filepath.Join(minion.EtcdMinionSpace, u.String(), "classifier")
+	opts := &etcdclient.GetOptions{
+		Recursive: true,
+	}
+
+	resp, err := c.KAPI.Get(context.Background(), classifierDirKey, opts)
+	if err != nil {
+		return classifiers, err
+	}
+
+	for _, node := range resp.Node.Nodes {
+		klassifier := new(minion.SimpleClassifier)
+		err := json.Unmarshal([]byte(node.Value), &klassifier)
+		if err != nil {
+			return classifiers, err
+		}
+
+		classifiers = append(classifiers, klassifier)
+	}
+
+	return classifiers, nil
+}
+
 // Submits a task to a minion
 func (c *EtcdMinionClient) SubmitTask(u uuid.UUID, t minion.MinionTask) error {
 	minionRootDir := filepath.Join(minion.EtcdMinionSpace, u.String())
