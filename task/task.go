@@ -1,4 +1,4 @@
-package minion
+package task
 
 import "code.google.com/p/go-uuid/uuid"
 

@@ -4,6 +4,7 @@ import (
 	"code.google.com/p/go-uuid/uuid"
 
 	"github.com/dnaeon/gru/minion"
+	"github.com/dnaeon/gru/task"
 )
 
 type MinionClient interface {
@@ -25,11 +26,11 @@ type MinionClient interface {
 
 	// Gets the task results for all minions that
 	// have processed the task with the given uuid
-	GetTask(u uuid.UUID) (map[string]minion.MinionTask, error)
+	GetTask(u uuid.UUID) (map[string]task.MinionTask, error)
 
 	// Gets the tasks which are still in the minion's queue
-	GetQueue(u uuid.UUID) ([]minion.MinionTask, error)
+	GetQueue(u uuid.UUID) ([]task.MinionTask, error)
 
 	// Submits a task to a minion
-	SubmitTask(u uuid.UUID, t minion.MinionTask) error
+	SubmitTask(u uuid.UUID, t task.MinionTask) error
 }

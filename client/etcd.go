@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/dnaeon/gru/minion"
+	"github.com/dnaeon/gru/task"
 	"github.com/dnaeon/gru/utils"
 
 	"code.google.com/p/go-uuid/uuid"
@@ -183,7 +184,7 @@ func (c *EtcdMinionClient) GetClassifiedMinions(key string) (map[string]minion.M
 
 // Gets task results for all minions that
 // have a task with the given uuid
-func (c *EtcdMinionClient) GetTask(task uuid.UUID) (map[string]minion.MinionTask, error) {
+func (c *EtcdMinionClient) GetTask(taskid uuid.UUID) (map[string]task.MinionTask, error) {
 	// Concurrent map to hold the result
 	cm := utils.NewConcurrentMap()
 
@@ -225,7 +226,7 @@ func (c *EtcdMinionClient) GetTask(task uuid.UUID) (map[string]minion.MinionTask
 			defer wg.Done()
 			for minionUUID := range queue {
 				// Task key in etcd
-				minionTaskKey := filepath.Join(minion.EtcdMinionSpace, minionUUID.String(), "log", task.String())
+				minionTaskKey := filepath.Join(minion.EtcdMinionSpace, minionUUID.String(), "log", taskid.String())
 				resp, err = c.KAPI.Get(context.Background(), minionTaskKey, nil)
 				if err != nil {
 					continue
@@ -247,16 +248,16 @@ func (c *EtcdMinionClient) GetTask(task uuid.UUID) (map[string]minion.MinionTask
 
 	// The result map should be of type[string]minion.MinionTask, so
 	// perform any type assertions here
-	result := make(map[string]minion.MinionTask)
+	result := make(map[string]task.MinionTask)
 	for item := range cm.Iter() {
-		result[item.Key] = item.Value.(minion.MinionTask)
+		result[item.Key] = item.Value.(task.MinionTask)
 	}
 
 	return result, nil
 }
 
 // Gets the tasks which are still in the minion's queue
-func (c *EtcdMinionClient) GetQueue(u uuid.UUID) ([]minion.MinionTask, error) {
+func (c *EtcdMinionClient) GetQueue(u uuid.UUID) ([]task.MinionTask, error) {
 	queueDir := filepath.Join(minion.EtcdMinionSpace, u.String(), "log")
 	opts := &etcdclient.GetOptions{
 		Recursive: true,
@@ -267,7 +268,7 @@ func (c *EtcdMinionClient) GetQueue(u uuid.UUID) ([]minion.MinionTask, error) {
 		return nil, err
 	}
 
-	var tasks []minion.MinionTask
+	var tasks []task.MinionTask
 	for _, node := range resp.Node.Nodes {
 		t, err := minion.UnmarshalEtcdMinionTask(node)
 		if err != nil {
@@ -281,7 +282,7 @@ func (c *EtcdMinionClient) GetQueue(u uuid.UUID) ([]minion.MinionTask, error) {
 }
 
 // Submits a task to a minion
-func (c *EtcdMinionClient) SubmitTask(u uuid.UUID, t minion.MinionTask) error {
+func (c *EtcdMinionClient) SubmitTask(u uuid.UUID, t task.MinionTask) error {
 	minionRootDir := filepath.Join(minion.EtcdMinionSpace, u.String())
 	queueDir := filepath.Join(minionRootDir, "queue")
 

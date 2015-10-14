@@ -3,6 +3,8 @@ package minion
 import (
 	"time"
 
+	"github.com/dnaeon/gru/task"
+
 	"code.google.com/p/go-uuid/uuid"
 )
 
@@ -20,13 +22,13 @@ type Minion interface {
 	PeriodicRunner(t *time.Ticker) error
 
 	// Listens for new tasks and processes them
-	TaskListener(c chan<- MinionTask) error
+	TaskListener(c chan<- task.MinionTask) error
 
 	// Runs new tasks as received by the TaskListener
-	TaskRunner (c <-chan MinionTask) error
+	TaskRunner (c <-chan task.MinionTask) error
 
 	// Saves a task result in the minion's log directory
-	SaveTaskResult(t MinionTask) error
+	SaveTaskResult(t task.MinionTask) error
 
 	// Start serving
 	Serve() error

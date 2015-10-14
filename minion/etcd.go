@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"encoding/json"
 
+	"github.com/dnaeon/gru/task"
+
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/coreos/etcd/Godeps/_workspace/src/golang.org/x/net/context"
 	etcdclient "github.com/coreos/etcd/client"
@@ -86,7 +88,7 @@ func UnmarshalEtcdMinionTask(node *etcdclient.Node) (*EtcdMinionTask, error) {
 	return task, err
 }
 
-func NewEtcdMinionTask(command string, args ...string) MinionTask {
+func NewEtcdMinionTask(command string, args ...string) task.MinionTask {
 	t := &EtcdMinionTask{
 		Command: command,
 		Args: args,
@@ -284,7 +286,7 @@ func (m *EtcdMinion) PeriodicRunner(ticker *time.Ticker) error {
 }
 
 // Monitors etcd for new tasks for processing
-func (m *EtcdMinion) TaskListener(c chan<- MinionTask) error {
+func (m *EtcdMinion) TaskListener(c chan<- task.MinionTask) error {
 	log.Printf("Starting task listener")
 
 	watcherOpts := &etcdclient.WatcherOptions{
@@ -322,7 +324,7 @@ func (m *EtcdMinion) TaskListener(c chan<- MinionTask) error {
 }
 
 // Processes new tasks
-func (m *EtcdMinion) TaskRunner(c <-chan MinionTask) error {
+func (m *EtcdMinion) TaskRunner(c <-chan task.MinionTask) error {
 	for {
 		task := <-c
 
@@ -350,7 +352,7 @@ func (m *EtcdMinion) TaskRunner(c <-chan MinionTask) error {
 }
 
 // Saves a task in the minion's log of previously executed tasks
-func (m *EtcdMinion) SaveTaskResult(t MinionTask) error {
+func (m *EtcdMinion) SaveTaskResult(t task.MinionTask) error {
 	taskID := t.GetTaskID()
 	taskNode := filepath.Join(m.LogDir, taskID.String())
 
@@ -375,7 +377,7 @@ func (m *EtcdMinion) SaveTaskResult(t MinionTask) error {
 }
 
 // Checks for any tasks in backlog
-func (m *EtcdMinion) CheckForBacklog(c chan<- MinionTask) error {
+func (m *EtcdMinion) CheckForBacklog(c chan<- task.MinionTask) error {
 	opts := &etcdclient.GetOptions{
 		Recursive: true,
 		Sort: true,
@@ -423,7 +425,7 @@ func (m *EtcdMinion) Serve() error {
 	go m.PeriodicRunner(ticker)
 
 	// Check for backlog tasks and start task listener and runner
-	tasks := make(chan MinionTask)
+	tasks := make(chan task.MinionTask)
 	go m.TaskListener(tasks)
 	go m.CheckForBacklog(tasks)
 	go m.TaskRunner(tasks)
