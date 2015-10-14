@@ -27,8 +27,8 @@ type MinionClient interface {
 	// have processed the task with the given uuid
 	GetTask(u uuid.UUID) (map[string]minion.MinionTask, error)
 
-	// Gets the task which are still in the minion's queue
-	GetBacklog(u uuid.UUID) ([]minion.MinionTask, error)
+	// Gets the tasks which are still in the minion's queue
+	GetQueue(u uuid.UUID) ([]minion.MinionTask, error)
 
 	// Submits a task to a minion
 	SubmitTask(u uuid.UUID, t minion.MinionTask) error
