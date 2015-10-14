@@ -1,5 +1,7 @@
 package utils
 
+import "sync"
+
 // Map type that can be safely shared between
 // goroutines that require read/write access to a map
 type concurrentMap struct {
@@ -48,7 +50,7 @@ func (cm *concurrentMap) Iter() <-chan ConcurrentMapItem {
 	f := func() {
 		cm.Lock()
 		for k, v := range cm.items {
-			c <- concurrentMapItem{k, v}
+			c <- ConcurrentMapItem{k, v}
 		}
 		cm.Unlock()
 		close(c)
