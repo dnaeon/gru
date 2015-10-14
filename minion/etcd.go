@@ -20,18 +20,8 @@ import (
 // Key spaces in etcd
 const EtcdRootKeySpace = "/gru"
 
-// Global keyspace
-var EtcdGlobalSpace = filepath.Join(EtcdRootKeySpace, "global")
-
-// Global keyspace for task logs
-var EtcdGlobalLogSpace = filepath.Join(EtcdGlobalSpace, "log")
-
-// Global keyspace for classifiers
-var EtcdGlobalClassifierSpace = filepath.Join(EtcdGlobalSpace, "classifier")
-
 // Keyspace where minions store their configuration
 var EtcdMinionSpace = filepath.Join(EtcdRootKeySpace, "minion")
-
 
 // Etcd Minion
 type EtcdMinion struct {
@@ -271,15 +261,6 @@ func (m *EtcdMinion) SetClassifier(c MinionClassifier) error {
 		log.Printf("Failed to set classifier %s: %s\n", classifierKey, err)
 	}
 
-	// Set a classifier reference in the global classifier space as well
-	// The global classifier is simply a reference to the minion's classifier key
-	klassifierRef := filepath.Join(EtcdGlobalClassifierSpace, classifierKey, m.UUID.String())
-	_, err = m.KAPI.Set(context.Background(), klassifierRef, klassifierNode, opts)
-
-	if err != nil {
-		log.Printf("Failed to set global classifier ref %s: %s\n", classifierKey, err)
-	}
-
 	return err
 }
 
@@ -390,18 +371,6 @@ func (m *EtcdMinion) SaveTaskResult(t MinionTask) error {
 	if err != nil {
 		log.Printf("Failed to save task %s: %s\n", taskID, err)
 		return err
-	}
-
-	// Save a reference to the task result in the global keyspace as well
-	// This is the place where all minions that were classified to process
-	// this task would put a reference to their result, so that we can
-	// get the results of all minions from a single location instead of
-	// recursing through all minions
-	taskRef := filepath.Join(EtcdGlobalLogSpace, taskID.String(), m.UUID.String())
-	_, err = m.KAPI.Create(context.Background(), taskRef, taskNode)
-
-	if err != nil {
-		log.Printf("Failed to set global task ref for %s: %s\n", taskID, err)
 	}
 
 	return err
