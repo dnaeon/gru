@@ -23,9 +23,12 @@ type MinionClient interface {
 	// Each key in the result map should uniquely identify a minion
 	GetClassifiedMinions(key string) (map[string]minion.MinionClassifier, error)
 
-	// Gets task results for all minions that
-	// have a task with the given uuid
+	// Gets the task results for all minions that
+	// have processed the task with the given uuid
 	GetTask(u uuid.UUID) (map[string]minion.MinionTask, error)
+
+	// Gets the task which are still in the minion's queue
+	GetBacklog(u uuid.UUID) ([]minion.MinionTask, error)
 
 	// Submits a task to a minion
 	SubmitTask(u uuid.UUID, t minion.MinionTask) error
