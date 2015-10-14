@@ -9,11 +9,16 @@ import (
 	"path/filepath"
 
 	"github.com/dnaeon/gru/minion"
+	"github.com/dnaeon/gru/utils"
 
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/coreos/etcd/Godeps/_workspace/src/golang.org/x/net/context"
 	etcdclient "github.com/coreos/etcd/client"
 )
+
+// Max number of concurrent requests to be
+// performed against the etcd cluster at a time
+const maxGoroutines = 4
 
 type EtcdMinionClient struct {
 	// KeysAPI client to etcd
@@ -115,63 +120,67 @@ func (c *EtcdMinionClient) GetClassifiedMinions(key string) (map[string]minion.M
 	// Searching for classified minions is performed in a
 	// concurrent way, so we need to make sure any writes to
 	// the result map are synchronized between each goroutine
+	cm := utils.NewConcurrentMap()
+
+	// We wait until all goroutines are complete
+	// before returning the result to the client
 	var wg sync.WaitGroup
-	type concurrentMap struct {
-		sync.RWMutex
-		m map[string]minion.MinionClassifier
-	}
 
 	// A channel to which we send minion uuids to be
 	// checked whether or not they have the given classifier
-	tasks := make(chan uuid.UUID, 1024)
-
-	// Concurrent map which we use to store the minions
-	// which have the given clasifier key
-	minionsMap := concurrentMap{m: make(map[string]minion.MinionClassifier)}
+	minionChannel := make(chan uuid.UUID, 1024)
 
 	// Get the minions from etcd
 	resp, err := c.KAPI.Get(context.Background(), minion.EtcdMinionSpace, nil)
 	if err != nil {
-		return minionsMap.m, err
+		return nil, err
 	}
 
-	// Start four worker goroutines that will be
-	// processing the uuids from the tasks channel
-	for i := 0; i < 4; i++ {
+	// Producer sending uuids for processing over the channel
+	producer := func() {
+		for _, node := range resp.Node.Nodes {
+			u := path.Base(node.Key)
+			minionUUID := uuid.Parse(u)
+			if minionUUID == nil {
+				log.Printf("Bad minion uuid found: %s\n", u)
+				continue
+			}
+			minionChannel <- minionUUID
+		}
+
+		close(minionChannel)
+	}
+	go producer()
+
+	// Start our worker goroutines that will be
+	// processing the minion uuids for the given classifiers
+	for i := 0; i < maxGoroutines; i++ {
 		wg.Add(1)
 		worker := func() {
 			defer wg.Done()
-			for u := range tasks {
-				klassifier, err := c.GetClassifier(u, key)
+			for id := range minionChannel {
+				klassifier, err := c.GetClassifier(id, key)
 				if err != nil {
 					continue
 				}
 
-				minionsMap.Lock()
-				minionsMap.m[u.String()] = klassifier
-				minionsMap.Unlock()
+				// Set uuid and classifier in the concurrent map
+				cm.Set(id.String(), klassifier)
 			}
 		}
-
 		go worker()
 	}
 
-	// Send the minion uuids to our workers for processing
-	for _, node := range resp.Node.Nodes {
-		u := path.Base(node.Key)
-		minionUUID := uuid.Parse(u)
-		if minionUUID == nil {
-			log.Printf("Bad minion uuid found: %s\n", u)
-			continue
-		}
-
-		tasks <- minionUUID
-	}
-	close(tasks)
-
 	wg.Wait()
 
-	return minionsMap.m, nil
+	// The result map should be of type[string]minion.MinionClassifier, so
+	// perform any type assertions here
+	result := make(map[string]minion.MinionClassifier)
+	for item := range cm.Iter() {
+		result[item.Key] = item.Value.(minion.MinionClassifier)
+	}
+
+	return result, nil
 }
 
 // Submits a task to a minion
