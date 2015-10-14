@@ -80,9 +80,7 @@ func UnmarshalEtcdMinionTask(node *etcdclient.Node) (*EtcdMinionTask, error) {
 	err := json.Unmarshal([]byte(node.Value), &task)
 
 	if err != nil {
-		log.Printf("Invalid task: key: %s\n", node.Key)
-		log.Printf("Invalid task: value: %s\n", node.Value)
-		log.Printf("Invalid task: error: %s\n", err)
+		log.Printf("Invalid task %s: %s\n", node.Key, err)
 	}
 
 	return task, err
