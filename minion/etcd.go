@@ -348,6 +348,14 @@ func (m *EtcdMinion) TaskRunner(c <-chan MinionTask) error {
 		task := <-c
 
 		runTask := func() {
+			// Set a message that we are processing the task
+			// By doing that we ensure that very early calls to
+			// retrieving the task result will succeed and provide
+			// information about the task's state
+			task.Result = "task is being processed, please wait ..."
+			m.SaveTaskResult(task)
+
+			// Process the task and update the result
 			task.Process()
 			m.SaveTaskResult(task)
 		}
@@ -375,7 +383,10 @@ func (m *EtcdMinion) SaveTaskResult(t MinionTask) error {
 	}
 
 	// Save task result in the minion's space
-	_, err = m.KAPI.Create(context.Background(), taskNode, string(data))
+	opts := &etcdclient.SetOptions{
+		PrevExist: etcdclient.PrevIgnore,
+	}
+	_, err = m.KAPI.Set(context.Background(), taskNode, string(data), opts)
 	if err != nil {
 		log.Printf("Failed to save task %s: %s\n", taskID, err)
 		return err
