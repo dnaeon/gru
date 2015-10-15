@@ -30,6 +30,9 @@ type MinionClient interface {
 	// Gets the tasks which are still in the minion's queue
 	Queue(u uuid.UUID) ([]*minion.MinionTask, error)
 
+	// Gets the processed tasks from the minion's log
+	Log(u uuid.UUID) ([]*minion.MinionTask, error)
+
 	// Submits a task to a minion
 	SubmitTask(u uuid.UUID, t *minion.MinionTask) error
 }

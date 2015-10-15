@@ -257,12 +257,37 @@ func (c *EtcdMinionClient) Task(taskid uuid.UUID) (map[string]*minion.MinionTask
 
 // Gets the tasks which are still in the minion's queue
 func (c *EtcdMinionClient) Queue(u uuid.UUID) ([]*minion.MinionTask, error) {
-	queueDir := filepath.Join(minion.EtcdMinionSpace, u.String(), "log")
+	queueDir := filepath.Join(minion.EtcdMinionSpace, u.String(), "queue")
 	opts := &etcdclient.GetOptions{
 		Recursive: true,
 	}
 
 	resp, err := c.kapi.Get(context.Background(), queueDir, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	var tasks []*minion.MinionTask
+	for _, node := range resp.Node.Nodes {
+		t, err := minion.EtcdUnmarshalTask(node)
+		if err != nil {
+			return nil, err
+		}
+
+		tasks = append(tasks, t)
+	}
+
+	return tasks, nil
+}
+
+// Gets the processed tasks from the minion's log
+func (c *EtcdMinionClient) Log(u uuid.UUID) ([]*minion.MinionTask, error) {
+	logDir := filepath.Join(minion.EtcdMinionSpace, u.String(), "log")
+	opts := &etcdclient.GetOptions{
+		Recursive: true,
+	}
+
+	resp, err := c.kapi.Get(context.Background(), logDir, opts)
 	if err != nil {
 		return nil, err
 	}
