@@ -330,10 +330,10 @@ func (m *etcdMinion) Serve() error {
 
 	// Check for pending tasks in queue
 	tasks := make(chan *MinionTask)
+	go m.TaskRunner(tasks)
 	m.checkQueue(tasks)
 
 	go m.TaskListener(tasks)
-	go m.TaskRunner(tasks)
 
 	// Block until a stop signal is received
 	s := <-quit
