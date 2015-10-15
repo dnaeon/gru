@@ -1,8 +1,6 @@
 package minion
 
-import (
-	"code.google.com/p/go-uuid/uuid"
-)
+import "code.google.com/p/go-uuid/uuid"
 
 type Minion interface {
 	// Returns the unique identifier of a minion

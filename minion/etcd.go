@@ -18,7 +18,7 @@ import (
 )
 
 // Minions keyspace in etcd
-const etcdMinionSpace = "/gru/minion"
+const EtcdMinionSpace = "/gru/minion"
 
 // Etcd Minion
 type etcdMinion struct {
@@ -53,7 +53,7 @@ func NewEtcdMinion(name string, cfg etcdclient.Config) Minion {
 
 	kapi := etcdclient.NewKeysAPI(c)
 	id := GenerateUUID(name)
-	rootDir := filepath.Join(etcdMinionSpace, id.String())
+	rootDir := filepath.Join(EtcdMinionSpace, id.String())
 	queueDir := filepath.Join(rootDir, "queue")
 	classifierDir := filepath.Join(rootDir, "classifier")
 	logDir := filepath.Join(rootDir, "log")
