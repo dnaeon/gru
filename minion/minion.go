@@ -1,34 +1,24 @@
 package minion
 
 import (
-	"time"
-
-	"github.com/dnaeon/gru/task"
-
 	"code.google.com/p/go-uuid/uuid"
 )
 
 type Minion interface {
-	// Set name of minion
-	SetName(name string) error
+	// Returns the unique identifier of a minion
+	ID() uuid.UUID
 
-	// Set the time the minion was last seen in seconds since the Epoch
-	SetLastseen(s int64) error
+	// Returns the assigned name of the minion
+	Name() string
 
-	// Classify minion a with given a key and value
+	// Classify a minion with a given classifier
 	SetClassifier(c MinionClassifier) error
 
-	// Runs periodic functions, e.g. refreshes classifies and lastseen
-	PeriodicRunner(t *time.Ticker) error
-
 	// Listens for new tasks and processes them
-	TaskListener(c chan<- task.MinionTask) error
+	TaskListener(c chan<- *MinionTask) error
 
 	// Runs new tasks as received by the TaskListener
-	TaskRunner (c <-chan task.MinionTask) error
-
-	// Saves a task result in the minion's log directory
-	SaveTaskResult(t task.MinionTask) error
+	TaskRunner (c <-chan *MinionTask) error
 
 	// Start serving
 	Serve() error
