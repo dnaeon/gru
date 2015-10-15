@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 
 	"github.com/dnaeon/gru/minion"
-	"github.com/dnaeon/gru/task"
 	"github.com/dnaeon/gru/utils"
 
 	"code.google.com/p/go-uuid/uuid"
@@ -23,7 +22,7 @@ const maxGoroutines = 4
 
 type EtcdMinionClient struct {
 	// KeysAPI client to etcd
-	KAPI etcdclient.KeysAPI
+	kapi etcdclient.KeysAPI
 }
 
 func NewEtcdMinionClient(cfg etcdclient.Config) MinionClient {
@@ -34,16 +33,16 @@ func NewEtcdMinionClient(cfg etcdclient.Config) MinionClient {
 
 	kapi := etcdclient.NewKeysAPI(c)
 	klient := &EtcdMinionClient{
-		KAPI: kapi,
+		kapi: kapi,
 	}
 
 	return klient
 }
 
 // Gets the name of the minion
-func (c *EtcdMinionClient) GetName(u uuid.UUID) (string, error) {
+func (c *EtcdMinionClient) Name(u uuid.UUID) (string, error) {
 	nameKey := filepath.Join(minion.EtcdMinionSpace, u.String(), "name")
-	resp, err := c.KAPI.Get(context.Background(), nameKey, nil)
+	resp, err := c.kapi.Get(context.Background(), nameKey, nil)
 
 	if err != nil {
 		return "", err
@@ -53,9 +52,9 @@ func (c *EtcdMinionClient) GetName(u uuid.UUID) (string, error) {
 }
 
 // Gets the time the minion was last seen
-func (c *EtcdMinionClient) GetLastseen(u uuid.UUID) (int64, error) {
+func (c *EtcdMinionClient) Lastseen(u uuid.UUID) (int64, error) {
 	lastseenKey := filepath.Join(minion.EtcdMinionSpace, u.String(), "lastseen")
-	resp, err := c.KAPI.Get(context.Background(), lastseenKey, nil)
+	resp, err := c.kapi.Get(context.Background(), lastseenKey, nil)
 
 	if err != nil {
 		return 0, err
@@ -71,10 +70,10 @@ func (c *EtcdMinionClient) GetLastseen(u uuid.UUID) (int64, error) {
 }
 
 // Gets a classifier identified with key
-func (c *EtcdMinionClient) GetClassifier(u uuid.UUID, key string) (minion.MinionClassifier, error) {
+func (c *EtcdMinionClient) Classifier(u uuid.UUID, key string) (minion.MinionClassifier, error) {
 	// Classifier key in etcd
 	classifierKey := filepath.Join(minion.EtcdMinionSpace, u.String(), "classifier", key)
-	resp, err := c.KAPI.Get(context.Background(), classifierKey, nil)
+	resp, err := c.kapi.Get(context.Background(), classifierKey, nil)
 
 	if err != nil {
 		return nil, err
@@ -87,16 +86,16 @@ func (c *EtcdMinionClient) GetClassifier(u uuid.UUID, key string) (minion.Minion
 }
 
 // Gets all classifiers for a minion
-func (c *EtcdMinionClient) GetAllClassifiers(u uuid.UUID) ([]minion.MinionClassifier, error) {
+func (c *EtcdMinionClient) AllClassifiers(u uuid.UUID) ([]minion.MinionClassifier, error) {
 	var classifiers []minion.MinionClassifier
 
 	// Classifier directory key in etcd
-	classifierDirKey := filepath.Join(minion.EtcdMinionSpace, u.String(), "classifier")
+	classifierDir := filepath.Join(minion.EtcdMinionSpace, u.String(), "classifier")
 	opts := &etcdclient.GetOptions{
 		Recursive: true,
 	}
 
-	resp, err := c.KAPI.Get(context.Background(), classifierDirKey, opts)
+	resp, err := c.kapi.Get(context.Background(), classifierDir, opts)
 	if err != nil {
 		return classifiers, err
 	}
@@ -117,7 +116,7 @@ func (c *EtcdMinionClient) GetAllClassifiers(u uuid.UUID) ([]minion.MinionClassi
 // Gets all minions which are classified with a given key
 // The keys of the result map are the minion uuids
 // represented as a string
-func (c *EtcdMinionClient) GetClassifiedMinions(key string) (map[string]minion.MinionClassifier, error) {
+func (c *EtcdMinionClient) Classified(key string) (map[string]minion.MinionClassifier, error) {
 	// Concurrent map to hold the result
 	cm := utils.NewConcurrentMap()
 
@@ -130,7 +129,7 @@ func (c *EtcdMinionClient) GetClassifiedMinions(key string) (map[string]minion.M
 	queue := make(chan uuid.UUID, 1024)
 
 	// Get the minions from etcd
-	resp, err := c.KAPI.Get(context.Background(), minion.EtcdMinionSpace, nil)
+	resp, err := c.kapi.Get(context.Background(), minion.EtcdMinionSpace, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +157,7 @@ func (c *EtcdMinionClient) GetClassifiedMinions(key string) (map[string]minion.M
 		worker := func() {
 			defer wg.Done()
 			for minionUUID := range queue {
-				klassifier, err := c.GetClassifier(minionUUID, key)
+				klassifier, err := c.Classifier(minionUUID, key)
 				if err != nil {
 					continue
 				}
@@ -184,7 +183,7 @@ func (c *EtcdMinionClient) GetClassifiedMinions(key string) (map[string]minion.M
 
 // Gets task results for all minions that
 // have a task with the given uuid
-func (c *EtcdMinionClient) GetTask(taskid uuid.UUID) (map[string]task.MinionTask, error) {
+func (c *EtcdMinionClient) Task(taskid uuid.UUID) (map[string]*minion.MinionTask, error) {
 	// Concurrent map to hold the result
 	cm := utils.NewConcurrentMap()
 
@@ -197,7 +196,7 @@ func (c *EtcdMinionClient) GetTask(taskid uuid.UUID) (map[string]task.MinionTask
 	queue := make(chan uuid.UUID, 1024)
 
 	// Get the minions from etcd
-	resp, err := c.KAPI.Get(context.Background(), minion.EtcdMinionSpace, nil)
+	resp, err := c.kapi.Get(context.Background(), minion.EtcdMinionSpace, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -227,12 +226,12 @@ func (c *EtcdMinionClient) GetTask(taskid uuid.UUID) (map[string]task.MinionTask
 			for minionUUID := range queue {
 				// Task key in etcd
 				minionTaskKey := filepath.Join(minion.EtcdMinionSpace, minionUUID.String(), "log", taskid.String())
-				resp, err = c.KAPI.Get(context.Background(), minionTaskKey, nil)
+				resp, err = c.kapi.Get(context.Background(), minionTaskKey, nil)
 				if err != nil {
 					continue
 				}
 
-				t, err := minion.UnmarshalEtcdMinionTask(resp.Node)
+				t, err := minion.EtcdUnmarshalTask(resp.Node)
 				if err != nil {
 					continue
 				}
@@ -248,29 +247,29 @@ func (c *EtcdMinionClient) GetTask(taskid uuid.UUID) (map[string]task.MinionTask
 
 	// The result map should be of type[string]minion.MinionTask, so
 	// perform any type assertions here
-	result := make(map[string]task.MinionTask)
+	result := make(map[string]*minion.MinionTask)
 	for item := range cm.Iter() {
-		result[item.Key] = item.Value.(task.MinionTask)
+		result[item.Key] = item.Value.(*minion.MinionTask)
 	}
 
 	return result, nil
 }
 
 // Gets the tasks which are still in the minion's queue
-func (c *EtcdMinionClient) GetQueue(u uuid.UUID) ([]task.MinionTask, error) {
+func (c *EtcdMinionClient) Queue(u uuid.UUID) ([]*minion.MinionTask, error) {
 	queueDir := filepath.Join(minion.EtcdMinionSpace, u.String(), "log")
 	opts := &etcdclient.GetOptions{
 		Recursive: true,
 	}
 
-	resp, err := c.KAPI.Get(context.Background(), queueDir, opts)
+	resp, err := c.kapi.Get(context.Background(), queueDir, opts)
 	if err != nil {
 		return nil, err
 	}
 
-	var tasks []task.MinionTask
+	var tasks []*minion.MinionTask
 	for _, node := range resp.Node.Nodes {
-		t, err := minion.UnmarshalEtcdMinionTask(node)
+		t, err := minion.EtcdUnmarshalTask(node)
 		if err != nil {
 			return nil, err
 		}
@@ -282,11 +281,11 @@ func (c *EtcdMinionClient) GetQueue(u uuid.UUID) ([]task.MinionTask, error) {
 }
 
 // Submits a task to a minion
-func (c *EtcdMinionClient) SubmitTask(u uuid.UUID, t task.MinionTask) error {
+func (c *EtcdMinionClient) SubmitTask(u uuid.UUID, t *minion.MinionTask) error {
 	minionRootDir := filepath.Join(minion.EtcdMinionSpace, u.String())
 	queueDir := filepath.Join(minionRootDir, "queue")
 
-	_, err := c.KAPI.Get(context.Background(), minionRootDir, nil)
+	_, err := c.kapi.Get(context.Background(), minionRootDir, nil)
 	if err != nil {
 		return err
 	}
@@ -296,7 +295,7 @@ func (c *EtcdMinionClient) SubmitTask(u uuid.UUID, t task.MinionTask) error {
 		return err
 	}
 
-	_, err = c.KAPI.CreateInOrder(context.Background(), queueDir, string(data), nil)
+	_, err = c.kapi.CreateInOrder(context.Background(), queueDir, string(data), nil)
 	if err != nil {
 		return err
 	}
