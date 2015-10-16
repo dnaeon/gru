@@ -9,8 +9,8 @@ type Minion interface {
 	// Returns the assigned name of the minion
 	Name() string
 
-	// Classify a minion with a given classifier
-	SetClassifier(c MinionClassifier) error
+	// Classifies the minion using any classifiers
+	Classify() error
 
 	// Listens for new tasks and processes them
 	TaskListener(c chan<- *MinionTask) error

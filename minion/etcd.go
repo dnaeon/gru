@@ -133,10 +133,8 @@ func (m *etcdMinion) checkQueue(c chan<- *MinionTask) error {
 // Runs periodic jobs such as refreshing classifiers and updating lastseen
 func (m *etcdMinion) periodicRunner(ticker *time.Ticker) error {
 	for {
-		// Update classifiers
-		for _, classifier := range ClassifierRegistry {
-			m.SetClassifier(classifier)
-		}
+		// Update minion classifiers
+		m.Classify()
 
 		// Update lastseen time
 		now := time.Now().Unix()
@@ -223,41 +221,44 @@ func (m *etcdMinion) Name() string {
 	return m.name
 }
 
-// Classify a minion with a given key and value
-func (m *etcdMinion) SetClassifier(c MinionClassifier) error {
+// Classifies the minion
+func (m *etcdMinion) Classify() error {
 	// Classifiers in etcd expire after an hour
 	opts := &etcdclient.SetOptions{
 		PrevExist: etcdclient.PrevIgnore,
 		TTL: time.Hour,
 	}
 
-	// Get classifier values
-	key, err := c.GetKey()
-	description, err := c.GetDescription()
-	value, err := c.GetValue()
+	// Update classifiers
+	for _, classifier := range ClassifierRegistry {
+		// Get classifier values
+		key, err := c.GetKey()
+		description, err := c.GetDescription()
+		value, err := c.GetValue()
 
-	if err != nil {
-		return err
+		if err != nil {
+			continue
+		}
+
+		// Create a simple classifier and serialize to JSON
+		klassifier := NewSimpleClassifier(key, description, value)
+		data, err := json.Marshal(klassifier)
+
+		if err != nil {
+			log.Printf("Failed to serialize classifier: %s\n", key)
+			continue
+		}
+
+		// Set minion classifier in etcd
+		klassifierKey := filepath.Join(m.classifierDir, key)
+		_, err = m.kapi.Set(context.Background(), klassifierKey, string(data), opts)
+
+		if err != nil {
+			log.Printf("Failed to set classifier %s: %s\n", key, err)
+		}
 	}
 
-	// Create a simple classifier and serialize to JSON
-	klassifier := NewSimpleClassifier(key, description, value)
-	data, err := json.Marshal(klassifier)
-
-	if err != nil {
-		log.Printf("Failed to serialize classifier: %s\n", key)
-		return err
-	}
-
-	// Set minion classifier in etcd
-	klassifierKey := filepath.Join(m.classifierDir, key)
-	_, err = m.kapi.Set(context.Background(), klassifierKey, string(data), opts)
-
-	if err != nil {
-		log.Printf("Failed to set classifier %s: %s\n", key, err)
-	}
-
-	return err
+	return nil
 }
 
 // Monitors etcd for new tasks for processing
