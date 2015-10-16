@@ -183,7 +183,7 @@ func (c *EtcdMinionClient) Classified(key string) (map[string]minion.MinionClass
 
 // Gets task results for all minions that
 // have a task with the given uuid
-func (c *EtcdMinionClient) Task(taskid uuid.UUID) (map[string]*minion.MinionTask, error) {
+func (c *EtcdMinionClient) TaskResult(taskid uuid.UUID) (map[string]*minion.MinionTask, error) {
 	// Concurrent map to hold the result
 	cm := utils.NewConcurrentMap()
 
@@ -256,7 +256,7 @@ func (c *EtcdMinionClient) Task(taskid uuid.UUID) (map[string]*minion.MinionTask
 }
 
 // Gets the tasks which are still in the minion's queue
-func (c *EtcdMinionClient) Queue(u uuid.UUID) ([]*minion.MinionTask, error) {
+func (c *EtcdMinionClient) TaskQueue(u uuid.UUID) ([]*minion.MinionTask, error) {
 	queueDir := filepath.Join(minion.EtcdMinionSpace, u.String(), "queue")
 	opts := &etcdclient.GetOptions{
 		Recursive: true,
@@ -281,7 +281,7 @@ func (c *EtcdMinionClient) Queue(u uuid.UUID) ([]*minion.MinionTask, error) {
 }
 
 // Gets the processed tasks from the minion's log
-func (c *EtcdMinionClient) Log(u uuid.UUID) ([]*minion.MinionTask, error) {
+func (c *EtcdMinionClient) TaskLog(u uuid.UUID) ([]*minion.MinionTask, error) {
 	logDir := filepath.Join(minion.EtcdMinionSpace, u.String(), "log")
 	opts := &etcdclient.GetOptions{
 		Recursive: true,
