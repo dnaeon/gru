@@ -155,7 +155,7 @@ func (m *etcdMinion) periodicRunner(ticker *time.Ticker) error {
 
 // Processes new tasks
 func (m *etcdMinion) processTask(t *task.Task) error {
-	defer m.saveTask(t)
+	defer m.SaveTaskResult(t)
 
 	var buf bytes.Buffer
 	cmd := exec.Command(t.Command, t.Args...)
@@ -179,7 +179,7 @@ func (m *etcdMinion) processTask(t *task.Task) error {
 }
 
 // Saves the task result
-func (m *etcdMinion) saveTask(t *task.Task) error {
+func (m *etcdMinion) SaveTaskResult(t *task.Task) error {
 	// Task key in etcd
 	taskKey := filepath.Join(m.logDir, t.TaskID.String())
 
