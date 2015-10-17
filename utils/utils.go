@@ -1,6 +1,17 @@
 package utils
 
-import "sync"
+import (
+	"sync"
+
+	"code.google.com/p/go-uuid/uuid"
+)
+
+// Generates a uuid for a minion
+func GenerateUUID(name string) uuid.UUID {
+	u := uuid.NewSHA1(uuid.NameSpace_DNS, []byte(name))
+
+	return u
+}
 
 // Map type that can be safely shared between
 // goroutines that require read/write access to a map
