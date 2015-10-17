@@ -1,6 +1,10 @@
 package minion
 
-import "code.google.com/p/go-uuid/uuid"
+import (
+	"github.com/dnaeon/gru/task"
+
+	"code.google.com/p/go-uuid/uuid"
+)
 
 type Minion interface {
 	// Returns the unique identifier of a minion
@@ -13,10 +17,10 @@ type Minion interface {
 	Classify() error
 
 	// Listens for new tasks and processes them
-	TaskListener(c chan<- *MinionTask) error
+	TaskListener(c chan<- *task.Task) error
 
 	// Runs new tasks as received by the TaskListener
-	TaskRunner (c <-chan *MinionTask) error
+	TaskRunner (c <-chan *task.Task) error
 
 	// Start serving
 	Serve() error

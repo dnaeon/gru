@@ -12,6 +12,9 @@ import (
 	"path/filepath"
 	"encoding/json"
 
+	"github.com/dnaeon/gru/classifier"
+	"github.com/dnaeon/gru/task"
+
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/coreos/etcd/Godeps/_workspace/src/golang.org/x/net/context"
 	etcdclient "github.com/coreos/etcd/client"
@@ -78,7 +81,7 @@ func (m *etcdMinion) setName() error {
 		PrevExist: etcdclient.PrevIgnore,
 	}
 
-	_, err := m.kapi.Set(context.Background(), nameKey, m.name, opts)
+	_, err := m.kapi.Set(context.Background(), nameKey, m.Name(), opts)
 
 	return err
 }
@@ -96,8 +99,8 @@ func (m *etcdMinion) setLastseen(s int64) error {
 	return err
 }
 
-// Checks for any tasks pending tasks in queue
-func (m *etcdMinion) checkQueue(c chan<- *MinionTask) error {
+// Checks for any pending tasks in queue
+func (m *etcdMinion) checkQueue(c chan<- *task.Task) error {
 	opts := &etcdclient.GetOptions{
 		Recursive: true,
 		Sort: true,
@@ -115,7 +118,7 @@ func (m *etcdMinion) checkQueue(c chan<- *MinionTask) error {
 		return nil
 	}
 
-	log.Printf("Found %d tasks in backlog", len(backlog))
+	log.Printf("Found %d tasks in queue", len(backlog))
 	for _, node := range backlog {
 		task, err := EtcdUnmarshalTask(node)
 		m.kapi.Delete(context.Background(), node.Key, nil)
@@ -130,7 +133,8 @@ func (m *etcdMinion) checkQueue(c chan<- *MinionTask) error {
 	return nil
 }
 
-// Runs periodic jobs such as refreshing classifiers and updating lastseen
+// Runs periodic jobs such as refreshing classifiers and
+// updating the lastseen time
 func (m *etcdMinion) periodicRunner(ticker *time.Ticker) error {
 	for {
 		// Update minion classifiers
@@ -150,7 +154,7 @@ func (m *etcdMinion) periodicRunner(ticker *time.Ticker) error {
 }
 
 // Processes new tasks
-func (m *etcdMinion) processTask(t *MinionTask) error {
+func (m *etcdMinion) processTask(t *task.Task) error {
 	defer m.saveTask(t)
 
 	var buf bytes.Buffer
@@ -174,8 +178,8 @@ func (m *etcdMinion) processTask(t *MinionTask) error {
 	return cmdError
 }
 
-// Saves a task in the minion's log
-func (m *etcdMinion) saveTask(t *MinionTask) error {
+// Saves the task result
+func (m *etcdMinion) saveTask(t *task.Task) error {
 	// Task key in etcd
 	taskKey := filepath.Join(m.logDir, t.TaskID.String())
 
@@ -186,22 +190,22 @@ func (m *etcdMinion) saveTask(t *MinionTask) error {
 		return err
 	}
 
-	// Save task result in the minion's space
+	// Save the task result in etcd
 	opts := &etcdclient.SetOptions{
 		PrevExist: etcdclient.PrevIgnore,
 	}
+
 	_, err = m.kapi.Set(context.Background(), taskKey, string(data), opts)
 	if err != nil {
 		log.Printf("Failed to save task %s: %s\n", t.TaskID, err)
-		return err
 	}
 
 	return err
 }
 
 // Unmarshals task from etcd
-func EtcdUnmarshalTask(node *etcdclient.Node) (*MinionTask, error) {
-	task := new(MinionTask)
+func EtcdUnmarshalTask(node *etcdclient.Node) (*task.Task, error) {
+	task := new(task.Task)
 	err := json.Unmarshal([]byte(node.Value), &task)
 
 	if err != nil {
@@ -230,26 +234,21 @@ func (m *etcdMinion) Classify() error {
 	}
 
 	// Update classifiers
-	for _, classifier := range ClassifierRegistry {
-		// Get classifier values
-		key, err := c.GetKey()
-		description, err := c.GetDescription()
-		value, err := c.GetValue()
+	for key, _ := range classifier.Registry {
+		klassifier, err := classifier.Get(key)
 
 		if err != nil {
 			continue
 		}
 
-		// Create a simple classifier and serialize to JSON
-		klassifier := NewSimpleClassifier(key, description, value)
+		// Serialize classifier to JSON and save it in etcd
 		data, err := json.Marshal(klassifier)
-
 		if err != nil {
 			log.Printf("Failed to serialize classifier: %s\n", key)
 			continue
 		}
 
-		// Set minion classifier in etcd
+		// Classifier key in etcd
 		klassifierKey := filepath.Join(m.classifierDir, key)
 		_, err = m.kapi.Set(context.Background(), klassifierKey, string(data), opts)
 
@@ -261,8 +260,8 @@ func (m *etcdMinion) Classify() error {
 	return nil
 }
 
-// Monitors etcd for new tasks for processing
-func (m *etcdMinion) TaskListener(c chan<- *MinionTask) error {
+// Monitors etcd for new tasks
+func (m *etcdMinion) TaskListener(c chan<- *task.Task) error {
 	watcherOpts := &etcdclient.WatcherOptions{
 		Recursive: true,
 	}
@@ -298,7 +297,7 @@ func (m *etcdMinion) TaskListener(c chan<- *MinionTask) error {
 }
 
 // Processes new tasks
-func (m *etcdMinion) TaskRunner(c <-chan *MinionTask) error {
+func (m *etcdMinion) TaskRunner(c <-chan *task.Task) error {
 	for {
 		task := <-c
 
@@ -320,17 +319,15 @@ func (m *etcdMinion) Serve() error {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 
-	// Initialize minion
 	m.setName()
-
-	log.Printf("Minion %s is ready to serve", m.id)
+	log.Printf("Minion %s is ready to serve", m.ID())
 
 	// Run periodic tasks every fifteen minutes
 	ticker := time.NewTicker(time.Minute * 15)
 	go m.periodicRunner(ticker)
 
-	// Check for pending tasks in queue
-	tasks := make(chan *MinionTask)
+	// Check for pending tasks in queue first
+	tasks := make(chan *task.Task)
 	go m.TaskRunner(tasks)
 	m.checkQueue(tasks)
 
