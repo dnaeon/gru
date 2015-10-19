@@ -1,6 +1,6 @@
 // +build linux
 
-package minion
+package classifier
 
 import (
 	"bytes"
