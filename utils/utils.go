@@ -38,15 +38,16 @@ func NewConcurrentMap() *concurrentMap {
 // Sets a key in a concurrent map
 func (cm *concurrentMap) Set(key string, value interface{}) {
 	cm.Lock()
+	defer cm.Unlock()
+
 	cm.items[key] = value
-	cm.Unlock()
 }
 
 // Gets a key from a concurrent map
 func (cm *concurrentMap) Get(key string) (interface{}, bool) {
+	cm.Lock()
 	defer cm.Unlock()
 
-	cm.Lock()
 	value, ok := cm.items[key]
 
 	return value, ok
@@ -60,10 +61,59 @@ func (cm *concurrentMap) Iter() <-chan ConcurrentMapItem {
 
 	f := func() {
 		cm.Lock()
+		defer cm.Unlock()
+
 		for k, v := range cm.items {
 			c <- ConcurrentMapItem{k, v}
 		}
-		cm.Unlock()
+		close(c)
+	}
+	go f()
+
+	return c
+}
+
+// Slice type that can be safely shared between goroutines
+type concurrentSlice struct {
+	sync.RWMutex
+	items []interface{}
+}
+
+// Concurrent slice item
+type ConcurrentSliceItem struct {
+	Index int
+	Value interface{}
+}
+
+// Convenience function that creates a new concurrent slice
+func NewConcurrentSlice() *concurrentSlice {
+	cs := &concurrentSlice{
+		items: make([]interface{}, 1),
+	}
+
+	return cs
+}
+
+// Append an item to the concurrent slice
+func (cs *concurrentSlice) Append(item interface{}) {
+	cs.Lock()
+	defer cs.Unlock()
+
+	cs.items = append(cs.items, item)
+}
+
+// Iterates over the items in the concurrent slice
+// Each item is sent over a channel, so that
+// we can iterate over the slice using the builin range keyword
+func (cs *concurrentSlice) Iter() <-chan ConcurrentSliceItem {
+	c := make(chan ConcurrentSliceItem)
+
+	f := func() {
+		cs.Lock()
+		defer cs.Lock()
+		for index, value := range cs.items {
+			c <- ConcurrentSliceItem{index, value}
+		}
 		close(c)
 	}
 	go f()
