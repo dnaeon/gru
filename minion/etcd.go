@@ -14,6 +14,7 @@ import (
 
 	"github.com/dnaeon/gru/classifier"
 	"github.com/dnaeon/gru/task"
+	"github.com/dnaeon/gru/utils"
 
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/coreos/etcd/Godeps/_workspace/src/golang.org/x/net/context"
@@ -55,7 +56,7 @@ func NewEtcdMinion(name string, cfg etcdclient.Config) Minion {
 	}
 
 	kapi := etcdclient.NewKeysAPI(c)
-	id := GenerateUUID(name)
+	id := utils.GenerateUUID(name)
 	rootDir := filepath.Join(EtcdMinionSpace, id.String())
 	queueDir := filepath.Join(rootDir, "queue")
 	classifierDir := filepath.Join(rootDir, "classifier")
