@@ -3,36 +3,38 @@ package client
 import (
 	"code.google.com/p/go-uuid/uuid"
 
-	"github.com/dnaeon/gru/minion"
+	"github.com/dnaeon/gru/classifier"
+	"github.com/dnaeon/gru/task"
 )
 
-type MinionClient interface {
-	// Gets the minion name
-	Name(u uuid.UUID) (string, error)
+type Client interface {
+	// Gets the name of a minion
+	MinionName(m uuid.UUID) (string, error)
 
-	// Gets the time the minion was last seen
-	Lastseen(u uuid.UUID) (int64, error)
+	// Gets the time a minion was last seen
+	MinionLastseen(m uuid.UUID) (int64, error)
 
 	// Gets a classifier of a minion
-	Classifier(u uuid.UUID, key string) (minion.MinionClassifier, error)
+	MinionClassifier(m uuid.UUID, key string) (*classifier.Classifier, error)
 
-	// Gets all classifiers for a minion
-	AllClassifiers(u uuid.UUID) ([]minion.MinionClassifier, error)
+	// Gets all classifier keys of a minion
+	MinionClassifierKeys(m uuid.UUID) ([]string, error)
 
-	// Gets all minions which are classified with a given classifier key
-	// Each key in the result map should uniquely identify a minion
-	Classified(key string) (map[string]minion.MinionClassifier, error)
+	// Gets minions which are classified with a given classifier key
+	MinionWithClassifier(key string) ([]uuid.UUID, error)
 
-	// Gets the task results for all minions that
-	// have processed the task with the given uuid
-	TaskResult(u uuid.UUID) (map[string]*minion.MinionTask, error)
+	// Gets the result of a task for a minion
+	MinionTaskResult(m uuid.UUID, t uuid.UUID) (*task.Task, error)
 
-	// Gets the tasks which are still in the minion's queue
-	TaskQueue(u uuid.UUID) ([]*minion.MinionTask, error)
+	// Gets the minions which have a task result with the given uuid
+	MinionWithTaskResult(t uuid.UUID) ([]uuid.UUID, error)
 
-	// Gets the processed tasks from the minion's log
-	TaskLog(u uuid.UUID) ([]*minion.MinionTask, error)
+	// Gets the tasks which are currently pending in the queue
+	MinionTaskQueue(m uuid.UUID) ([]*task.Task, error)
 
-	// Submits a task to a minion
-	SubmitTask(u uuid.UUID, t *minion.MinionTask) error
+	// Gets the uuids of tasks which have already been processed
+	MinionTaskLog(m uuid.UUID) ([]uuid.UUID, error)
+
+	// Submits a new task to a minion
+	MinionSubmitTask(m uuid.UUID, t *task.Task) error
 }
