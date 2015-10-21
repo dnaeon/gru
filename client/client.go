@@ -8,6 +8,9 @@ import (
 )
 
 type Client interface {
+	// Gets all registered minions
+	MinionList() ([]uuid.UUID, error)
+
 	// Gets the name of a minion
 	MinionName(m uuid.UUID) (string, error)
 
