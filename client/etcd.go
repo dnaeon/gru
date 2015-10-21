@@ -43,6 +43,28 @@ func NewEtcdMinionClient(cfg etcdclient.Config) Client {
 	return klient
 }
 
+// Gets all registered minions
+func (c *etcdMinionClient) MinionList() ([]uuid.UUID, error) {
+	resp, err := c.kapi.Get(context.Background(), minion.EtcdMinionSpace, nil)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var result []uuid.UUID
+	for _, node := range resp.Node.Nodes {
+		k := path.Base(node.Key)
+		u := uuid.Parse(k)
+		if u == nil {
+			log.Printf("Bad minion uuid found: %s\n", k)
+			continue
+		}
+		result = append(result, u)
+	}
+
+	return result, nil
+}
+
 // Gets the name of a minion
 func (c *etcdMinionClient) MinionName(m uuid.UUID) (string, error) {
 	nameKey := filepath.Join(minion.EtcdMinionSpace, m.String(), "name")
