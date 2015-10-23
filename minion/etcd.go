@@ -17,7 +17,7 @@ import (
 	"github.com/dnaeon/gru/utils"
 
 	"code.google.com/p/go-uuid/uuid"
-	"github.com/coreos/etcd/Godeps/_workspace/src/golang.org/x/net/context"
+	"golang.org/x/net/context"
 	etcdclient "github.com/coreos/etcd/client"
 )
 
