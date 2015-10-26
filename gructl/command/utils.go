@@ -26,7 +26,7 @@ func newEtcdMinionClientFromFlags(c *cli.Context) client.Client {
 		cfg.Password = pFlag
 	}
 
-	c := client.NewEtcdMinionClient(cfg)
+	klient := client.NewEtcdMinionClient(cfg)
 
-	return c
+	return klient
 }
