@@ -88,7 +88,7 @@ type ConcurrentSliceItem struct {
 // Convenience function that creates a new concurrent slice
 func NewConcurrentSlice() *concurrentSlice {
 	cs := &concurrentSlice{
-		items: make([]interface{}, 1),
+		items: make([]interface{}, 0),
 	}
 
 	return cs
