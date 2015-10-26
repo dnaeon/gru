@@ -43,6 +43,7 @@ func main() {
 
 	app.Commands = []cli.Command{
 		command.NewMinionCommands(),
+		command.NewClassifierCommands(),
 	}
 
 	app.Run(os.Args)
