@@ -38,7 +38,6 @@ func main() {
 			Name: "timeout",
 			Value: time.Second,
 			Usage: "connection timeout per request",
-			EnvVar: "GRUCTL_TIMEOUT",
 		},
 	}
 
