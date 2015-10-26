@@ -77,9 +77,15 @@ func minionInfoCommand(c *cli.Context) {
 		displayError(err, 1)
 	}
 
+	classifierKeys, err := client.MinionClassifierKeys(minion)
+	if err != nil {
+		displayError(err, 1)
+	}
+
 	fmt.Printf("%-15s: %s\n", "Minion", minion)
 	fmt.Printf("%-15s: %s\n", "Name", name)
 	fmt.Printf("%-15s: %s\n", "Lastseen", time.Unix(lastseen, 0))
 	fmt.Printf("%-15s: %d task(s)\n", "Queue", len(taskQueue))
 	fmt.Printf("%-15s: %d task(s)\n", "Processed", len(taskLog))
+	fmt.Printf("%-15s: %d key(s)\n", "Classifier", len(classifierKeys))
 }
