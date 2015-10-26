@@ -15,7 +15,6 @@ func main() {
 	app.Name = "gructl"
 	app.Version = version.Version
 	app.Usage = "command line tool for managing minions"
-
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name: "endpoint",
@@ -26,13 +25,13 @@ func main() {
 		cli.StringFlag{
 			Name: "username",
 			Value: "",
-			Usage: "username to use when authenticating",
+			Usage: "username to use for authentication",
 			EnvVar: "GRUCTL_USERNAME",
 		},
 		cli.StringFlag{
 			Name: "password",
 			Value: "",
-			Usage: "password to use when authenticating",
+			Usage: "password to use for authentication",
 			EnvVar: "GRUCTL_PASSWORD",
 		},
 		cli.DurationFlag{

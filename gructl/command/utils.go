@@ -10,23 +10,23 @@ import (
 )
 
 func newEtcdMinionClientFromFlags(c *cli.Context) client.Client {
-	endpointFlag := c.GlobalString("endpoint")
-	usernameFlag := c.GlobalString("username")
-	passwordFlag := c.GlobalString("password")
-	timeoutFlag := c.GlobalDuration("timeout")
+	eFlag := c.GlobalString("endpoint")
+	uFlag := c.GlobalString("username")
+	pFlag := c.GlobalString("password")
+	tFlag := c.GlobalDuration("timeout")
 
 	cfg := etcdclient.Config{
-		Endpoints: strings.Split(endpointFlag, ","),
+		Endpoints: strings.Split(eFlag, ","),
 		Transport: etcdclient.DefaultTransport,
-		HeaderTimeoutPerRequest: timeoutFlag,
+		HeaderTimeoutPerRequest: tFlag,
 	}
 
-	if usernameFlag != "" && passwordFlag != "" {
-		cfg.Username = usernameFlag
-		cfg.Password = passwordFlag
+	if uFlag != "" && pFlag != "" {
+		cfg.Username = uFlag
+		cfg.Password = pFlag
 	}
 
-	klient := client.NewEtcdMinionClient(cfg)
+	c := client.NewEtcdMinionClient(cfg)
 
-	return klient
+	return c
 }
