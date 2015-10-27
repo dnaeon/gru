@@ -19,6 +19,11 @@ func NewClassifierCommands() cli.Command {
 				Usage: "list classifiers of a minion",
 				Action: classifierListCommand,
 			},
+			{
+				Name: "report",
+				Usage: "generate a classifier report",
+				Action: classifierReportCommand,
+			},
 		},
 	}
 
@@ -53,3 +58,42 @@ func classifierListCommand(c *cli.Context) {
 	}
 }
 
+// Executes the "classifier report" command
+func classifierReportCommand(c *cli.Context) {
+	if len(c.Args()) == 0 {
+		displayError(errors.New("Must provide a classifier key"), 64)
+	}
+
+	classifierKey := c.Args()[0]
+	client := newEtcdMinionClientFromFlags(c)
+
+	fmt.Printf("Generating report for classifier: %s\n", classifierKey)
+	minions, err := client.MinionWithClassifier(classifierKey)
+	if err != nil {
+		displayError(err, 1)
+	}
+
+	fmt.Printf("Found %d minion(s) with the given classifier", len(minions))
+
+	if len(minions) == 0 {
+		return
+	}
+
+	report := make(map[string]int)
+	for _, minion := range minions {
+		classifier, err := client.MinionClassifier(minion, classifierKey)
+		if err != nil {
+			displayError(err, 1)
+		}
+		if _, ok := report[classifier.Value]; ok {
+			report[classifier.Value] += 1
+		} else {
+			report[classifier.Value] = 1
+		}
+	}
+
+	fmt.Println("\n")
+	for k, v := range report {
+		fmt.Printf("\t%s: %d minion(s)\n", k, v)
+	}
+}
