@@ -9,7 +9,7 @@ import (
 	etcdclient "github.com/coreos/etcd/client"
 )
 
-func newEtcdMinionClientFromFlags(c *cli.Context) client.Client {
+func etcdConfigFromFlags(c *cli.Context) etcdclient.Config {
 	eFlag := c.GlobalString("endpoint")
 	uFlag := c.GlobalString("username")
 	pFlag := c.GlobalString("password")
@@ -26,6 +26,11 @@ func newEtcdMinionClientFromFlags(c *cli.Context) client.Client {
 		cfg.Password = pFlag
 	}
 
+	return cfg
+}
+
+func newEtcdMinionClientFromFlags(c *cli.Context) client.Client {
+	cfg := etcdConfigFromFlags(c)
 	klient := client.NewEtcdMinionClient(cfg)
 
 	return klient

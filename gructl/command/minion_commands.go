@@ -1,9 +1,12 @@
 package command
 
 import (
+	"os"
 	"fmt"
 	"time"
 	"errors"
+
+	"github.com/dnaeon/gru/minion"
 
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/codegangsta/cli"
@@ -23,6 +26,11 @@ func NewMinionCommands() cli.Command {
 				Name: "info",
 				Usage: "get info about a minion",
 				Action: minionInfoCommand,
+			},
+			{
+				Name: "serve",
+				Usage: "start a minion",
+				Action: minionServeCommand,
 			},
 		},
 	}
@@ -88,4 +96,16 @@ func minionInfoCommand(c *cli.Context) {
 	fmt.Printf("%-15s: %d task(s)\n", "Queue", len(taskQueue))
 	fmt.Printf("%-15s: %d task(s)\n", "Processed", len(taskLog))
 	fmt.Printf("%-15s: %d key(s)\n", "Classifier", len(classifierKeys))
+}
+
+// Executes the "minion serve" command
+func minionServeCommand(c *cli.Context) {
+	hostname, err := os.Hostname()
+	if err != nil {
+		displayError(err, 1)
+	}
+
+	cfg := etcdConfigFromFlags(c)
+	m := minion.NewEtcdMinion(hostname, cfg)
+	m.Serve()
 }
