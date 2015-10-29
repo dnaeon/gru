@@ -1,0 +1,6 @@
+package: github.com/dnaeon/gru
+import:
+  - package: github.com/coreos/etcd
+    subpackages:
+      - /client
+  - package: github.com/codegangsta/cli
