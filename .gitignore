@@ -25,3 +25,6 @@ _testmain.go
 
 # Ignore Emacs backup files
 *~
+
+# Ignore Golang vendor packages
+vendor/
