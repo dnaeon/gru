@@ -10,6 +10,8 @@ import (
 
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/codegangsta/cli"
+
+	etcdclient "github.com/coreos/etcd/client"
 )
 
 func NewMinionCommands() cli.Command {
@@ -75,19 +77,28 @@ func minionInfoCommand(c *cli.Context) {
 		displayError(err, 1)
 	}
 
+	// Ignore errors about missing queue directory
 	taskQueue, err := client.MinionTaskQueue(minion)
 	if err != nil {
-		displayError(err, 1)
+		if eerr, ok := err.(etcdclient.Error); !ok || eerr.Code != etcdclient.ErrorCodeKeyNotFound {
+			displayError(err, 1)
+		}
 	}
 
+	// Ignore errors about missing log directory
 	taskLog, err := client.MinionTaskLog(minion)
 	if err != nil {
-		displayError(err, 1)
+		if eerr, ok := err.(etcdclient.Error); !ok || eerr.Code != etcdclient.ErrorCodeKeyNotFound {
+			displayError(err, 1)
+		}
 	}
 
+	// Ignore errors about missing classifier directory
 	classifierKeys, err := client.MinionClassifierKeys(minion)
 	if err != nil {
-		displayError(err, 1)
+		if eerr, ok := err.(etcdclient.Error); !ok || eerr.Code != etcdclient.ErrorCodeKeyNotFound {
+			displayError(err, 1)
+		}
 	}
 
 	fmt.Printf("%-15s: %s\n", "Minion", minion)
