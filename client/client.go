@@ -24,7 +24,7 @@ type Client interface {
 	MinionClassifierKeys(m uuid.UUID) ([]string, error)
 
 	// Gets minions which are classified with a given classifier key
-	MinionWithClassifier(key string) ([]uuid.UUID, error)
+	MinionWithClassifierKey(key string) ([]uuid.UUID, error)
 
 	// Gets the result of a task for a minion
 	MinionTaskResult(m uuid.UUID, t uuid.UUID) (*task.Task, error)

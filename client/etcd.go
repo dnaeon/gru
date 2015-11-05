@@ -135,7 +135,7 @@ func (c *etcdMinionClient) MinionClassifierKeys(m uuid.UUID) ([]string, error) {
 }
 
 // Gets minions which are classified with a given classifier key
-func (c *etcdMinionClient) MinionWithClassifier(key string) ([]uuid.UUID, error) {
+func (c *etcdMinionClient) MinionWithClassifierKey(key string) ([]uuid.UUID, error) {
 	// Concurrent slice to hold the result
 	cs := utils.NewConcurrentSlice()
 
