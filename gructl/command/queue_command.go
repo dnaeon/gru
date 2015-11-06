@@ -11,7 +11,7 @@ import (
 func NewQueueCommand() cli.Command {
 	cmd := cli.Command{
 		Name: "queue",
-		Usage: "list minion queue",
+		Usage: "list minion task queue",
 		Action: execQueueCommand,
 	}
 
