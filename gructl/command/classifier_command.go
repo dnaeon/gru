@@ -14,7 +14,7 @@ func NewClassifierCommand() cli.Command {
 		Name: "classifier",
 		Usage: "list minion classifiers",
 		Action: execClassifierCommand,
-	},
+	}
 
 	return cmd
 }

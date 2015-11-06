@@ -1,6 +1,8 @@
 package command
 
 import (
+	"fmt"
+
 	"github.com/codegangsta/cli"
 )
 

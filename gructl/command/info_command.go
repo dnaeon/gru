@@ -1,7 +1,13 @@
 package command
 
 import (
+	"fmt"
+	"time"
+	"errors"
+
+	"code.google.com/p/go-uuid/uuid"
 	"github.com/codegangsta/cli"
+	etcdclient "github.com/coreos/etcd/client"
 )
 
 func NewInfoCommand() cli.Command {

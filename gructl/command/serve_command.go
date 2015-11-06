@@ -3,6 +3,7 @@ package command
 import (
 	"os"
 
+	"github.com/dnaeon/gru/minion"
 	"github.com/codegangsta/cli"
 )
 

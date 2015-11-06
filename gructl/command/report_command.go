@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"errors"
 
-	"code.google.com/p/go-uuid/uuid"
-
 	"github.com/codegangsta/cli"
 )
 
@@ -14,7 +12,6 @@ func NewReportCommand() cli.Command {
 		Name: "report",
 		Usage: "generate classifier report",
 		Action: execReportCommand,
-		},
 	}
 
 	return cmd
