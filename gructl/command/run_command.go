@@ -21,6 +21,10 @@ func NewRunCommand() cli.Command {
 				Value: "",
 				Usage: "target minion(s) with given classifier only",
 			},
+			cli.BoolFlag{
+				Name: "is-concurrent",
+				Usage: "flag task as concurrent",
+			},
 		},
 	}
 
@@ -63,9 +67,11 @@ func execRunCommand(c *cli.Context) {
 	// The first argument is the command and anything else
 	// that follows is considered as task arguments
 	args := c.Args()
+	isConcurrent := c.Bool("is-concurrent")
 	taskCommand := args[0]
 	taskArgs := args[1:]
 	t := task.New(taskCommand, taskArgs...)
+	t.IsConcurrent = isConcurrent
 
 	failed := 0
 	for i, minion := range minions {
