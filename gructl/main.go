@@ -48,6 +48,7 @@ func main() {
 		command.NewRunCommand(),
 		command.NewClassifierCommand(),
 		command.NewReportCommand(),
+		command.NewQueueCommand(),
 	}
 
 	app.Run(os.Args)
