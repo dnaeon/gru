@@ -78,6 +78,6 @@ func execRunCommand(c *cli.Context) {
 	}
 	fmt.Println()
 
-	fmt.Println("Task submitted to %d minion(s), %d of which has failed\n", numMinions, failed)
-	fmt.Println("Task results can be retrieved by using this task id: %s\n", t.TaskID)
+	fmt.Printf("Task submitted to %d minion(s), %d of which has failed\n", numMinions, failed)
+	fmt.Printf("Task results can be retrieved by using this task id: %s\n", t.TaskID)
 }
