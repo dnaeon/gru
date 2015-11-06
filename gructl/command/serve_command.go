@@ -10,14 +10,14 @@ func NewServeCommand() cli.Command {
 	cmd := cli.Command{
 		Name: "serve",
 		Usage: "start minion",
-		Action: runServeCommand,
+		Action: execServeCommand,
 	}
 
 	return cmd
 }
 
 // Executes the "serve" command
-func runServeCommand(c *cli.Context) {
+func execServeCommand(c *cli.Context) {
 	hostname, err := os.Hostname()
 	if err != nil {
 		displayError(err, 1)

@@ -8,14 +8,14 @@ func NewListCommand() cli.Command {
 	cmd := cli.Command{
 		Name: "list",
 		Usage: "list registered minions",
-		Action: runListCommand,
+		Action: execListCommand,
 	}
 
 	return cmd
 }
 
 // Executes the "list" command
-func runListCommand(c *cli.Context) {
+func execListCommand(c *cli.Context) {
 	client := newEtcdMinionClientFromFlags(c)
 	minions, err := client.MinionList()
 

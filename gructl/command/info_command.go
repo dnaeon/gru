@@ -8,14 +8,14 @@ func NewInfoCommand() cli.Command {
 	cmd := cli.Command{
 		Name: "info",
 		Usage: "get minion info",
-		Action: runInfoCommand,
+		Action: execInfoCommand,
 	}
 
 	return cmd
 }
 
 // Executes the "info" command
-func runInfoCommand(c *cli.Context) {
+func execInfoCommand(c *cli.Context) {
 	if len(c.Args()) == 0 {
 		displayError(errors.New("Must provide a minion uuid"), 64)
 	}
