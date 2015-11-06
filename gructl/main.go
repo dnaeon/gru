@@ -42,8 +42,12 @@ func main() {
 	}
 
 	app.Commands = []cli.Command{
-		command.NewMinionCommands(),
-		command.NewClassifierCommands(),
+		command.NewListCommand(),
+		command.NewInfoCommand(),
+		command.NewServeCommand(),
+		command.NewRunCommand(),
+		command.NewClassifierCommand(),
+		command.NewReportCommand(),
 	}
 
 	app.Run(os.Args)
