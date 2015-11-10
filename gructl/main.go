@@ -50,6 +50,7 @@ func main() {
 		command.NewReportCommand(),
 		command.NewQueueCommand(),
 		command.NewLogCommand(),
+		command.NewLastseenCommand(),
 	}
 
 	app.Run(os.Args)
