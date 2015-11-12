@@ -6,7 +6,6 @@ import (
 
 	"github.com/dnaeon/gru/task"
 
-	"code.google.com/p/go-uuid/uuid"
 	"github.com/codegangsta/cli"
 )
 
@@ -20,7 +19,7 @@ func NewRunCommand() cli.Command {
 				Name: "is-concurrent",
 				Usage: "flag task as concurrent",
 			},
-			cli.Flag{
+			cli.StringFlag{
 				Name: "with-classifier",
 				Value: "",
 				Usage: "match minions with given classifier pattern",
