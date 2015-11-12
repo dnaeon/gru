@@ -11,6 +11,7 @@ var (
 	errInvalidMinion = errors.New("Invalid minion uuid given")
 	errNoMinionFound = errors.New("No minion(s) found")
 	errMissingClassifier = errors.New("Missing classifier key")
+	errInvalidClassifier = errors.New("Invalid classifier pattern")
 )
 
 // Displays the error and exists with the
