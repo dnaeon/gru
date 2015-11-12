@@ -16,14 +16,14 @@ func NewRunCommand() cli.Command {
 		Usage: "send task to minion(s)",
 		Action: execRunCommand,
 		Flags: []cli.Flag{
-			cli.StringFlag{
-				Name: "with-classifier",
-				Value: "",
-				Usage: "target minion(s) with given classifier only",
-			},
 			cli.BoolFlag{
 				Name: "is-concurrent",
 				Usage: "flag task as concurrent",
+			},
+			cli.Flag{
+				Name: "with-classifier",
+				Value: "",
+				Usage: "match minions with given classifier pattern",
 			},
 		},
 	}
@@ -39,19 +39,8 @@ func execRunCommand(c *cli.Context) {
 
 	client := newEtcdMinionClientFromFlags(c)
 
-	// If --with-classifier flag is provided then
-	// send the task for processing only to
-	// minion(s) which contain the given classifier.
-	// Otherwise send the task to all minions
-	var err error
-	var minions []uuid.UUID
 	cFlag := c.String("with-classifier")
-	if cFlag != "" {
-		// TODO: Be able to specify a classifier patterns
-		minions, err = client.MinionWithClassifierKey(cFlag)
-	} else {
-		minions, err = client.MinionList()
-	}
+	minions, err := parseClassifierPattern(client, cFlag)
 
 	if err != nil {
 		displayError(err, 1)
