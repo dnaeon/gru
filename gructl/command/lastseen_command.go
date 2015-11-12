@@ -12,6 +12,13 @@ func NewLastseenCommand() cli.Command {
 		Name: "lastseen",
 		Usage: "show when minion(s) were last seen",
 		Action: execLastseenCommand,
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name: "with-classifier",
+				Value: "",
+				Usage: "match minions with given classifier pattern",
+			},
+		},
 	}
 
 	return cmd
@@ -20,7 +27,9 @@ func NewLastseenCommand() cli.Command {
 // Executes the "lastseen" command
 func execLastseenCommand(c *cli.Context) {
 	client := newEtcdMinionClientFromFlags(c)
-	minions, err := client.MinionList()
+
+	cFlag := c.String("with-classifier")
+	minions, err := parseClassifierPattern(client, cFlag)
 
 	if err != nil {
 		displayError(err, 1)
