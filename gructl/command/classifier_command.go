@@ -1,8 +1,8 @@
 package command
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 
 	"code.google.com/p/go-uuid/uuid"
 
@@ -11,8 +11,8 @@ import (
 
 func NewClassifierCommand() cli.Command {
 	cmd := cli.Command{
-		Name: "classifier",
-		Usage: "list minion classifiers",
+		Name:   "classifier",
+		Usage:  "list minion classifiers",
 		Action: execClassifierCommand,
 	}
 

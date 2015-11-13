@@ -22,7 +22,7 @@ type concurrentMap struct {
 
 // Concurrent map item
 type ConcurrentMapItem struct {
-	Key string
+	Key   string
 	Value interface{}
 }
 

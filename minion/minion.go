@@ -20,7 +20,7 @@ type Minion interface {
 	TaskListener(c chan<- *task.Task) error
 
 	// Runs new tasks as received by the TaskListener
-	TaskRunner (c <-chan *task.Task) error
+	TaskRunner(c <-chan *task.Task) error
 
 	// Saves the result of a task
 	SaveTaskResult(t *task.Task) error

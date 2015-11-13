@@ -1,8 +1,8 @@
 package command
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 
 	"github.com/dnaeon/gru/task"
 
@@ -11,16 +11,16 @@ import (
 
 func NewRunCommand() cli.Command {
 	cmd := cli.Command{
-		Name: "run",
-		Usage: "send task to minion(s)",
+		Name:   "run",
+		Usage:  "send task to minion(s)",
 		Action: execRunCommand,
 		Flags: []cli.Flag{
 			cli.BoolFlag{
-				Name: "is-concurrent",
+				Name:  "is-concurrent",
 				Usage: "flag task as concurrent",
 			},
 			cli.StringFlag{
-				Name: "with-classifier",
+				Name:  "with-classifier",
 				Value: "",
 				Usage: "match minions with given classifier pattern",
 			},
@@ -63,7 +63,7 @@ func execRunCommand(c *cli.Context) {
 
 	failed := 0
 	for i, minion := range minions {
-		fmt.Printf("[%d/%d] Submitting task to minion %s\r", i + 1, numMinions, minion)
+		fmt.Printf("[%d/%d] Submitting task to minion %s\r", i+1, numMinions, minion)
 		err = client.MinionSubmitTask(minion, t)
 		if err != nil {
 			failed += 1

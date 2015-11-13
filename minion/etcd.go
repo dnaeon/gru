@@ -1,24 +1,24 @@
 package minion
 
 import (
+	"bytes"
+	"encoding/json"
+	"log"
 	"os"
 	"os/exec"
 	"os/signal"
-	"log"
-	"bytes"
-	"time"
-	"strings"
-	"strconv"
 	"path/filepath"
-	"encoding/json"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/dnaeon/gru/classifier"
 	"github.com/dnaeon/gru/task"
 	"github.com/dnaeon/gru/utils"
 
 	"code.google.com/p/go-uuid/uuid"
-	"golang.org/x/net/context"
 	etcdclient "github.com/coreos/etcd/client"
+	"golang.org/x/net/context"
 )
 
 // Minions keyspace in etcd
@@ -29,7 +29,7 @@ type etcdMinion struct {
 	// Name of this minion
 	name string
 
-	// Minion root node in etcd 
+	// Minion root node in etcd
 	rootDir string
 
 	// Minion queue node in etcd
@@ -63,13 +63,13 @@ func NewEtcdMinion(name string, cfg etcdclient.Config) Minion {
 	logDir := filepath.Join(rootDir, "log")
 
 	m := &etcdMinion{
-		name: name,
-		rootDir: rootDir,
-		queueDir: queueDir,
+		name:          name,
+		rootDir:       rootDir,
+		queueDir:      queueDir,
 		classifierDir: classifierDir,
-		logDir: logDir,
-		id: id,
-		kapi: kapi,
+		logDir:        logDir,
+		id:            id,
+		kapi:          kapi,
 	}
 
 	return m
@@ -104,7 +104,7 @@ func (m *etcdMinion) setLastseen(s int64) error {
 func (m *etcdMinion) checkQueue(c chan<- *task.Task) error {
 	opts := &etcdclient.GetOptions{
 		Recursive: true,
-		Sort: true,
+		Sort:      true,
 	}
 
 	// Get backlog tasks if any
@@ -148,7 +148,7 @@ func (m *etcdMinion) periodicRunner(ticker *time.Ticker) error {
 			log.Printf("Failed to update lastseen time: %s\n", err)
 		}
 
-		<- ticker.C
+		<-ticker.C
 	}
 
 	return nil
@@ -231,7 +231,7 @@ func (m *etcdMinion) Classify() error {
 	// Classifiers in etcd expire after an hour
 	opts := &etcdclient.SetOptions{
 		PrevExist: etcdclient.PrevIgnore,
-		TTL: time.Hour,
+		TTL:       time.Hour,
 	}
 
 	// Update classifiers

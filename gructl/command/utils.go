@@ -6,8 +6,8 @@ import (
 
 	"github.com/dnaeon/gru/client"
 
-	"github.com/codegangsta/cli"
 	"code.google.com/p/go-uuid/uuid"
+	"github.com/codegangsta/cli"
 	etcdclient "github.com/coreos/etcd/client"
 )
 
@@ -18,8 +18,8 @@ func etcdConfigFromFlags(c *cli.Context) etcdclient.Config {
 	tFlag := c.GlobalDuration("timeout")
 
 	cfg := etcdclient.Config{
-		Endpoints: strings.Split(eFlag, ","),
-		Transport: etcdclient.DefaultTransport,
+		Endpoints:               strings.Split(eFlag, ","),
+		Transport:               etcdclient.DefaultTransport,
 		HeaderTimeoutPerRequest: tFlag,
 	}
 

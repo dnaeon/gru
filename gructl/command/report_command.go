@@ -1,16 +1,16 @@
 package command
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 
 	"github.com/codegangsta/cli"
 )
 
 func NewReportCommand() cli.Command {
 	cmd := cli.Command{
-		Name: "report",
-		Usage: "generate classifier report",
+		Name:   "report",
+		Usage:  "generate classifier report",
 		Action: execReportCommand,
 	}
 

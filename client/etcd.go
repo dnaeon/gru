@@ -1,12 +1,12 @@
 package client
 
 import (
+	"encoding/json"
 	"log"
 	"path"
-	"sync"
-	"strconv"
-	"encoding/json"
 	"path/filepath"
+	"strconv"
+	"sync"
 
 	"github.com/dnaeon/gru/classifier"
 	"github.com/dnaeon/gru/minion"
@@ -14,8 +14,8 @@ import (
 	"github.com/dnaeon/gru/utils"
 
 	"code.google.com/p/go-uuid/uuid"
-	"golang.org/x/net/context"
 	etcdclient "github.com/coreos/etcd/client"
+	"golang.org/x/net/context"
 )
 
 // Max number of concurrent requests to be

@@ -10,8 +10,8 @@ import (
 
 func NewLogCommand() cli.Command {
 	cmd := cli.Command{
-		Name: "log",
-		Usage: "list minion task log",
+		Name:   "log",
+		Usage:  "list minion task log",
 		Action: execLogCommand,
 	}
 

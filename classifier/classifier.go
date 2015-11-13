@@ -37,7 +37,7 @@ func Get(key string) (*Classifier, error) {
 		// Evaluate the classifier provider
 		value, err := p()
 		c := &Classifier{
-			Key: key,
+			Key:   key,
 			Value: value,
 		}
 		return c, err

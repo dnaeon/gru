@@ -8,12 +8,12 @@ import (
 
 func NewListCommand() cli.Command {
 	cmd := cli.Command{
-		Name: "list",
-		Usage: "list registered minions",
+		Name:   "list",
+		Usage:  "list registered minions",
 		Action: execListCommand,
 		Flags: []cli.Flag{
 			cli.StringFlag{
-				Name: "with-classifier",
+				Name:  "with-classifier",
 				Value: "",
 				Usage: "match minions with given classifier pattern",
 			},

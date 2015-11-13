@@ -31,8 +31,8 @@ type Task struct {
 func New(command string, args ...string) *Task {
 	t := &Task{
 		Command: command,
-		Args: args,
-		TaskID: uuid.NewRandom(),
+		Args:    args,
+		TaskID:  uuid.NewRandom(),
 	}
 
 	return t

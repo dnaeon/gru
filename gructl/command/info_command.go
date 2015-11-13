@@ -1,9 +1,9 @@
 package command
 
 import (
+	"errors"
 	"fmt"
 	"time"
-	"errors"
 
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/codegangsta/cli"
@@ -12,8 +12,8 @@ import (
 
 func NewInfoCommand() cli.Command {
 	cmd := cli.Command{
-		Name: "info",
-		Usage: "get minion info",
+		Name:   "info",
+		Usage:  "get minion info",
 		Action: execInfoCommand,
 	}
 

@@ -9,12 +9,12 @@ import (
 
 func NewLastseenCommand() cli.Command {
 	cmd := cli.Command{
-		Name: "lastseen",
-		Usage: "show when minion(s) were last seen",
+		Name:   "lastseen",
+		Usage:  "show when minion(s) were last seen",
 		Action: execLastseenCommand,
 		Flags: []cli.Flag{
 			cli.StringFlag{
-				Name: "with-classifier",
+				Name:  "with-classifier",
 				Value: "",
 				Usage: "match minions with given classifier pattern",
 			},

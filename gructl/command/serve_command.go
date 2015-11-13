@@ -3,14 +3,14 @@ package command
 import (
 	"os"
 
-	"github.com/dnaeon/gru/minion"
 	"github.com/codegangsta/cli"
+	"github.com/dnaeon/gru/minion"
 )
 
 func NewServeCommand() cli.Command {
 	cmd := cli.Command{
-		Name: "serve",
-		Usage: "start minion",
+		Name:   "serve",
+		Usage:  "start minion",
 		Action: execServeCommand,
 	}
 

@@ -1,15 +1,15 @@
 package command
 
 import (
-	"os"
-	"fmt"
 	"errors"
+	"fmt"
+	"os"
 )
 
 var (
-	errMissingMinion = errors.New("Missing minion uuid")
-	errInvalidMinion = errors.New("Invalid minion uuid given")
-	errNoMinionFound = errors.New("No minion(s) found")
+	errMissingMinion     = errors.New("Missing minion uuid")
+	errInvalidMinion     = errors.New("Invalid minion uuid given")
+	errNoMinionFound     = errors.New("No minion(s) found")
 	errMissingClassifier = errors.New("Missing classifier key")
 	errInvalidClassifier = errors.New("Invalid classifier pattern")
 )
