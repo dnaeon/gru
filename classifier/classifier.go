@@ -6,10 +6,10 @@ var errNotFound = errors.New("Classifier key not found")
 
 type Classifier struct {
 	// Classifier key
-	Key string
+	Key string   `json:"key"`
 
 	// Classifier value
-	Value string
+	Value string `json:"value"`
 }
 
 // Type of classifier providers
