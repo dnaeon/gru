@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/codegangsta/cli"
+	"github.com/gosuri/uitable"
 )
 
 func NewLastseenCommand() cli.Command {
@@ -35,12 +36,17 @@ func execLastseenCommand(c *cli.Context) {
 		displayError(err, 1)
 	}
 
+	table := uitable.New()
+	table.MaxColWidth = 80
+	table.AddRow("MINION", "LASTSEEN")
 	for _, minion := range minions {
 		lastseen, err := client.MinionLastseen(minion)
 		if err != nil {
 			displayError(err, 1)
 		}
 
-		fmt.Printf("%s\t%s\n", minion, time.Unix(lastseen, 0))
+		table.AddRow(minion, time.Unix(lastseen, 0))
 	}
+
+	fmt.Println(table)
 }
