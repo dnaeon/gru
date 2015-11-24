@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/codegangsta/cli"
+	"github.com/gosuri/uitable"
 )
 
 func NewReportCommand() cli.Command {
@@ -25,13 +26,10 @@ func execReportCommand(c *cli.Context) {
 	classifierKey := c.Args()[0]
 	client := newEtcdMinionClientFromFlags(c)
 
-	fmt.Printf("Generating report for classifier: %s\n", classifierKey)
 	minions, err := client.MinionWithClassifierKey(classifierKey)
 	if err != nil {
 		displayError(err, 1)
 	}
-
-	fmt.Printf("Found %d minion(s) with the given classifier", len(minions))
 
 	if len(minions) == 0 {
 		return
@@ -50,8 +48,13 @@ func execReportCommand(c *cli.Context) {
 		}
 	}
 
-	fmt.Println("\n")
-	for k, v := range report {
-		fmt.Printf("\t%s: %d minion(s)\n", k, v)
+	table := uitable.New()
+	table.MaxColWidth = 80
+	table.AddRow("CLASSIFIER", "VALUE", "MINION(S)")
+
+	for classifierValue, minionCount := range report {
+		table.AddRow(classifierKey, classifierValue, minionCount)
 	}
+
+	fmt.Println(table)
 }
