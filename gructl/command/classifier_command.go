@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"code.google.com/p/go-uuid/uuid"
-
 	"github.com/codegangsta/cli"
+	"github.com/gosuri/uitable"
 )
 
 func NewClassifierCommand() cli.Command {
@@ -37,12 +37,17 @@ func execClassifierCommand(c *cli.Context) {
 		displayError(err, 1)
 	}
 
+	table := uitable.New()
+	table.MaxColWidth = 60
+	table.AddRow("KEY", "VALUE")
 	for _, key := range classifierKeys {
 		classifier, err := client.MinionClassifier(minion, key)
 		if err != nil {
 			displayError(err, 1)
 		}
 
-		fmt.Printf("%s: %s\n", classifier.Key, classifier.Value)
+		table.AddRow(classifier.Key, classifier.Value)
 	}
+
+	fmt.Println(table)
 }
