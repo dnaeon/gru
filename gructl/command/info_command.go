@@ -6,6 +6,7 @@ import (
 
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/codegangsta/cli"
+	"github.com/gosuri/uitable"
 	etcdclient "github.com/coreos/etcd/client"
 )
 
@@ -66,10 +67,14 @@ func execInfoCommand(c *cli.Context) {
 		}
 	}
 
-	fmt.Printf("%-15s: %s\n", "Minion", minion)
-	fmt.Printf("%-15s: %s\n", "Name", name)
-	fmt.Printf("%-15s: %s\n", "Lastseen", time.Unix(lastseen, 0))
-	fmt.Printf("%-15s: %d task(s)\n", "Queue", len(taskQueue))
-	fmt.Printf("%-15s: %d task(s)\n", "Processed", len(taskLog))
-	fmt.Printf("%-15s: %d key(s)\n", "Classifier", len(classifierKeys))
+	table := uitable.New()
+	table.MaxColWidth = 80
+	table.AddRow("Minion:", minion)
+	table.AddRow("Name:", name)
+	table.AddRow("Lastseen:", time.Unix(lastseen, 0))
+	table.AddRow("Queue:", len(taskQueue))
+	table.AddRow("Log:", len(taskLog))
+	table.AddRow("Classifiers:", len(classifierKeys))
+
+	fmt.Println(table)
 }
