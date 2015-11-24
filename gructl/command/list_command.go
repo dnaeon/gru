@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/codegangsta/cli"
+	"github.com/gosuri/uitable"
 )
 
 func NewListCommand() cli.Command {
@@ -34,7 +35,21 @@ func execListCommand(c *cli.Context) {
 		displayError(err, 1)
 	}
 
-	for _, minion := range minions {
-		fmt.Println(minion)
+	if len(minions) == 0 {
+		return
 	}
+
+	table := uitable.New()
+	table.MaxColWidth = 80
+	table.AddRow("MINION", "NAME")
+	for _, minion := range minions {
+		name, err := client.MinionName(minion)
+		if err != nil {
+			displayError(err, 1)
+		}
+
+		table.AddRow(minion, name)
+	}
+
+	fmt.Println(table)
 }
