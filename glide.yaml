@@ -4,3 +4,4 @@ import:
     subpackages:
       - /client
   - package: github.com/codegangsta/cli
+  - package: github.com/gosuri/uitable
