@@ -5,6 +5,7 @@ import (
 
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/codegangsta/cli"
+	"github.com/gosuri/uitable"
 )
 
 func NewResultCommand() cli.Command {
@@ -63,13 +64,23 @@ func execResultCommand(c *cli.Context) {
 		minionWithTask = append(minionWithTask, minion)
 	}
 
+	if len(minionWithTask) == 0 {
+		displayError(errNoMinionFound, 1)
+	}
+
+	// Create table for the task results
+	table := uitable.New()
+	table.MaxColWidth = 60
+	table.AddRow("MINION", "RESULT")
+
 	for _, minion := range minionWithTask {
 		task, err := client.MinionTaskResult(minion, taskId)
 		if err != nil {
 			displayError(err, 1)
 		}
 
-		fmt.Printf("Minion: %s\n", minion)
-		fmt.Printf("Result: %s\n\n", task.Result)
+		table.AddRow(minion, task.Result)
 	}
+
+	fmt.Println(table)
 }
