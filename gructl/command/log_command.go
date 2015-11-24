@@ -2,9 +2,11 @@ package command
 
 import (
 	"fmt"
+	"time"
 
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/codegangsta/cli"
+	"github.com/gosuri/uitable"
 	etcdclient "github.com/coreos/etcd/client"
 )
 
@@ -39,7 +41,16 @@ func execLogCommand(c *cli.Context) {
 		}
 	}
 
+	table := uitable.New()
+	table.MaxColWidth = 40
+	table.AddRow("TASK", "COMMAND", "TIME")
 	for _, t := range log {
-		fmt.Println(t)
+		task, err := client.MinionTaskResult(minion, t)
+		if err != nil {
+			displayError(err, 1)
+		}
+		table.AddRow(task.TaskID, task.Command, time.Unix(task.TimeReceived, 0))
 	}
+
+	fmt.Println(table)
 }
