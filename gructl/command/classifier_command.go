@@ -36,8 +36,12 @@ func execClassifierCommand(c *cli.Context) {
 		displayError(err, 1)
 	}
 
+	if len(classifierKeys) == 0 {
+		return
+	}
+
 	table := uitable.New()
-	table.MaxColWidth = 60
+	table.MaxColWidth = 80
 	table.AddRow("KEY", "VALUE")
 	for _, key := range classifierKeys {
 		classifier, err := client.MinionClassifier(minion, key)
