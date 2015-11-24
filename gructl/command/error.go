@@ -8,10 +8,11 @@ import (
 
 var (
 	errMissingMinion     = errors.New("Missing minion uuid")
-	errInvalidMinion     = errors.New("Invalid minion uuid given")
+	errInvalidUUID       = errors.New("Invalid uuid given")
 	errNoMinionFound     = errors.New("No minion(s) found")
 	errMissingClassifier = errors.New("Missing classifier key")
 	errInvalidClassifier = errors.New("Invalid classifier pattern")
+	errMissingTask       = errors.New("Missing task uuid")
 )
 
 // Displays the error and exists with the

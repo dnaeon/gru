@@ -26,7 +26,7 @@ func execLogCommand(c *cli.Context) {
 
 	minion := uuid.Parse(c.Args()[0])
 	if minion == nil {
-		displayError(errInvalidMinion, 64)
+		displayError(errInvalidUUID, 64)
 	}
 
 	client := newEtcdMinionClientFromFlags(c)
