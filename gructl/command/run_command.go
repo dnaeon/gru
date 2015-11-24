@@ -1,7 +1,6 @@
 package command
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/dnaeon/gru/task"
@@ -33,7 +32,7 @@ func NewRunCommand() cli.Command {
 // Executes the "run" command
 func execRunCommand(c *cli.Context) {
 	if len(c.Args()) < 1 {
-		displayError(errors.New("Must provide command to run"), 64)
+		displayError(errMissingTask, 64)
 	}
 
 	client := newEtcdMinionClientFromFlags(c)
@@ -47,7 +46,7 @@ func execRunCommand(c *cli.Context) {
 
 	numMinions := len(minions)
 	if numMinions == 0 {
-		displayError(errors.New("No minion(s) found"), 1)
+		displayError(errNoMinionFound, 1)
 	}
 
 	fmt.Printf("Found %d minion(s) for task processing\n", numMinions)

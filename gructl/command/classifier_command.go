@@ -1,7 +1,6 @@
 package command
 
 import (
-	"errors"
 	"fmt"
 
 	"code.google.com/p/go-uuid/uuid"
@@ -22,13 +21,13 @@ func NewClassifierCommand() cli.Command {
 // Executes the "classifier" command
 func execClassifierCommand(c *cli.Context) {
 	if len(c.Args()) == 0 {
-		displayError(errors.New("Must provide a minion uuid"), 64)
+		displayError(errMissingMinion, 64)
 	}
 
 	arg := c.Args()[0]
 	minion := uuid.Parse(arg)
 	if minion == nil {
-		displayError(errors.New("Bad minion uuid given"), 64)
+		displayError(errInvalidUUID, 64)
 	}
 
 	client := newEtcdMinionClientFromFlags(c)

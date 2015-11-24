@@ -1,7 +1,6 @@
 package command
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/codegangsta/cli"
@@ -20,7 +19,7 @@ func NewReportCommand() cli.Command {
 // Executes the "report" command
 func execReportCommand(c *cli.Context) {
 	if len(c.Args()) == 0 {
-		displayError(errors.New("Must provide a classifier key"), 64)
+		displayError(errMissingClassifier, 64)
 	}
 
 	classifierKey := c.Args()[0]
