@@ -2,10 +2,12 @@ package command
 
 import (
 	"fmt"
+	"time"
 
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/codegangsta/cli"
 	etcdclient "github.com/coreos/etcd/client"
+	"github.com/gosuri/uitable"
 )
 
 func NewQueueCommand() cli.Command {
@@ -39,7 +41,16 @@ func execQueueCommand(c *cli.Context) {
 		}
 	}
 
-	for _, t := range queue {
-		fmt.Println(t.TaskID)
+	if len(queue) == 0 {
+		return
 	}
+
+	table := uitable.New()
+	table.MaxColWidth = 40
+	table.AddRow("TASK", "COMMAND", "TIME")
+	for _, task := range queue {
+		table.AddRow(task.TaskID, task.Command, time.Unix(task.TimeReceived, 0))
+	}
+
+	fmt.Println(table)
 }
