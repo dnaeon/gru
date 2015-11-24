@@ -41,6 +41,10 @@ func execLogCommand(c *cli.Context) {
 		}
 	}
 
+	if len(log) == 0 {
+		return
+	}
+
 	table := uitable.New()
 	table.MaxColWidth = 40
 	table.AddRow("TASK", "COMMAND", "TIME")
