@@ -2,6 +2,7 @@ package command
 
 import (
 	"fmt"
+	"time"
 
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/codegangsta/cli"
@@ -17,6 +18,10 @@ func NewResultCommand() cli.Command {
 			cli.StringFlag{
 				Name: "minion",
 				Usage: "get task result for given minion only",
+			},
+			cli.BoolFlag{
+				Name: "details",
+				Usage: "provide more details about the tasks",
 			},
 		},
 	}
@@ -69,9 +74,17 @@ func execResultCommand(c *cli.Context) {
 	}
 
 	// Create table for the task results
+	// If the --details flag is specified, then
+	// create a table that holds all details about the
+	// tasks, otherwise use a simple summary table
 	table := uitable.New()
-	table.MaxColWidth = 60
-	table.AddRow("MINION", "RESULT")
+	if c.Bool("details") {
+		table.MaxColWidth = 80
+		table.Wrap = true
+	} else {
+		table.MaxColWidth = 40
+		table.AddRow("MINION", "RESULT")
+	}
 
 	for _, minion := range minionWithTask {
 		task, err := client.MinionTaskResult(minion, taskId)
@@ -79,7 +92,19 @@ func execResultCommand(c *cli.Context) {
 			displayError(err, 1)
 		}
 
-		table.AddRow(minion, task.Result)
+		if c.Bool("details") {
+			table.AddRow("Minion:", minion)
+			table.AddRow("Task ID:", task.TaskID)
+			table.AddRow("Command:", task.Command)
+			table.AddRow("Args:", task.Args)
+			table.AddRow("Concurrent:", task.IsConcurrent)
+			table.AddRow("Received:", time.Unix(task.TimeReceived, 0))
+			table.AddRow("Processed:", time.Unix(task.TimeProcessed, 0))
+			table.AddRow("Result:", task.Result)
+			table.AddRow("Error:", task.Error)
+		} else {
+			table.AddRow(minion, task.Result)
+		}
 	}
 
 	fmt.Println(table)
