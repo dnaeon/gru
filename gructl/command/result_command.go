@@ -70,7 +70,7 @@ func execResultCommand(c *cli.Context) {
 	}
 
 	if len(minionWithTask) == 0 {
-		displayError(errNoMinionFound, 1)
+		return
 	}
 
 	// Create table for the task results
