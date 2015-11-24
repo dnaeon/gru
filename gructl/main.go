@@ -51,6 +51,7 @@ func main() {
 		command.NewQueueCommand(),
 		command.NewLogCommand(),
 		command.NewLastseenCommand(),
+		command.NewResultCommand(),
 	}
 
 	app.Run(os.Args)
