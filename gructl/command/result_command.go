@@ -12,6 +12,12 @@ func NewResultCommand() cli.Command {
 		Name: "result",
 		Usage: "get task results",
 		Action: execResultCommand,
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name: "minion",
+				Usage: "get task result for given minion only",
+			},
+		},
 	}
 
 	return cmd
@@ -30,9 +36,31 @@ func execResultCommand(c *cli.Context) {
 	}
 
 	client := newEtcdMinionClientFromFlags(c)
-	minionWithTask, err := client.MinionWithTaskResult(taskId)
-	if err != nil {
-		displayError(err, 1)
+
+	// If --minion flag was specified parse the
+	// minion uuid and get the task result only
+	// from the specified minion, otherwise find
+	// all minions which contain the given
+	// task and get their results
+	var minionWithTask []uuid.UUID
+
+	mFlag := c.String("minion")
+	if mFlag == "" {
+		// No minion was specified, get all minions
+		// with the given task uuid
+		m, err := client.MinionWithTaskResult(taskId)
+		if err != nil {
+			displayError(err, 1)
+		}
+		minionWithTask = m
+	} else {
+		// Minion was specified, get task result
+		// from the given minion only
+		minion := uuid.Parse(mFlag)
+		if minion == nil {
+			displayError(errInvalidUUID, 64)
+		}
+		minionWithTask = append(minionWithTask, minion)
 	}
 
 	for _, minion := range minionWithTask {
