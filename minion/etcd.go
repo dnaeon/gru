@@ -29,16 +29,16 @@ type etcdMinion struct {
 	// Name of this minion
 	name string
 
-	// Minion root node in etcd
+	// Minion root directory in etcd
 	rootDir string
 
-	// Minion queue node in etcd
+	// Minion queue directory in etcd
 	queueDir string
 
 	// Log directory to keep previously executed tasks
 	logDir string
 
-	// Root node for classifiers in etcd
+	// Classifier directory in etcd
 	classifierDir string
 
 	// Minion unique identifier
