@@ -83,7 +83,7 @@ func execResultCommand(c *cli.Context) {
 		table.Wrap = true
 	} else {
 		table.MaxColWidth = 40
-		table.AddRow("MINION", "RESULT")
+		table.AddRow("MINION", "RESULT", "STATE")
 	}
 
 	for _, minion := range minionWithTask {
@@ -95,6 +95,7 @@ func execResultCommand(c *cli.Context) {
 		if c.Bool("details") {
 			table.AddRow("Minion:", minion)
 			table.AddRow("Task ID:", task.TaskID)
+			table.AddRow("State:", task.State)
 			table.AddRow("Command:", task.Command)
 			table.AddRow("Args:", task.Args)
 			table.AddRow("Concurrent:", task.IsConcurrent)
@@ -103,7 +104,7 @@ func execResultCommand(c *cli.Context) {
 			table.AddRow("Result:", task.Result)
 			table.AddRow("Error:", task.Error)
 		} else {
-			table.AddRow(minion, task.Result)
+			table.AddRow(minion, task.Result, task.State)
 		}
 	}
 
