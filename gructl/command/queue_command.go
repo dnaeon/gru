@@ -47,9 +47,9 @@ func execQueueCommand(c *cli.Context) {
 
 	table := uitable.New()
 	table.MaxColWidth = 40
-	table.AddRow("TASK", "COMMAND", "TIME")
+	table.AddRow("TASK", "COMMAND", "STATE", "TIME")
 	for _, task := range queue {
-		table.AddRow(task.TaskID, task.Command, time.Unix(task.TimeReceived, 0))
+		table.AddRow(task.TaskID, task.Command, task.State, time.Unix(task.TimeReceived, 0))
 	}
 
 	fmt.Println(table)
