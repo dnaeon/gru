@@ -2,6 +2,26 @@ package task
 
 import "code.google.com/p/go-uuid/uuid"
 
+// Task states
+const (
+	// Unknown state of the task
+	// This is the default state of a task
+	// when new task is initially created
+	TaskStateUnknown = "unknown"
+
+	// Task has been received by the
+	// minion and is queued for execution
+	TaskStateQueued  = "queued"
+
+	// Task has been processed by the
+	// minion and was flagged as successful
+	TaskStateSuccess = "success"
+
+	// Task has been processed by the
+	// minion and was flagged as failed
+	TaskStateFailed  = "failed"
+)
+
 type Task struct {
 	// Command to be executed by the minion
 	Command string `json:"command"`
@@ -26,6 +46,9 @@ type Task struct {
 
 	// Task error, if any
 	Error string `json:"error"`
+
+	// Task state
+	State string `json:"state"`
 }
 
 func New(command string, args ...string) *Task {
@@ -33,6 +56,7 @@ func New(command string, args ...string) *Task {
 		Command: command,
 		Args:    args,
 		TaskID:  uuid.NewRandom(),
+		State:   TaskStateUnknown,
 	}
 
 	return t
