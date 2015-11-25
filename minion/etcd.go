@@ -298,7 +298,7 @@ func (m *etcdMinion) TaskListener(c chan<- *task.Task) error {
 		t.TimeReceived = time.Now().Unix()
 		m.SaveTaskResult(t)
 
-		log.Printf("Received task %s\n", task.TaskID)
+		log.Printf("Received task %s\n", t.TaskID)
 
 		c <- t
 	}
