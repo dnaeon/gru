@@ -2,10 +2,13 @@ package command
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/dnaeon/gru/task"
 
 	"github.com/codegangsta/cli"
+	"github.com/gosuri/uitable"
+	"github.com/gosuri/uiprogress"
 )
 
 func NewRunCommand() cli.Command {
@@ -49,10 +52,11 @@ func execRunCommand(c *cli.Context) {
 		displayError(errNoMinionFound, 1)
 	}
 
-	fmt.Printf("Found %d minion(s) for task processing\n", numMinions)
+	fmt.Printf("Found %d minion(s) for task processing\n\n", numMinions)
 
+	// Create the task that we send to our minions
 	// The first argument is the command and anything else
-	// that follows is considered as task arguments
+	// that follows is considered task arguments
 	args := c.Args()
 	isConcurrent := c.Bool("is-concurrent")
 	taskCommand := args[0]
@@ -60,17 +64,38 @@ func execRunCommand(c *cli.Context) {
 	t := task.New(taskCommand, taskArgs...)
 	t.IsConcurrent = isConcurrent
 
+	// Progress bar to display while submitting task
+	progress := uiprogress.New()
+	bar := progress.AddBar(numMinions)
+	bar.AppendCompleted()
+	bar.PrependElapsed()
+	progress.Start()
+
+	// Number of minions to which submitting the task has failed
 	failed := 0
-	for i, minion := range minions {
-		fmt.Printf("[%d/%d] Submitting task to minion %s\r", i+1, numMinions, minion)
+
+	// Submit task to minions
+	fmt.Println("Submitting task to minion(s) ...")
+	for _, minion := range minions {
 		err = client.MinionSubmitTask(minion, t)
 		if err != nil {
+			fmt.Printf("Failed to submit task to %s: %s\n", minion, err)
 			failed += 1
-			fmt.Printf("\nFailed to submit task to %s: %s\n", minion, err)
 		}
+		bar.Incr()
 	}
-	fmt.Println()
 
-	fmt.Printf("Task submitted to %d minion(s), %d of which has failed\n", numMinions, failed)
-	fmt.Printf("Task results can be retrieved by using this task id: %s\n", t.TaskID)
+	// Stop progress bar and sleep for a bit to make sure the
+	// progress bar gets updated if we were too fast for it
+	progress.Stop()
+	time.Sleep(time.Millisecond * 100)
+
+	// Display task report
+	fmt.Println()
+	table := uitable.New()
+	table.MaxColWidth = 80
+	table.Wrap = true
+	table.AddRow("TASK", "SUBMITTED", "FAILED", "TOTAL")
+	table.AddRow(t.TaskID, numMinions-failed, failed, numMinions)
+	fmt.Println(table)
 }
