@@ -12,6 +12,13 @@ func NewServeCommand() cli.Command {
 		Name:   "serve",
 		Usage:  "start minion",
 		Action: execServeCommand,
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name: "name",
+				Usage: "set minion name",
+				Value: "",
+			},
+		},
 	}
 
 	return cmd
@@ -19,12 +26,19 @@ func NewServeCommand() cli.Command {
 
 // Executes the "serve" command
 func execServeCommand(c *cli.Context) {
-	hostname, err := os.Hostname()
+	var name string
+
+	name, err := os.Hostname()
 	if err != nil {
 		displayError(err, 1)
 	}
 
+	nameFlag := c.String("name")
+	if nameFlag != "" {
+		name = nameFlag
+	}
+
 	cfg := etcdConfigFromFlags(c)
-	m := minion.NewEtcdMinion(hostname, cfg)
+	m := minion.NewEtcdMinion(name, cfg)
 	m.Serve()
 }
