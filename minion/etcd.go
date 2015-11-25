@@ -156,9 +156,12 @@ func (m *etcdMinion) periodicRunner(ticker *time.Ticker) error {
 
 // Processes new tasks
 func (m *etcdMinion) processTask(t *task.Task) error {
-	defer m.SaveTaskResult(t)
-
 	var buf bytes.Buffer
+
+	// Update state of task that we are now processing it
+	t.State = task.TaskStateProcessing
+	m.SaveTaskResult(t)
+
 	cmd := exec.Command(t.Command, t.Args...)
 	cmd.Stdout = &buf
 	cmd.Stderr = &buf
@@ -172,9 +175,13 @@ func (m *etcdMinion) processTask(t *task.Task) error {
 	if cmdError != nil {
 		log.Printf("Failed to process task %s\n", t.TaskID)
 		t.Error = cmdError.Error()
+		t.State = task.TaskStateFailed
 	} else {
 		log.Printf("Finished processing task %s\n", t.TaskID)
+		t.State = task.TaskStateSuccess
 	}
+
+	m.SaveTaskResult(t)
 
 	return cmdError
 }
@@ -278,7 +285,7 @@ func (m *etcdMinion) TaskListener(c chan<- *task.Task) error {
 		}
 
 		// Remove task from the queue
-		task, err := EtcdUnmarshalTask(resp.Node)
+		t, err := EtcdUnmarshalTask(resp.Node)
 		m.kapi.Delete(context.Background(), resp.Node.Key, nil)
 
 		if err != nil {
@@ -286,9 +293,14 @@ func (m *etcdMinion) TaskListener(c chan<- *task.Task) error {
 			continue
 		}
 
+		// Update task state and save it
+		t.State = task.TaskStateQueued
+		t.TimeReceived = time.Now().Unix()
+		m.SaveTaskResult(t)
+
 		log.Printf("Received task %s\n", task.TaskID)
 
-		c <- task
+		c <- t
 	}
 
 	return nil
@@ -298,8 +310,6 @@ func (m *etcdMinion) TaskListener(c chan<- *task.Task) error {
 func (m *etcdMinion) TaskRunner(c <-chan *task.Task) error {
 	for {
 		task := <-c
-
-		task.TimeReceived = time.Now().Unix()
 
 		if task.IsConcurrent {
 			go m.processTask(task)
