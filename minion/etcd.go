@@ -209,10 +209,6 @@ func EtcdUnmarshalTask(node *etcdclient.Node) (*task.Task, error) {
 	task := new(task.Task)
 	err := json.Unmarshal([]byte(node.Value), &task)
 
-	if err != nil {
-		log.Printf("Invalid task %s: %s\n", node.Key, err)
-	}
-
 	return task, err
 }
 
@@ -286,6 +282,7 @@ func (m *etcdMinion) TaskListener(c chan<- *task.Task) error {
 		m.kapi.Delete(context.Background(), resp.Node.Key, nil)
 
 		if err != nil {
+			log.Printf("Invalid task %s: %s\n", resp.Node.Key, err)
 			continue
 		}
 
