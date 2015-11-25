@@ -1,7 +1,8 @@
 package: github.com/dnaeon/gru
 import:
   - package: github.com/coreos/etcd
-    subpackages:
-      - /client
+    subpackage: client
   - package: github.com/codegangsta/cli
+  - package: github.com/gosuri/uilive
   - package: github.com/gosuri/uitable
+  - package: github.com/gosuri/uiprogress
