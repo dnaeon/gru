@@ -137,7 +137,7 @@ func (m *etcdMinion) checkQueue(c chan<- *task.Task) error {
 // Runs periodic jobs such as refreshing classifiers and
 // updating the lastseen time
 func (m *etcdMinion) periodicRunner(ticker *time.Ticker) error {
-	for {
+	for _ = range ticker.C {
 		// Update minion classifiers
 		m.Classify()
 
@@ -147,8 +147,6 @@ func (m *etcdMinion) periodicRunner(ticker *time.Ticker) error {
 		if err != nil {
 			log.Printf("Failed to update lastseen time: %s\n", err)
 		}
-
-		<-ticker.C
 	}
 
 	return nil
