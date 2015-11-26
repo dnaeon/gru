@@ -308,13 +308,11 @@ func (m *etcdMinion) TaskListener(c chan<- *task.Task) error {
 
 // Processes new tasks
 func (m *etcdMinion) TaskRunner(c <-chan *task.Task) error {
-	for {
-		task := <-c
-
-		if task.IsConcurrent {
-			go m.processTask(task)
+	for t := range c {
+		if t.IsConcurrent {
+			go m.processTask(t)
 		} else {
-			m.processTask(task)
+			m.processTask(t)
 		}
 	}
 
