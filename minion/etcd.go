@@ -4,9 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"log"
-	"os"
 	"os/exec"
-	"os/signal"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -46,6 +44,9 @@ type etcdMinion struct {
 
 	// KeysAPI client to etcd
 	kapi etcdclient.KeysAPI
+
+	// Task queue to which tasks are sent for processing
+	taskQueue chan *task.Task
 }
 
 // Creates a new etcd minion
@@ -319,29 +320,35 @@ func (m *etcdMinion) TaskRunner(c <-chan *task.Task) error {
 
 // Main entry point of the minion
 func (m *etcdMinion) Serve() error {
-	// Channel on which we send the quit signal
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt)
+	err := m.setName()
+	if err != nil {
+		return err
+	}
 
-	m.setName()
-	log.Printf("Minion %s is ready to serve", m.ID())
-
-	// Run periodic tasks every fifteen minutes
-	ticker := time.NewTicker(time.Minute * 15)
+	// Run periodic scheduler every fifteen minutes
+	schedule := time.Minute * 15
+	ticker := time.NewTicker(schedule)
+	log.Printf("Periodic runner schedule set to run every %s\n", schedule)
 	go m.periodicRunner(ticker)
 
-	// Check for pending tasks in queue first
-	tasks := make(chan *task.Task)
-	go m.TaskRunner(tasks)
-	m.checkQueue(tasks)
+	log.Printf("Minion %s is ready to serve", m.ID())
 
-	go m.TaskListener(tasks)
+	// Check for pending tasks in the
+	// queue and process them first
+ 	m.taskQueue = make(chan *task.Task)
+	go m.TaskRunner(m.taskQueue)
+	m.checkQueue(m.taskQueue)
 
-	// Block until a stop signal is received
-	s := <-quit
-	log.Printf("Received %s signal, shutting down", s)
-	close(quit)
-	close(tasks)
+	// Start listening for new tasks
+	go m.TaskListener(m.taskQueue)
+
+	return nil
+}
+
+// Stops the minion and performs any cleanup tasks
+func (m *etcdMinion) Stop() error {
+	log.Println("Minion is shutting down")
+	close(m.taskQueue)
 
 	return nil
 }

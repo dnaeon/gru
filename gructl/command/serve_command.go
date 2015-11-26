@@ -2,6 +2,7 @@ package command
 
 import (
 	"os"
+	"os/signal"
 
 	"github.com/codegangsta/cli"
 	"github.com/dnaeon/gru/minion"
@@ -26,8 +27,6 @@ func NewServeCommand() cli.Command {
 
 // Executes the "serve" command
 func execServeCommand(c *cli.Context) {
-	var name string
-
 	name, err := os.Hostname()
 	if err != nil {
 		displayError(err, 1)
@@ -40,5 +39,17 @@ func execServeCommand(c *cli.Context) {
 
 	cfg := etcdConfigFromFlags(c)
 	m := minion.NewEtcdMinion(name, cfg)
-	m.Serve()
+
+	// Channel on which the shutdown signal is sent
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
+
+	// Start minion
+	if err != m.Serve() {
+		displayError(err, 1)
+	}
+
+	// Block until a shutdown signal is received
+	<-quit
+	m.Stop()
 }
