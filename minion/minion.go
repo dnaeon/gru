@@ -27,4 +27,7 @@ type Minion interface {
 
 	// Start serving
 	Serve() error
+
+	// Stops the minion
+	Stop() error
 }
