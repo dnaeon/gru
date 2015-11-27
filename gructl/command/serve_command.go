@@ -3,6 +3,7 @@ package command
 import (
 	"os"
 	"os/signal"
+	"syscall"
 
 	"github.com/codegangsta/cli"
 	"github.com/dnaeon/gru/minion"
@@ -42,7 +43,7 @@ func execServeCommand(c *cli.Context) {
 
 	// Channel on which the shutdown signal is sent
 	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, os.Interrupt)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 
 	// Start minion
 	err = m.Serve()
