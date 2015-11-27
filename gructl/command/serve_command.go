@@ -45,7 +45,8 @@ func execServeCommand(c *cli.Context) {
 	signal.Notify(quit, os.Interrupt)
 
 	// Start minion
-	if err != m.Serve() {
+	err = m.Serve()
+	if err != nil {
 		displayError(err, 1)
 	}
 
