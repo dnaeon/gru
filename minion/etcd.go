@@ -118,10 +118,13 @@ func (m *etcdMinion) checkQueue() error {
 	}
 
 	// Get backlog tasks if any
+	// If the directory key in etcd is missing that is okay, since
+	// it means there are no pending tasks for processing
 	resp, err := m.kapi.Get(context.Background(), m.queueDir, opts)
 	if err != nil {
-		log.Printf("Failed to get backlog tasks: %s\n", err)
-		return err
+		if eerr, ok := err.(etcdclient.Error); !ok || eerr.Code != etcdclient.ErrorCodeKeyNotFound {
+			return err
+		}
 	}
 
 	backlog := resp.Node.Nodes
