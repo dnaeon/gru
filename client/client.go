@@ -1,10 +1,10 @@
 package client
 
 import (
-	"code.google.com/p/go-uuid/uuid"
-
 	"github.com/dnaeon/gru/classifier"
 	"github.com/dnaeon/gru/task"
+
+	"github.com/pborman/uuid"
 )
 
 type Client interface {

@@ -3,7 +3,7 @@ package minion
 import (
 	"github.com/dnaeon/gru/task"
 
-	"code.google.com/p/go-uuid/uuid"
+	"github.com/pborman/uuid"
 )
 
 type Minion interface {

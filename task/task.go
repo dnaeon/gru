@@ -1,6 +1,6 @@
 package task
 
-import "code.google.com/p/go-uuid/uuid"
+import "github.com/pborman/uuid"
 
 // Task states
 const (

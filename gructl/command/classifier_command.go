@@ -3,7 +3,7 @@ package command
 import (
 	"fmt"
 
-	"code.google.com/p/go-uuid/uuid"
+	"github.com/pborman/uuid"
 	"github.com/codegangsta/cli"
 	"github.com/gosuri/uitable"
 )
