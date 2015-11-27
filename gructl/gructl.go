@@ -1,4 +1,4 @@
-package main
+package gructl
 
 import (
 	"os"
@@ -10,7 +10,7 @@ import (
 	"github.com/codegangsta/cli"
 )
 
-func main() {
+func Main() {
 	app := cli.NewApp()
 	app.Name = "gructl"
 	app.Version = version.Version
