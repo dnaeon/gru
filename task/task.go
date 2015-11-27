@@ -7,22 +7,22 @@ const (
 	// Unknown state of the task
 	// This is the default state of a task
 	// when new task is initially created
-	TaskStateUnknown    = "unknown"
+	TaskStateUnknown = "unknown"
 
 	// Task has been received by the
 	// minion and is queued for execution
-	TaskStateQueued     = "queued"
+	TaskStateQueued = "queued"
 
 	// Task is being processed
 	TaskStateProcessing = "processing"
 
 	// Task has been processed by the
 	// minion and was flagged as successful
-	TaskStateSuccess    = "success"
+	TaskStateSuccess = "success"
 
 	// Task has been processed by the
 	// minion and was flagged as failed
-	TaskStateFailed     = "failed"
+	TaskStateFailed = "failed"
 )
 
 type Task struct {

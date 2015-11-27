@@ -6,7 +6,7 @@ var errNotFound = errors.New("Classifier key not found")
 
 type Classifier struct {
 	// Classifier key
-	Key string   `json:"key"`
+	Key string `json:"key"`
 
 	// Classifier value
 	Value string `json:"value"`

@@ -6,8 +6,8 @@ import (
 
 	"code.google.com/p/go-uuid/uuid"
 	"github.com/codegangsta/cli"
-	"github.com/gosuri/uitable"
 	etcdclient "github.com/coreos/etcd/client"
+	"github.com/gosuri/uitable"
 )
 
 func NewInfoCommand() cli.Command {

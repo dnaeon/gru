@@ -7,8 +7,8 @@ import (
 	"github.com/dnaeon/gru/task"
 
 	"github.com/codegangsta/cli"
-	"github.com/gosuri/uitable"
 	"github.com/gosuri/uiprogress"
+	"github.com/gosuri/uitable"
 )
 
 func NewRunCommand() cli.Command {

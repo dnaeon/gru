@@ -11,16 +11,16 @@ import (
 
 func NewResultCommand() cli.Command {
 	cmd := cli.Command{
-		Name: "result",
-		Usage: "get task results",
+		Name:   "result",
+		Usage:  "get task results",
 		Action: execResultCommand,
 		Flags: []cli.Flag{
 			cli.StringFlag{
-				Name: "minion",
+				Name:  "minion",
 				Usage: "get task result for given minion only",
 			},
 			cli.BoolFlag{
-				Name: "details",
+				Name:  "details",
 				Usage: "provide more details about the tasks",
 			},
 		},

@@ -16,7 +16,7 @@ func NewServeCommand() cli.Command {
 		Action: execServeCommand,
 		Flags: []cli.Flag{
 			cli.StringFlag{
-				Name: "name",
+				Name:  "name",
 				Usage: "set minion name",
 				Value: "",
 			},
