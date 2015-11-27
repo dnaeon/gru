@@ -122,7 +122,7 @@ func (m *etcdMinion) checkQueue() error {
 	// it means there are no pending tasks for processing
 	resp, err := m.kapi.Get(context.Background(), m.queueDir, opts)
 	if err != nil {
-		if eerr, ok := err.(etcdclient.Error); !ok || eerr.Code != etcdclient.ErrorCodeKeyNotFound {
+		if eerr, ok := err.(etcdclient.Error); !ok || eerr.Code == etcdclient.ErrorCodeKeyNotFound {
 			return err
 		}
 	}
