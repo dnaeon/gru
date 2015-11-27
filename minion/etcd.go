@@ -149,9 +149,9 @@ func (m *etcdMinion) checkQueue() error {
 }
 
 // Runs periodic jobs such as refreshing classifiers and
-// updating the lastseen time every fifteen minutes
+// updating the lastseen time every five minutes
 func (m *etcdMinion) periodicRunner() {
-	schedule := time.Minute * 15
+	schedule := time.Minute * 5
 	ticker := time.NewTicker(schedule)
 	log.Printf("Periodic scheduler set to run every %s\n", schedule)
 
