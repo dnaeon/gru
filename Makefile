@@ -1,11 +1,10 @@
 PREFIX := /usr/local
 
 build:
-	glide install
-	go build -o bin/gructl gructl/main.go
+	go build -o bin/gructl
 
 test:
-	go test
+	go test ./...
 
 install: build
 	install -m 0755 bin/gructl ${PREFIX}/bin/gructl
