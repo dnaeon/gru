@@ -1,7 +1,7 @@
 PREFIX := /usr/local
 
 build:
-	go build -o bin/gructl
+	go build -o bin/gructl -v
 
 test:
 	go test ./...
