@@ -301,11 +301,7 @@ func (m *etcdMinion) TaskListener(c chan<- *task.Task) error {
 			continue
 		}
 
-		// Update task state and send it for processing
 		log.Printf("Received task %s\n", t.TaskID)
-		t.State = task.TaskStateQueued
-		t.TimeReceived = time.Now().Unix()
-		m.SaveTaskResult(t)
 		c <- t
 	}
 
@@ -317,6 +313,10 @@ func (m *etcdMinion) TaskRunner(c <-chan *task.Task) error {
 	log.Println("Starting task runner")
 
 	for t := range c {
+		t.State = task.TaskStateQueued
+		t.TimeReceived = time.Now().Unix()
+		m.SaveTaskResult(t)
+
 		if t.IsConcurrent {
 			go m.processTask(t)
 		} else {
