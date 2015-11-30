@@ -1,6 +1,9 @@
 package task
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
 func TestTaskState(t *testing.T) {
 	dummyTask := NewTask("dummy", "foo", "bar")
@@ -17,6 +20,15 @@ func TestTaskCommand(t *testing.T) {
 	want := "dummy"
 	if want != got {
 		t.Errorf("Incorrect task command: want %q, got %q", want, got)
+	}
+}
+
+func TestTaskArgs(t *testing.T) {
+	dummyTask := NewTask("dummy", "foo", "bar")
+	got := dummyTask.Args
+	want := []string{"foo", "bar"}
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("Incorrect task args: want %q, got %q", want, got)
 	}
 }
 
