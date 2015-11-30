@@ -6,6 +6,7 @@ import (
 	"github.com/pborman/uuid"
 	"github.com/codegangsta/cli"
 	"github.com/gosuri/uitable"
+	etcdclient "github.com/coreos/etcd/client"
 )
 
 func NewClassifierCommand() cli.Command {
@@ -31,9 +32,13 @@ func execClassifierCommand(c *cli.Context) {
 	}
 
 	client := newEtcdMinionClientFromFlags(c)
+
+	// Ignore errors about missing classifier directory
 	classifierKeys, err := client.MinionClassifierKeys(minion)
 	if err != nil {
-		displayError(err, 1)
+		if eerr, ok := err.(etcdclient.Error); !ok || eerr.Code != etcdclient.ErrorCodeKeyNotFound {
+			displayError(err, 1)
+		}
 	}
 
 	if len(classifierKeys) == 0 {
