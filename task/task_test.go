@@ -57,3 +57,12 @@ func TestTaskTimeReceivedProcessed(t *testing.T) {
 		t.Errorf("Incorrect task time processed: want %q, got %q", want, got)
 	}
 }
+
+func TestTaskResult(t *testing.T) {
+	dummyTask := NewTask("dummy")
+	got := dummyTask.Result
+	want := ""
+	if want != got {
+		t.Errorf("Incorrect task result: want %q, got %q", want, got)
+	}
+}
