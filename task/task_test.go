@@ -11,7 +11,7 @@ func TestTaskState(t *testing.T) {
 	}
 }
 
-func TestTaskStateCommand(t *testing.T) {
+func TestTaskCommand(t *testing.T) {
 	dummyTask := NewTask("dummy", "foo", "bar")
 	got := dummyTask.Command
 	want := "dummy"
