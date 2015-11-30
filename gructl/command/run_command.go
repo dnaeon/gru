@@ -61,7 +61,7 @@ func execRunCommand(c *cli.Context) {
 	isConcurrent := c.Bool("is-concurrent")
 	taskCommand := args[0]
 	taskArgs := args[1:]
-	t := task.New(taskCommand, taskArgs...)
+	t := task.NewTask(taskCommand, taskArgs...)
 	t.IsConcurrent = isConcurrent
 
 	// Progress bar to display while submitting task
