@@ -6,7 +6,7 @@ import (
 )
 
 func TestTaskState(t *testing.T) {
-	dummyTask := NewTask("dummy", "foo", "bar")
+	dummyTask := NewTask("dummy")
 	got := dummyTask.State
 	want := TaskStateUnknown
 	if want != got {
@@ -15,7 +15,7 @@ func TestTaskState(t *testing.T) {
 }
 
 func TestTaskCommand(t *testing.T) {
-	dummyTask := NewTask("dummy", "foo", "bar")
+	dummyTask := NewTask("dummy")
 	got := dummyTask.Command
 	want := "dummy"
 	if want != got {
@@ -48,4 +48,3 @@ func TestTaskTimeReceivedProcessed(t *testing.T) {
 		t.Errorf("Incorrect task time processed: want %q, got %q", want, got)
 	}
 }
-
