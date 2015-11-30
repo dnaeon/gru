@@ -94,9 +94,10 @@ func (m *etcdMinion) setName() error {
 }
 
 // Set the time the minion was last seen in seconds since the Epoch
-func (m *etcdMinion) setLastseen(s int64) error {
+func (m *etcdMinion) setLastseen() error {
 	lastseenKey := filepath.Join(m.rootDir, "lastseen")
-	lastseenValue := strconv.FormatInt(s, 10)
+	now := time.Now().Unix()
+	lastseenValue := strconv.FormatInt(now, 10)
 	opts := &etcdclient.SetOptions{
 		PrevExist: etcdclient.PrevIgnore,
 	}
@@ -155,10 +156,10 @@ func (m *etcdMinion) periodicRunner() {
 	ticker := time.NewTicker(schedule)
 	log.Printf("Periodic scheduler set to run every %s\n", schedule)
 
-	for now := range ticker.C {
+	for _ = range ticker.C {
 		// Run any periodic jobs
 		m.Classify()
-		m.setLastseen(now.Unix())
+		m.setLastseen()
 	}
 }
 
@@ -334,7 +335,13 @@ func (m *etcdMinion) Serve() error {
 		return err
 	}
 
+	err = m.setLastseen()
+	if err != nil {
+		return err
+	}
+
 	// Start minion services
+	go m.Classify()
 	go m.periodicRunner()
 	go m.checkQueue()
 	go m.TaskRunner(m.taskQueue)
