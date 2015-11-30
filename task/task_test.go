@@ -32,12 +32,20 @@ func TestTaskArgs(t *testing.T) {
 	}
 }
 
-func TestTaskTimeReceived(t *testing.T) {
+func TestTaskTimeReceivedProcessed(t *testing.T) {
 	dummyTask := NewTask("dummy", "foo", "bar")
-	got := dummyTask.TimeReceived
+
+	// Task time received and processed should be 0 when initially created
 	var want int64 = 0
+
+	got := dummyTask.TimeReceived
 	if want != got {
 		t.Errorf("Incorrect task time received: want %q, got %q", want, got)
+	}
+
+	got = dummyTask.TimeProcessed
+	if want != got {
+		t.Errorf("Incorrect task time processed: want %q, got %q", want, got)
 	}
 }
 
