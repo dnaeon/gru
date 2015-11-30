@@ -6,7 +6,17 @@ func TestTaskState(t *testing.T) {
 	dummyTask := NewTask("dummy", "foo", "bar")
 	got := dummyTask.State
 	want := TaskStateUnknown
-	if got != want {
+	if want != got {
 		t.Errorf("Incorrect task state: want %q, got %q", want, got)
 	}
 }
+
+func TestTaskStateCommand(t *testing.T) {
+	dummyTask := NewTask("dummy", "foo", "bar")
+	got := dummyTask.Command
+	want := "dummy"
+	if want != got {
+		t.Errorf("Incorrect task command: want %q, got %q", want, got)
+	}
+}
+
