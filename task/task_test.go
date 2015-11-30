@@ -80,3 +80,13 @@ func TestTaskIsConcurrent(t *testing.T) {
 		t.Errorf("Incorrect task concurrency: want %q, got %q", want, got)
 	}
 }
+
+func TestTaskError(t *testing.T) {
+	dummyTask := NewTask("dummy")
+	got := dummyTask.Result
+	want := ""
+
+	if want != got {
+		t.Errorf("Incorrect task error: want %q, got %q", want, got)
+	}
+}
