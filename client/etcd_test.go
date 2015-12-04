@@ -52,6 +52,7 @@ func TestMinionList(t *testing.T) {
 		m.Serve()
 		defer m.Stop()
 	}
+	time.Sleep(time.Second)
 
 	klient := NewEtcdMinionClient(defaultEtcdConfig)
 	minionList, err := klient.MinionList()
@@ -75,6 +76,7 @@ func TestMinionName(t *testing.T) {
 	minionId := m.ID()
 	m.Serve()
 	defer m.Stop()
+	time.Sleep(time.Second)
 
 	klient := NewEtcdMinionClient(defaultEtcdConfig)
 	gotName, err := klient.MinionName(minionId)
