@@ -88,3 +88,22 @@ func TestMinionName(t *testing.T) {
 		t.Errorf("want %q, got %q", wantName, gotName)
 	}
 }
+
+func TestMinionLastseen(t *testing.T) {
+	defer cleanupAfterTest(t)
+
+	m := minion.NewEtcdMinion("Kevin", defaultEtcdConfig)
+	id := m.ID()
+	want := time.Now().Unix()
+	err := m.SetLastseen(want)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	klient := NewEtcdMinionClient(defaultEtcdConfig)
+	got, err := klient.MinionLastseen(id)
+
+	if want != got {
+		t.Errorf("want %d, got %d", want, got)
+	}
+}
