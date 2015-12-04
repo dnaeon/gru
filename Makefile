@@ -1,10 +1,10 @@
 PREFIX := /usr/local
 
+build: get
+	go build -o bin/gructl -v
+
 get:
 	go get -v ./...
-
-build:
-	go build -o bin/gructl -v
 
 test:
 	go test -v ./...
@@ -21,4 +21,4 @@ uninstall:
 clean:
 	rm -f bin/gructl
 
-.PHONY: get build test integration install uninstall clean
+.PHONY: build get test integration install uninstall clean
