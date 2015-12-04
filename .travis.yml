@@ -14,3 +14,4 @@ before_script:
   - tar zxvf etcd-v2.2.2-linux-amd64.tar.gz
   - cd etcd-v2.2.2-linux-amd64
   - ./etcd &
+  - sleep 3
