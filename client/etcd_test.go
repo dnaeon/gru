@@ -39,8 +39,6 @@ func cleanupAfterTest(t *testing.T) {
 }
 
 func TestMinionList(t *testing.T) {
-	defer cleanupAfterTest(t)
-
 	minions := []minion.Minion{
 		minion.NewEtcdMinion("Bob", defaultEtcdConfig),
 		minion.NewEtcdMinion("Kevin", defaultEtcdConfig),
@@ -52,7 +50,7 @@ func TestMinionList(t *testing.T) {
 		m.Serve()
 		defer m.Stop()
 	}
-	time.Sleep(time.Second)
+	defer cleanupAfterTest(t)
 
 	klient := NewEtcdMinionClient(defaultEtcdConfig)
 	minionList, err := klient.MinionList()
@@ -69,14 +67,12 @@ func TestMinionList(t *testing.T) {
 }
 
 func TestMinionName(t *testing.T) {
-	defer cleanupAfterTest(t)
-
 	wantName := "Kevin"
 	m := minion.NewEtcdMinion(wantName, defaultEtcdConfig)
 	minionId := m.ID()
 	m.Serve()
 	defer m.Stop()
-	time.Sleep(time.Second)
+	defer cleanupAfterTest(t)
 
 	klient := NewEtcdMinionClient(defaultEtcdConfig)
 	gotName, err := klient.MinionName(minionId)
