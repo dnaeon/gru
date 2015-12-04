@@ -66,3 +66,23 @@ func TestMinionList(t *testing.T) {
 		t.Errorf("want %d minion, got %d minion(s)", want, got)
 	}
 }
+
+func TestMinionName(t *testing.T) {
+	defer cleanupAfterTest(t)
+
+	wantName := "Kevin"
+	m := minion.NewEtcdMinion(wantName, defaultEtcdConfig)
+	minionId := m.ID()
+	m.Serve()
+	defer m.Stop()
+
+	klient := NewEtcdMinionClient(defaultEtcdConfig)
+	gotName, err := klient.MinionName(minionId)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if wantName != gotName {
+		t.Errorf("want %q, got %q", wantName, gotName)
+	}
+}
