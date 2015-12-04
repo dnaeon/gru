@@ -12,6 +12,5 @@ script:
 before_script:
   - curl -L -O https://github.com/coreos/etcd/releases/download/v2.2.2/etcd-v2.2.2-linux-amd64.tar.gz
   - tar zxvf etcd-v2.2.2-linux-amd64.tar.gz
-  - cd etcd-v2.2.2-linux-amd64
-  - ./etcd &
+  - ./etcd-v2.2.2-linux-amd64/etcd &
   - sleep 3
