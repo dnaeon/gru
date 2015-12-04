@@ -8,6 +8,7 @@ import (
 
 	"github.com/dnaeon/gru/minion"
 
+	"golang.org/x/net/context"
 	etcdclient "github.com/coreos/etcd/client"
 )
 
@@ -18,7 +19,28 @@ var defaultEtcdConfig = etcdclient.Config{
 	HeaderTimeoutPerRequest: time.Second,
 }
 
+// Cleans up the minion space in etcd after tests
+func cleanupAfterTest(t *testing.T) {
+	c, err := etcdclient.New(defaultEtcdConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	kapi := etcdclient.NewKeysAPI(c)
+	deleteOpts := &etcdclient.DeleteOptions{
+		Recursive: true,
+		Dir: true,
+	}
+
+	_, err = kapi.Delete(context.Background(), minion.EtcdMinionSpace, deleteOpts)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestMinionList(t *testing.T) {
+	defer cleanupAfterTest(t)
+
 	minions := []minion.Minion{
 		minion.NewEtcdMinion("Bob", defaultEtcdConfig),
 		minion.NewEtcdMinion("Kevin", defaultEtcdConfig),
