@@ -1,6 +1,7 @@
 package minion
 
 import (
+	"github.com/dnaeon/gru/classifier"
 	"github.com/dnaeon/gru/task"
 
 	"github.com/pborman/uuid"
@@ -10,11 +11,14 @@ type Minion interface {
 	// Returns the unique identifier of a minion
 	ID() uuid.UUID
 
-	// Returns the assigned name of the minion
-	Name() string
+	// Sets the name of the minion
+	SetName(string) error
 
-	// Classifies the minion using any classifiers
-	Classify() error
+	// Sets the time the minion was last seen
+	SetLastseen(int64) error
+
+	// Sets a classifier for the minion
+	SetClassifier(*classifier.Classifier) error
 
 	// Listens for new tasks and processes them
 	TaskListener(c chan<- *task.Task) error
