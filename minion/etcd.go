@@ -78,38 +78,6 @@ func NewEtcdMinion(name string, cfg etcdclient.Config) Minion {
 	return m
 }
 
-// Set the human-readable name of the minion in etcd
-func (m *etcdMinion) setName() error {
-	nameKey := filepath.Join(m.rootDir, "name")
-	opts := &etcdclient.SetOptions{
-		PrevExist: etcdclient.PrevIgnore,
-	}
-
-	_, err := m.kapi.Set(context.Background(), nameKey, m.Name(), opts)
-	if err != nil {
-		log.Printf("Failed to set name of minion: %s\n", err)
-	}
-
-	return err
-}
-
-// Set the time the minion was last seen in seconds since the Epoch
-func (m *etcdMinion) setLastseen() error {
-	lastseenKey := filepath.Join(m.rootDir, "lastseen")
-	now := time.Now().Unix()
-	lastseenValue := strconv.FormatInt(now, 10)
-	opts := &etcdclient.SetOptions{
-		PrevExist: etcdclient.PrevIgnore,
-	}
-
-	_, err := m.kapi.Set(context.Background(), lastseenKey, lastseenValue, opts)
-	if err != nil {
-		log.Printf("Failed to set lastseen time: %s\n", err)
-	}
-
-	return err
-}
-
 // Checks for any pending tasks and sends them
 // for processing if there are any
 func (m *etcdMinion) checkQueue() error {
@@ -156,10 +124,10 @@ func (m *etcdMinion) periodicRunner() {
 	ticker := time.NewTicker(schedule)
 	log.Printf("Periodic scheduler set to run every %s\n", schedule)
 
-	for _ = range ticker.C {
+	for now := range ticker.C {
 		// Run any periodic jobs
-		m.Classify()
-		m.setLastseen()
+		m.classify()
+		m.SetLastseen(now.Unix())
 	}
 }
 
@@ -195,26 +163,20 @@ func (m *etcdMinion) processTask(t *task.Task) error {
 	return cmdError
 }
 
-// Saves a task in etcd
-func (m *etcdMinion) SaveTaskResult(t *task.Task) error {
-	taskKey := filepath.Join(m.logDir, t.TaskID.String())
+// Classifies the minion
+func (m *etcdMinion) classify() error {
+	for key, _ := range classifier.Registry {
+		klassifier, err := classifier.Get(key)
 
-	data, err := json.Marshal(t)
-	if err != nil {
-		log.Printf("Failed to serialize task %s: %s\n", t.TaskID, err)
-		return err
+		if err != nil {
+			log.Printf("Failed to get classifier %s: %s\n", key, err)
+			continue
+		}
+
+		m.SetClassifier(klassifier)
 	}
 
-	opts := &etcdclient.SetOptions{
-		PrevExist: etcdclient.PrevIgnore,
-	}
-
-	_, err = m.kapi.Set(context.Background(), taskKey, string(data), opts)
-	if err != nil {
-		log.Printf("Failed to save task %s: %s\n", t.TaskID, err)
-	}
-
-	return err
+	return nil
 }
 
 // Unmarshals task from etcd
@@ -230,42 +192,59 @@ func (m *etcdMinion) ID() uuid.UUID {
 	return m.id
 }
 
-// Returns the assigned name of the minion
-func (m *etcdMinion) Name() string {
-	return m.name
+// Set the human-readable name of the minion in etcd
+func (m *etcdMinion) SetName(name string) error {
+	nameKey := filepath.Join(m.rootDir, "name")
+	opts := &etcdclient.SetOptions{
+		PrevExist: etcdclient.PrevIgnore,
+	}
+
+	_, err := m.kapi.Set(context.Background(), nameKey, m.name, opts)
+	if err != nil {
+		log.Printf("Failed to set name of minion: %s\n", err)
+	}
+
+	return err
+}
+
+// Set the time the minion was last seen in seconds since the Epoch
+func (m *etcdMinion) SetLastseen(s int64) error {
+	lastseenKey := filepath.Join(m.rootDir, "lastseen")
+	lastseenValue := strconv.FormatInt(s, 10)
+	opts := &etcdclient.SetOptions{
+		PrevExist: etcdclient.PrevIgnore,
+	}
+
+	_, err := m.kapi.Set(context.Background(), lastseenKey, lastseenValue, opts)
+	if err != nil {
+		log.Printf("Failed to set lastseen time: %s\n", err)
+	}
+
+	return err
 }
 
 // Classifies the minion
-func (m *etcdMinion) Classify() error {
+func (m *etcdMinion) SetClassifier(c *classifier.Classifier) error {
 	// Classifiers in etcd expire after an hour
 	opts := &etcdclient.SetOptions{
 		PrevExist: etcdclient.PrevIgnore,
 		TTL:       time.Hour,
 	}
 
-	// Set/update classifiers in etcd
-	for key, _ := range classifier.Registry {
-		klassifier, err := classifier.Get(key)
+	// Serialize classifier to JSON and save it in etcd
+	data, err := json.Marshal(c)
+	if err != nil {
+		log.Printf("Failed to serialize classifier %s: %s\n", c.Key, err)
+		return err
+	}
 
-		if err != nil {
-			log.Printf("Failed to get classifier %s: %s\n", key, err)
-			continue
-		}
+	// Classifier key in etcd
+	klassifierKey := filepath.Join(m.classifierDir, c.Key)
+	_, err = m.kapi.Set(context.Background(), klassifierKey, string(data), opts)
 
-		// Serialize classifier to JSON and save it in etcd
-		data, err := json.Marshal(klassifier)
-		if err != nil {
-			log.Printf("Failed to serialize classifier: %s\n", key)
-			continue
-		}
-
-		// Classifier key in etcd
-		klassifierKey := filepath.Join(m.classifierDir, key)
-		_, err = m.kapi.Set(context.Background(), klassifierKey, string(data), opts)
-
-		if err != nil {
-			log.Printf("Failed to set classifier %s: %s\n", key, err)
-		}
+	if err != nil {
+		log.Printf("Failed to set classifier %s: %s\n", c.Key, err)
+		return err
 	}
 
 	return nil
@@ -328,20 +307,43 @@ func (m *etcdMinion) TaskRunner(c <-chan *task.Task) error {
 	return nil
 }
 
+// Saves a task in etcd
+func (m *etcdMinion) SaveTaskResult(t *task.Task) error {
+	taskKey := filepath.Join(m.logDir, t.TaskID.String())
+
+	data, err := json.Marshal(t)
+	if err != nil {
+		log.Printf("Failed to serialize task %s: %s\n", t.TaskID, err)
+		return err
+	}
+
+	opts := &etcdclient.SetOptions{
+		PrevExist: etcdclient.PrevIgnore,
+	}
+
+	_, err = m.kapi.Set(context.Background(), taskKey, string(data), opts)
+	if err != nil {
+		log.Printf("Failed to save task %s: %s\n", t.TaskID, err)
+	}
+
+	return err
+}
+
 // Main entry point of the minion
 func (m *etcdMinion) Serve() error {
-	err := m.setName()
+	err := m.SetName(m.name)
 	if err != nil {
 		return err
 	}
 
-	err = m.setLastseen()
+	now := time.Now().Unix()
+	err = m.SetLastseen(now)
 	if err != nil {
 		return err
 	}
 
 	// Start minion services
-	go m.Classify()
+	go m.classify()
 	go m.periodicRunner()
 	go m.checkQueue()
 	go m.TaskRunner(m.taskQueue)
