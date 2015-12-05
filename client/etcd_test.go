@@ -3,11 +3,14 @@
 package client
 
 import (
+	"reflect"
 	"time"
 	"testing"
 
 	"github.com/dnaeon/gru/minion"
+	"github.com/dnaeon/gru/classifier"
 
+	"github.com/pborman/uuid"
 	"golang.org/x/net/context"
 	etcdclient "github.com/coreos/etcd/client"
 )
@@ -39,40 +42,47 @@ func cleanupAfterTest(t *testing.T) {
 }
 
 func TestMinionList(t *testing.T) {
-	minions := []minion.Minion{
-		minion.NewEtcdMinion("Bob", defaultEtcdConfig),
-		minion.NewEtcdMinion("Kevin", defaultEtcdConfig),
-		minion.NewEtcdMinion("Stuart", defaultEtcdConfig),
-	}
-
-	// Start our minions
-	for _, m := range minions {
-		m.Serve()
-		defer m.Stop()
-	}
 	defer cleanupAfterTest(t)
 
+	minions := []string{
+		"Bob", "Kevin", "Stuart",
+	}
+	wantMinions := []uuid.UUID{
+		uuid.Parse("f827bffd-bd9e-5441-be36-a92a51d0b79e"), // Bob
+		uuid.Parse("46ce0385-0e2b-5ede-8279-9cd98c268170"), // Kevin
+		uuid.Parse("f87cf58e-1e19-57e1-bed3-9dff5064b86a"), // Stuart
+	}
+
+	// Register our minions
+	for _, name := range minions {
+		m := minion.NewEtcdMinion(name, defaultEtcdConfig)
+		err := m.SetName(name)
+		if err != nil {
+			t.Error(err)
+		}
+	}
+
 	klient := NewEtcdMinionClient(defaultEtcdConfig)
-	minionList, err := klient.MinionList()
+	gotMinions, err := klient.MinionList()
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	want := len(minions)
-	got := len(minionList)
-
-	if want != got {
-		t.Errorf("want %d minion, got %d minion(s)", want, got)
+	if !reflect.DeepEqual(wantMinions, gotMinions) {
+		t.Errorf("want %q minions, got %q minions", wantMinions, gotMinions)
 	}
 }
 
 func TestMinionName(t *testing.T) {
+	defer cleanupAfterTest(t)	
+
 	wantName := "Kevin"
 	m := minion.NewEtcdMinion(wantName, defaultEtcdConfig)
 	minionId := m.ID()
-	m.Serve()
-	defer m.Stop()
-	defer cleanupAfterTest(t)
+	err := m.SetName(wantName)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	klient := NewEtcdMinionClient(defaultEtcdConfig)
 	gotName, err := klient.MinionName(minionId)
