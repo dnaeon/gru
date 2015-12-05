@@ -133,15 +133,15 @@ func TestMinionClassifiers(t *testing.T) {
 	minionId := m.ID()
 
 	// Set minion classifiers
-	for _, c := range testClassifiers {
-		err := m.SetClassifier(c)
+	for _, tc := range testClassifiers {
+		err := m.SetClassifier(tc)
 		if err != nil {
 			t.Error(err)
 		}
-		wantClassifierKeys = append(wantClassifierKeys, c.Key)
+		wantClassifierKeys = append(wantClassifierKeys, tc.Key)
 	}
 
-	// Get classifiers
+	// Get classifiers keys
 	klient := NewEtcdMinionClient(defaultEtcdConfig)
 	gotClassifierKeys, err := klient.MinionClassifierKeys(minionId)
 	if err != nil {
@@ -149,6 +149,18 @@ func TestMinionClassifiers(t *testing.T) {
 	}
 
 	if !reflect.DeepEqual(wantClassifierKeys, gotClassifierKeys) {
-		t.Errorf("want %q keys, got %q keys", wantClassifierKeys, gotClassifierKeys)
+		t.Errorf("want %q classifier keys, got %q classifier keys", wantClassifierKeys, gotClassifierKeys)
+	}
+
+	// Get classifier values
+	for _, tc := range testClassifiers {
+		klassifier, err := klient.MinionClassifier(minionId, tc.Key)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if tc.Value != klassifier.Value {
+			t.Errorf("want %q classifier value, got %q classifier value", tc.Value, klassifier.Value)
+		}
 	}
 }
