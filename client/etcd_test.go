@@ -110,6 +110,45 @@ func TestMinionLastseen(t *testing.T) {
 	got, err := klient.MinionLastseen(id)
 
 	if want != got {
-		t.Errorf("want %d, got %d", want, got)
+		t.Errorf("want %d lastseen, got %d lastseen", want, got)
+	}
+}
+
+func TestMinionClassifiers(t *testing.T) {
+	defer cleanupAfterTest(t)
+
+	wantClassifierKeys := make([]string, 0)
+	testClassifiers := []*classifier.Classifier{
+		&classifier.Classifier{
+			Key:   "foo",
+			Value: "bar",
+		},
+		&classifier.Classifier{
+			Key:   "baz",
+			Value: "qux",
+		},
+	}
+
+	m := minion.NewEtcdMinion("Kevin", defaultEtcdConfig)
+	minionId := m.ID()
+
+	// Set minion classifiers
+	for _, c := range testClassifiers {
+		err := m.SetClassifier(c)
+		if err != nil {
+			t.Error(err)
+		}
+		wantClassifierKeys = append(wantClassifierKeys, c.Key)
+	}
+
+	// Get classifiers
+	klient := NewEtcdMinionClient(defaultEtcdConfig)
+	gotClassifierKeys, err := klient.MinionClassifierKeys(minionId)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !reflect.DeepEqual(wantClassifierKeys, gotClassifierKeys) {
+		t.Errorf("want %q keys, got %q keys", wantClassifierKeys, gotClassifierKeys)
 	}
 }
