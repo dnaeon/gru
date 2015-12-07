@@ -167,6 +167,9 @@ func TestMinionClassifiers(t *testing.T) {
 	// Get minions which contain given classifier key
 	for _, tc := range testClassifiers {
 		minions, err := klient.MinionWithClassifierKey(tc.Key)
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		// We expect a single minion with the test classifier keys
 		if len(minions) != 1 {
