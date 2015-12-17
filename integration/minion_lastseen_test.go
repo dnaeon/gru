@@ -2,7 +2,6 @@ package integration
 
 import (
 	"testing"
-	"time"
 
 	"github.com/dnaeon/gru/minion"
 	"github.com/dnaeon/gru/client"
@@ -29,7 +28,8 @@ func TestMinionLastseen(t *testing.T) {
 
 	m := minion.NewEtcdMinion("Kevin", cfg)
 	id := m.ID()
-	want := time.Now().Unix()
+	var want int64 = 1450357761
+
 	err = m.SetLastseen(want)
 	if err != nil {
 		t.Fatal(err)
