@@ -1,0 +1,372 @@
+---
+version: 1
+interactions:
+- request:
+    body: ""
+    headers:
+      Accept-Encoding:
+      - gzip
+      Content-Length:
+      - "68"
+      Content-Type:
+      - application/x-www-form-urlencoded
+      User-Agent:
+      - Go-http-client/1.1
+    url: http://127.0.0.1:2379/v2/keys/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo
+    method: PUT
+  response:
+    body: |
+      {"action":"set","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo","value":"{\"key\":\"foo\",\"value\":\"bar\"}","expiration":"2015-12-17T14:13:34.931945319Z","ttl":3600,"modifiedIndex":600,"createdIndex":600},"prevNode":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo","value":"{\"key\":\"foo\",\"value\":\"bar\"}","expiration":"2015-12-17T14:08:45.112859329Z","ttl":3311,"modifiedIndex":592,"createdIndex":592}}
+    headers:
+      Content-Length:
+      - "467"
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 17 Dec 2015 13:13:34 GMT
+      X-Etcd-Cluster-Id:
+      - 7e27652122e8b2ae
+      X-Etcd-Index:
+      - "600"
+      X-Raft-Index:
+      - "816782"
+      X-Raft-Term:
+      - "25"
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    headers:
+      Accept-Encoding:
+      - gzip
+      Content-Length:
+      - "68"
+      Content-Type:
+      - application/x-www-form-urlencoded
+      User-Agent:
+      - Go-http-client/1.1
+    url: http://127.0.0.1:2379/v2/keys/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz
+    method: PUT
+  response:
+    body: |
+      {"action":"set","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz","value":"{\"key\":\"baz\",\"value\":\"qux\"}","expiration":"2015-12-17T14:13:34.933492937Z","ttl":3600,"modifiedIndex":601,"createdIndex":601},"prevNode":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz","value":"{\"key\":\"baz\",\"value\":\"qux\"}","expiration":"2015-12-17T14:08:45.118599581Z","ttl":3311,"modifiedIndex":593,"createdIndex":593}}
+    headers:
+      Content-Length:
+      - "467"
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 17 Dec 2015 13:13:34 GMT
+      X-Etcd-Cluster-Id:
+      - 7e27652122e8b2ae
+      X-Etcd-Index:
+      - "601"
+      X-Raft-Index:
+      - "816783"
+      X-Raft-Term:
+      - "25"
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - Go-http-client/1.1
+    url: http://127.0.0.1:2379/v2/keys/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier?quorum=false&recursive=true&sorted=false
+    method: GET
+  response:
+    body: |
+      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier","dir":true,"nodes":[{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo","value":"{\"key\":\"foo\",\"value\":\"bar\"}","expiration":"2015-12-17T14:13:34.931945319Z","ttl":3600,"modifiedIndex":600,"createdIndex":600},{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz","value":"{\"key\":\"baz\",\"value\":\"qux\"}","expiration":"2015-12-17T14:13:34.933492937Z","ttl":3600,"modifiedIndex":601,"createdIndex":601}],"modifiedIndex":590,"createdIndex":590}}
+    headers:
+      Content-Length:
+      - "586"
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 17 Dec 2015 13:13:34 GMT
+      X-Etcd-Cluster-Id:
+      - 7e27652122e8b2ae
+      X-Etcd-Index:
+      - "601"
+      X-Raft-Index:
+      - "816783"
+      X-Raft-Term:
+      - "25"
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - Go-http-client/1.1
+    url: http://127.0.0.1:2379/v2/keys/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo?quorum=false&recursive=false&sorted=false
+    method: GET
+  response:
+    body: |
+      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo","value":"{\"key\":\"foo\",\"value\":\"bar\"}","expiration":"2015-12-17T14:13:34.931945319Z","ttl":3600,"modifiedIndex":600,"createdIndex":600}}
+    headers:
+      Content-Length:
+      - "240"
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 17 Dec 2015 13:13:34 GMT
+      X-Etcd-Cluster-Id:
+      - 7e27652122e8b2ae
+      X-Etcd-Index:
+      - "601"
+      X-Raft-Index:
+      - "816783"
+      X-Raft-Term:
+      - "25"
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - Go-http-client/1.1
+    url: http://127.0.0.1:2379/v2/keys/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz?quorum=false&recursive=false&sorted=false
+    method: GET
+  response:
+    body: |
+      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz","value":"{\"key\":\"baz\",\"value\":\"qux\"}","expiration":"2015-12-17T14:13:34.933492937Z","ttl":3600,"modifiedIndex":601,"createdIndex":601}}
+    headers:
+      Content-Length:
+      - "240"
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 17 Dec 2015 13:13:34 GMT
+      X-Etcd-Cluster-Id:
+      - 7e27652122e8b2ae
+      X-Etcd-Index:
+      - "601"
+      X-Raft-Index:
+      - "816783"
+      X-Raft-Term:
+      - "25"
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - Go-http-client/1.1
+    url: http://127.0.0.1:2379/v2/keys/gru/minion?quorum=false&recursive=false&sorted=false
+    method: GET
+  response:
+    body: |
+      {"action":"get","node":{"key":"/gru/minion","dir":true,"nodes":[{"key":"/gru/minion/f827bffd-bd9e-5441-be36-a92a51d0b79e","dir":true,"modifiedIndex":581,"createdIndex":581},{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170","dir":true,"modifiedIndex":582,"createdIndex":582},{"key":"/gru/minion/f87cf58e-1e19-57e1-bed3-9dff5064b86a","dir":true,"modifiedIndex":583,"createdIndex":583}],"modifiedIndex":581,"createdIndex":581}}
+    headers:
+      Content-Length:
+      - "433"
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 17 Dec 2015 13:13:34 GMT
+      X-Etcd-Cluster-Id:
+      - 7e27652122e8b2ae
+      X-Etcd-Index:
+      - "601"
+      X-Raft-Index:
+      - "816783"
+      X-Raft-Term:
+      - "25"
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - Go-http-client/1.1
+    url: http://127.0.0.1:2379/v2/keys/gru/minion/f87cf58e-1e19-57e1-bed3-9dff5064b86a/classifier/foo?quorum=false&recursive=false&sorted=false
+    method: GET
+  response:
+    body: |
+      {"errorCode":100,"message":"Key not found","cause":"/gru/minion/f87cf58e-1e19-57e1-bed3-9dff5064b86a/classifier","index":601}
+    headers:
+      Content-Length:
+      - "126"
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 17 Dec 2015 13:13:34 GMT
+      X-Etcd-Cluster-Id:
+      - 7e27652122e8b2ae
+      X-Etcd-Index:
+      - "601"
+    status: 404 Not Found
+    code: 404
+- request:
+    body: ""
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - Go-http-client/1.1
+    url: http://127.0.0.1:2379/v2/keys/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo?quorum=false&recursive=false&sorted=false
+    method: GET
+  response:
+    body: |
+      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo","value":"{\"key\":\"foo\",\"value\":\"bar\"}","expiration":"2015-12-17T14:13:34.931945319Z","ttl":3600,"modifiedIndex":600,"createdIndex":600}}
+    headers:
+      Content-Length:
+      - "240"
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 17 Dec 2015 13:13:34 GMT
+      X-Etcd-Cluster-Id:
+      - 7e27652122e8b2ae
+      X-Etcd-Index:
+      - "601"
+      X-Raft-Index:
+      - "816783"
+      X-Raft-Term:
+      - "25"
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - Go-http-client/1.1
+    url: http://127.0.0.1:2379/v2/keys/gru/minion/f827bffd-bd9e-5441-be36-a92a51d0b79e/classifier/foo?quorum=false&recursive=false&sorted=false
+    method: GET
+  response:
+    body: |
+      {"errorCode":100,"message":"Key not found","cause":"/gru/minion/f827bffd-bd9e-5441-be36-a92a51d0b79e/classifier","index":601}
+    headers:
+      Content-Length:
+      - "126"
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 17 Dec 2015 13:13:34 GMT
+      X-Etcd-Cluster-Id:
+      - 7e27652122e8b2ae
+      X-Etcd-Index:
+      - "601"
+    status: 404 Not Found
+    code: 404
+- request:
+    body: ""
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - Go-http-client/1.1
+    url: http://127.0.0.1:2379/v2/keys/gru/minion?quorum=false&recursive=false&sorted=false
+    method: GET
+  response:
+    body: |
+      {"action":"get","node":{"key":"/gru/minion","dir":true,"nodes":[{"key":"/gru/minion/f827bffd-bd9e-5441-be36-a92a51d0b79e","dir":true,"modifiedIndex":581,"createdIndex":581},{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170","dir":true,"modifiedIndex":582,"createdIndex":582},{"key":"/gru/minion/f87cf58e-1e19-57e1-bed3-9dff5064b86a","dir":true,"modifiedIndex":583,"createdIndex":583}],"modifiedIndex":581,"createdIndex":581}}
+    headers:
+      Content-Length:
+      - "433"
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 17 Dec 2015 13:13:34 GMT
+      X-Etcd-Cluster-Id:
+      - 7e27652122e8b2ae
+      X-Etcd-Index:
+      - "601"
+      X-Raft-Index:
+      - "816783"
+      X-Raft-Term:
+      - "25"
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - Go-http-client/1.1
+    url: http://127.0.0.1:2379/v2/keys/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz?quorum=false&recursive=false&sorted=false
+    method: GET
+  response:
+    body: |
+      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz","value":"{\"key\":\"baz\",\"value\":\"qux\"}","expiration":"2015-12-17T14:13:34.933492937Z","ttl":3600,"modifiedIndex":601,"createdIndex":601}}
+    headers:
+      Content-Length:
+      - "240"
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 17 Dec 2015 13:13:34 GMT
+      X-Etcd-Cluster-Id:
+      - 7e27652122e8b2ae
+      X-Etcd-Index:
+      - "601"
+      X-Raft-Index:
+      - "816783"
+      X-Raft-Term:
+      - "25"
+    status: 200 OK
+    code: 200
+- request:
+    body: ""
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - Go-http-client/1.1
+    url: http://127.0.0.1:2379/v2/keys/gru/minion/f827bffd-bd9e-5441-be36-a92a51d0b79e/classifier/baz?quorum=false&recursive=false&sorted=false
+    method: GET
+  response:
+    body: |
+      {"errorCode":100,"message":"Key not found","cause":"/gru/minion/f827bffd-bd9e-5441-be36-a92a51d0b79e/classifier","index":601}
+    headers:
+      Content-Length:
+      - "126"
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 17 Dec 2015 13:13:34 GMT
+      X-Etcd-Cluster-Id:
+      - 7e27652122e8b2ae
+      X-Etcd-Index:
+      - "601"
+    status: 404 Not Found
+    code: 404
+- request:
+    body: ""
+    headers:
+      Accept-Encoding:
+      - gzip
+      User-Agent:
+      - Go-http-client/1.1
+    url: http://127.0.0.1:2379/v2/keys/gru/minion/f87cf58e-1e19-57e1-bed3-9dff5064b86a/classifier/baz?quorum=false&recursive=false&sorted=false
+    method: GET
+  response:
+    body: |
+      {"errorCode":100,"message":"Key not found","cause":"/gru/minion/f87cf58e-1e19-57e1-bed3-9dff5064b86a/classifier","index":601}
+    headers:
+      Content-Length:
+      - "126"
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 17 Dec 2015 13:13:34 GMT
+      X-Etcd-Cluster-Id:
+      - 7e27652122e8b2ae
+      X-Etcd-Index:
+      - "601"
+    status: 404 Not Found
+    code: 404
