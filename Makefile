@@ -9,9 +9,6 @@ get:
 test:
 	go test -v ./...
 
-integration:
-	go test -v --tags integration ./...
-
 install: build
 	install -m 0755 bin/gructl ${PREFIX}/bin/gructl
 
@@ -21,4 +18,4 @@ uninstall:
 clean:
 	rm -f bin/gructl
 
-.PHONY: build get test integration install uninstall clean
+.PHONY: build get test install uninstall clean
