@@ -14,8 +14,8 @@ import (
 	"github.com/dnaeon/gru/task"
 	"github.com/dnaeon/gru/utils"
 
-	"github.com/pborman/uuid"
 	etcdclient "github.com/coreos/etcd/client"
+	"github.com/pborman/uuid"
 	"golang.org/x/net/context"
 )
 
@@ -199,7 +199,7 @@ func (m *etcdMinion) SetName(name string) error {
 		PrevExist: etcdclient.PrevIgnore,
 	}
 
-	_, err := m.kapi.Set(context.Background(), nameKey, m.name, opts)
+	_, err := m.kapi.Set(context.Background(), nameKey, name, opts)
 	if err != nil {
 		log.Printf("Failed to set name of minion: %s\n", err)
 	}
