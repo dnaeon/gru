@@ -3,6 +3,11 @@ version: 1
 interactions:
 - request:
     body: ""
+    form:
+      ttl:
+      - "3600"
+      value:
+      - '{"key":"foo","value":"bar"}'
     headers:
       Accept-Encoding:
       - gzip
@@ -16,26 +21,31 @@ interactions:
     method: PUT
   response:
     body: |
-      {"action":"set","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo","value":"{\"key\":\"foo\",\"value\":\"bar\"}","expiration":"2015-12-17T14:13:34.931945319Z","ttl":3600,"modifiedIndex":600,"createdIndex":600},"prevNode":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo","value":"{\"key\":\"foo\",\"value\":\"bar\"}","expiration":"2015-12-17T14:08:45.112859329Z","ttl":3311,"modifiedIndex":592,"createdIndex":592}}
+      {"action":"set","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo","value":"{\"key\":\"foo\",\"value\":\"bar\"}","expiration":"2016-01-25T13:14:58.763780112Z","ttl":3600,"modifiedIndex":4,"createdIndex":4}}
     headers:
       Content-Length:
-      - "467"
+      - "236"
       Content-Type:
       - application/json
       Date:
-      - Thu, 17 Dec 2015 13:13:34 GMT
+      - Mon, 25 Jan 2016 12:14:58 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
-      - "600"
+      - "4"
       X-Raft-Index:
-      - "816782"
+      - "30"
       X-Raft-Term:
-      - "25"
-    status: 200 OK
-    code: 200
+      - "2"
+    status: 201 Created
+    code: 201
 - request:
     body: ""
+    form:
+      ttl:
+      - "3600"
+      value:
+      - '{"key":"baz","value":"qux"}'
     headers:
       Accept-Encoding:
       - gzip
@@ -49,26 +59,27 @@ interactions:
     method: PUT
   response:
     body: |
-      {"action":"set","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz","value":"{\"key\":\"baz\",\"value\":\"qux\"}","expiration":"2015-12-17T14:13:34.933492937Z","ttl":3600,"modifiedIndex":601,"createdIndex":601},"prevNode":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz","value":"{\"key\":\"baz\",\"value\":\"qux\"}","expiration":"2015-12-17T14:08:45.118599581Z","ttl":3311,"modifiedIndex":593,"createdIndex":593}}
+      {"action":"set","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz","value":"{\"key\":\"baz\",\"value\":\"qux\"}","expiration":"2016-01-25T13:14:58.7647514Z","ttl":3600,"modifiedIndex":5,"createdIndex":5}}
     headers:
       Content-Length:
-      - "467"
+      - "234"
       Content-Type:
       - application/json
       Date:
-      - Thu, 17 Dec 2015 13:13:34 GMT
+      - Mon, 25 Jan 2016 12:14:58 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
-      - "601"
+      - "5"
       X-Raft-Index:
-      - "816783"
+      - "31"
       X-Raft-Term:
-      - "25"
-    status: 200 OK
-    code: 200
+      - "2"
+    status: 201 Created
+    code: 201
 - request:
     body: ""
+    form: {}
     headers:
       Accept-Encoding:
       - gzip
@@ -78,26 +89,27 @@ interactions:
     method: GET
   response:
     body: |
-      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier","dir":true,"nodes":[{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo","value":"{\"key\":\"foo\",\"value\":\"bar\"}","expiration":"2015-12-17T14:13:34.931945319Z","ttl":3600,"modifiedIndex":600,"createdIndex":600},{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz","value":"{\"key\":\"baz\",\"value\":\"qux\"}","expiration":"2015-12-17T14:13:34.933492937Z","ttl":3600,"modifiedIndex":601,"createdIndex":601}],"modifiedIndex":590,"createdIndex":590}}
+      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier","dir":true,"nodes":[{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz","value":"{\"key\":\"baz\",\"value\":\"qux\"}","expiration":"2016-01-25T13:14:58.7647514Z","ttl":3600,"modifiedIndex":5,"createdIndex":5},{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo","value":"{\"key\":\"foo\",\"value\":\"bar\"}","expiration":"2016-01-25T13:14:58.763780112Z","ttl":3600,"modifiedIndex":4,"createdIndex":4}],"modifiedIndex":4,"createdIndex":4}}
     headers:
       Content-Length:
-      - "586"
+      - "572"
       Content-Type:
       - application/json
       Date:
-      - Thu, 17 Dec 2015 13:13:34 GMT
+      - Mon, 25 Jan 2016 12:14:58 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
-      - "601"
+      - "5"
       X-Raft-Index:
-      - "816783"
+      - "31"
       X-Raft-Term:
-      - "25"
+      - "2"
     status: 200 OK
     code: 200
 - request:
     body: ""
+    form: {}
     headers:
       Accept-Encoding:
       - gzip
@@ -107,26 +119,27 @@ interactions:
     method: GET
   response:
     body: |
-      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo","value":"{\"key\":\"foo\",\"value\":\"bar\"}","expiration":"2015-12-17T14:13:34.931945319Z","ttl":3600,"modifiedIndex":600,"createdIndex":600}}
+      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo","value":"{\"key\":\"foo\",\"value\":\"bar\"}","expiration":"2016-01-25T13:14:58.763780112Z","ttl":3600,"modifiedIndex":4,"createdIndex":4}}
     headers:
       Content-Length:
-      - "240"
+      - "236"
       Content-Type:
       - application/json
       Date:
-      - Thu, 17 Dec 2015 13:13:34 GMT
+      - Mon, 25 Jan 2016 12:14:58 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
-      - "601"
+      - "5"
       X-Raft-Index:
-      - "816783"
+      - "31"
       X-Raft-Term:
-      - "25"
+      - "2"
     status: 200 OK
     code: 200
 - request:
     body: ""
+    form: {}
     headers:
       Accept-Encoding:
       - gzip
@@ -136,26 +149,27 @@ interactions:
     method: GET
   response:
     body: |
-      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz","value":"{\"key\":\"baz\",\"value\":\"qux\"}","expiration":"2015-12-17T14:13:34.933492937Z","ttl":3600,"modifiedIndex":601,"createdIndex":601}}
+      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz","value":"{\"key\":\"baz\",\"value\":\"qux\"}","expiration":"2016-01-25T13:14:58.7647514Z","ttl":3600,"modifiedIndex":5,"createdIndex":5}}
     headers:
       Content-Length:
-      - "240"
+      - "234"
       Content-Type:
       - application/json
       Date:
-      - Thu, 17 Dec 2015 13:13:34 GMT
+      - Mon, 25 Jan 2016 12:14:58 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
-      - "601"
+      - "5"
       X-Raft-Index:
-      - "816783"
+      - "31"
       X-Raft-Term:
-      - "25"
+      - "2"
     status: 200 OK
     code: 200
 - request:
     body: ""
+    form: {}
     headers:
       Accept-Encoding:
       - gzip
@@ -165,51 +179,27 @@ interactions:
     method: GET
   response:
     body: |
-      {"action":"get","node":{"key":"/gru/minion","dir":true,"nodes":[{"key":"/gru/minion/f827bffd-bd9e-5441-be36-a92a51d0b79e","dir":true,"modifiedIndex":581,"createdIndex":581},{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170","dir":true,"modifiedIndex":582,"createdIndex":582},{"key":"/gru/minion/f87cf58e-1e19-57e1-bed3-9dff5064b86a","dir":true,"modifiedIndex":583,"createdIndex":583}],"modifiedIndex":581,"createdIndex":581}}
+      {"action":"get","node":{"key":"/gru/minion","dir":true,"nodes":[{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170","dir":true,"modifiedIndex":4,"createdIndex":4}],"modifiedIndex":4,"createdIndex":4}}
     headers:
       Content-Length:
-      - "433"
+      - "207"
       Content-Type:
       - application/json
       Date:
-      - Thu, 17 Dec 2015 13:13:34 GMT
+      - Mon, 25 Jan 2016 12:14:58 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
-      - "601"
+      - "5"
       X-Raft-Index:
-      - "816783"
+      - "31"
       X-Raft-Term:
-      - "25"
+      - "2"
     status: 200 OK
     code: 200
 - request:
     body: ""
-    headers:
-      Accept-Encoding:
-      - gzip
-      User-Agent:
-      - Go-http-client/1.1
-    url: http://127.0.0.1:2379/v2/keys/gru/minion/f87cf58e-1e19-57e1-bed3-9dff5064b86a/classifier/foo?quorum=false&recursive=false&sorted=false
-    method: GET
-  response:
-    body: |
-      {"errorCode":100,"message":"Key not found","cause":"/gru/minion/f87cf58e-1e19-57e1-bed3-9dff5064b86a/classifier","index":601}
-    headers:
-      Content-Length:
-      - "126"
-      Content-Type:
-      - application/json
-      Date:
-      - Thu, 17 Dec 2015 13:13:34 GMT
-      X-Etcd-Cluster-Id:
-      - 7e27652122e8b2ae
-      X-Etcd-Index:
-      - "601"
-    status: 404 Not Found
-    code: 404
-- request:
-    body: ""
+    form: {}
     headers:
       Accept-Encoding:
       - gzip
@@ -219,51 +209,27 @@ interactions:
     method: GET
   response:
     body: |
-      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo","value":"{\"key\":\"foo\",\"value\":\"bar\"}","expiration":"2015-12-17T14:13:34.931945319Z","ttl":3600,"modifiedIndex":600,"createdIndex":600}}
+      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo","value":"{\"key\":\"foo\",\"value\":\"bar\"}","expiration":"2016-01-25T13:14:58.763780112Z","ttl":3600,"modifiedIndex":4,"createdIndex":4}}
     headers:
       Content-Length:
-      - "240"
+      - "236"
       Content-Type:
       - application/json
       Date:
-      - Thu, 17 Dec 2015 13:13:34 GMT
+      - Mon, 25 Jan 2016 12:14:58 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
-      - "601"
+      - "5"
       X-Raft-Index:
-      - "816783"
+      - "31"
       X-Raft-Term:
-      - "25"
+      - "2"
     status: 200 OK
     code: 200
 - request:
     body: ""
-    headers:
-      Accept-Encoding:
-      - gzip
-      User-Agent:
-      - Go-http-client/1.1
-    url: http://127.0.0.1:2379/v2/keys/gru/minion/f827bffd-bd9e-5441-be36-a92a51d0b79e/classifier/foo?quorum=false&recursive=false&sorted=false
-    method: GET
-  response:
-    body: |
-      {"errorCode":100,"message":"Key not found","cause":"/gru/minion/f827bffd-bd9e-5441-be36-a92a51d0b79e/classifier","index":601}
-    headers:
-      Content-Length:
-      - "126"
-      Content-Type:
-      - application/json
-      Date:
-      - Thu, 17 Dec 2015 13:13:34 GMT
-      X-Etcd-Cluster-Id:
-      - 7e27652122e8b2ae
-      X-Etcd-Index:
-      - "601"
-    status: 404 Not Found
-    code: 404
-- request:
-    body: ""
+    form: {}
     headers:
       Accept-Encoding:
       - gzip
@@ -273,26 +239,27 @@ interactions:
     method: GET
   response:
     body: |
-      {"action":"get","node":{"key":"/gru/minion","dir":true,"nodes":[{"key":"/gru/minion/f827bffd-bd9e-5441-be36-a92a51d0b79e","dir":true,"modifiedIndex":581,"createdIndex":581},{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170","dir":true,"modifiedIndex":582,"createdIndex":582},{"key":"/gru/minion/f87cf58e-1e19-57e1-bed3-9dff5064b86a","dir":true,"modifiedIndex":583,"createdIndex":583}],"modifiedIndex":581,"createdIndex":581}}
+      {"action":"get","node":{"key":"/gru/minion","dir":true,"nodes":[{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170","dir":true,"modifiedIndex":4,"createdIndex":4}],"modifiedIndex":4,"createdIndex":4}}
     headers:
       Content-Length:
-      - "433"
+      - "207"
       Content-Type:
       - application/json
       Date:
-      - Thu, 17 Dec 2015 13:13:34 GMT
+      - Mon, 25 Jan 2016 12:14:58 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
-      - "601"
+      - "5"
       X-Raft-Index:
-      - "816783"
+      - "31"
       X-Raft-Term:
-      - "25"
+      - "2"
     status: 200 OK
     code: 200
 - request:
     body: ""
+    form: {}
     headers:
       Accept-Encoding:
       - gzip
@@ -302,71 +269,21 @@ interactions:
     method: GET
   response:
     body: |
-      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz","value":"{\"key\":\"baz\",\"value\":\"qux\"}","expiration":"2015-12-17T14:13:34.933492937Z","ttl":3600,"modifiedIndex":601,"createdIndex":601}}
+      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz","value":"{\"key\":\"baz\",\"value\":\"qux\"}","expiration":"2016-01-25T13:14:58.7647514Z","ttl":3600,"modifiedIndex":5,"createdIndex":5}}
     headers:
       Content-Length:
-      - "240"
+      - "234"
       Content-Type:
       - application/json
       Date:
-      - Thu, 17 Dec 2015 13:13:34 GMT
+      - Mon, 25 Jan 2016 12:14:58 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
-      - "601"
+      - "5"
       X-Raft-Index:
-      - "816783"
+      - "31"
       X-Raft-Term:
-      - "25"
+      - "2"
     status: 200 OK
     code: 200
-- request:
-    body: ""
-    headers:
-      Accept-Encoding:
-      - gzip
-      User-Agent:
-      - Go-http-client/1.1
-    url: http://127.0.0.1:2379/v2/keys/gru/minion/f827bffd-bd9e-5441-be36-a92a51d0b79e/classifier/baz?quorum=false&recursive=false&sorted=false
-    method: GET
-  response:
-    body: |
-      {"errorCode":100,"message":"Key not found","cause":"/gru/minion/f827bffd-bd9e-5441-be36-a92a51d0b79e/classifier","index":601}
-    headers:
-      Content-Length:
-      - "126"
-      Content-Type:
-      - application/json
-      Date:
-      - Thu, 17 Dec 2015 13:13:34 GMT
-      X-Etcd-Cluster-Id:
-      - 7e27652122e8b2ae
-      X-Etcd-Index:
-      - "601"
-    status: 404 Not Found
-    code: 404
-- request:
-    body: ""
-    headers:
-      Accept-Encoding:
-      - gzip
-      User-Agent:
-      - Go-http-client/1.1
-    url: http://127.0.0.1:2379/v2/keys/gru/minion/f87cf58e-1e19-57e1-bed3-9dff5064b86a/classifier/baz?quorum=false&recursive=false&sorted=false
-    method: GET
-  response:
-    body: |
-      {"errorCode":100,"message":"Key not found","cause":"/gru/minion/f87cf58e-1e19-57e1-bed3-9dff5064b86a/classifier","index":601}
-    headers:
-      Content-Length:
-      - "126"
-      Content-Type:
-      - application/json
-      Date:
-      - Thu, 17 Dec 2015 13:13:34 GMT
-      X-Etcd-Cluster-Id:
-      - 7e27652122e8b2ae
-      X-Etcd-Index:
-      - "601"
-    status: 404 Not Found
-    code: 404

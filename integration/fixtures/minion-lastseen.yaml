@@ -3,6 +3,9 @@ version: 1
 interactions:
 - request:
     body: ""
+    form:
+      value:
+      - "1450357761"
     headers:
       Accept-Encoding:
       - gzip
@@ -16,26 +19,27 @@ interactions:
     method: PUT
   response:
     body: |
-      {"action":"set","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/lastseen","value":"1450357761","modifiedIndex":602,"createdIndex":602},"prevNode":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/lastseen","value":"1450357725","modifiedIndex":594,"createdIndex":594}}
+      {"action":"set","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/lastseen","value":"1450357761","modifiedIndex":6,"createdIndex":6}}
     headers:
       Content-Length:
-      - "291"
+      - "148"
       Content-Type:
       - application/json
       Date:
-      - Thu, 17 Dec 2015 13:13:34 GMT
+      - Mon, 25 Jan 2016 12:14:58 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
-      - "602"
+      - "6"
       X-Raft-Index:
-      - "816784"
+      - "32"
       X-Raft-Term:
-      - "25"
-    status: 200 OK
-    code: 200
+      - "2"
+    status: 201 Created
+    code: 201
 - request:
     body: ""
+    form: {}
     headers:
       Accept-Encoding:
       - gzip
@@ -45,21 +49,21 @@ interactions:
     method: GET
   response:
     body: |
-      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/lastseen","value":"1450357761","modifiedIndex":602,"createdIndex":602}}
+      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/lastseen","value":"1450357761","modifiedIndex":6,"createdIndex":6}}
     headers:
       Content-Length:
-      - "152"
+      - "148"
       Content-Type:
       - application/json
       Date:
-      - Thu, 17 Dec 2015 13:13:34 GMT
+      - Mon, 25 Jan 2016 12:14:58 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
-      - "602"
+      - "6"
       X-Raft-Index:
-      - "816784"
+      - "32"
       X-Raft-Term:
-      - "25"
+      - "2"
     status: 200 OK
     code: 200
