@@ -47,6 +47,9 @@ type etcdMinion struct {
 
 	// Channel over which tasks are sent for processing
 	taskQueue chan *task.Task
+
+	// Channel used to signal shutdown time
+	done chan struct{}
 }
 
 // Creates a new etcd minion
@@ -63,6 +66,7 @@ func NewEtcdMinion(name string, cfg etcdclient.Config) Minion {
 	classifierDir := filepath.Join(rootDir, "classifier")
 	logDir := filepath.Join(rootDir, "log")
 	taskQueue := make(chan *task.Task)
+	done := make(chan struct{})
 
 	m := &etcdMinion{
 		name:          name,
@@ -73,6 +77,7 @@ func NewEtcdMinion(name string, cfg etcdclient.Config) Minion {
 		id:            id,
 		kapi:          kapi,
 		taskQueue:     taskQueue,
+		done:          done,
 	}
 
 	return m
@@ -124,8 +129,11 @@ func (m *etcdMinion) periodicRunner() {
 	ticker := time.NewTicker(schedule)
 	log.Printf("Periodic scheduler set to run every %s\n", schedule)
 
-	for now := range ticker.C {
-		// Run any periodic jobs
+	select {
+	case <-m.done:
+		return
+	case now := <-ticker.C:
+		// Run periodic jobs
 		m.classify()
 		m.SetLastseen(now.Unix())
 	}
@@ -292,7 +300,10 @@ func (m *etcdMinion) TaskListener(c chan<- *task.Task) error {
 func (m *etcdMinion) TaskRunner(c <-chan *task.Task) error {
 	log.Println("Starting task runner")
 
-	for t := range c {
+	select {
+	case <-m.done:
+		return nil
+	case t := <-c:
 		t.State = task.TaskStateQueued
 		t.TimeReceived = time.Now().Unix()
 		m.SaveTaskResult(t)
@@ -359,6 +370,7 @@ func (m *etcdMinion) Stop() error {
 	log.Println("Minion is shutting down")
 
 	close(m.taskQueue)
+	close(m.done)
 
 	return nil
 }
