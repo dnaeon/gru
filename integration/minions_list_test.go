@@ -5,29 +5,13 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/dnaeon/gru/client"
 	"github.com/dnaeon/gru/minion"
-
-	"github.com/dnaeon/go-vcr/recorder"
-
-	etcdclient "github.com/coreos/etcd/client"
 	"github.com/pborman/uuid"
 )
 
 func TestMinionList(t *testing.T) {
-	// Start our recorder
-	r, err := recorder.New("fixtures/minion-list")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer r.Stop()
-
-	// Etcd config using our transport
-	cfg := etcdclient.Config{
-		Endpoints:               []string{"http://127.0.0.1:2379"},
-		Transport:               r.Transport, // Inject our transport!
-		HeaderTimeoutPerRequest: etcdclient.DefaultRequestTimeout,
-	}
+	tc := mustNewTestClient("fixtures/minion-list")
+	defer tc.recorder.Stop()
 
 	minionNames := []string{
 		"Bob", "Kevin", "Stuart",
@@ -49,7 +33,7 @@ func TestMinionList(t *testing.T) {
 
 	// Register our minions in etcd
 	for _, name := range minionNames {
-		m := minion.NewEtcdMinion(name, cfg)
+		m := minion.NewEtcdMinion(name, tc.config)
 		err := m.SetName(name)
 		if err != nil {
 			t.Error(err)
@@ -57,8 +41,7 @@ func TestMinionList(t *testing.T) {
 	}
 
 	// Get minions from etcd
-	klient := client.NewEtcdMinionClient(cfg)
-	gotMinions, err := klient.MinionList()
+	gotMinions, err := tc.client.MinionList()
 	if err != nil {
 		t.Fatal(err)
 	}

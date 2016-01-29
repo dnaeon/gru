@@ -4,39 +4,22 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/dnaeon/gru/client"
 	"github.com/dnaeon/gru/minion"
 	"github.com/dnaeon/gru/task"
 
-	"github.com/dnaeon/go-vcr/recorder"
-
-	etcdclient "github.com/coreos/etcd/client"
 	"github.com/pborman/uuid"
 )
 
 func TestMinionTaskBacklog(t *testing.T) {
-	// Start our recorder
-	r, err := recorder.New("fixtures/minion-task-backlog")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer r.Stop()
-
-	// Etcd config using our transport
-	cfg := etcdclient.Config{
-		Endpoints:               []string{"http://127.0.0.1:2379"},
-		Transport:               r.Transport, // Inject our transport!
-		HeaderTimeoutPerRequest: etcdclient.DefaultRequestTimeout,
-	}
-
-	klient := client.NewEtcdMinionClient(cfg)
+	tc := mustNewTestClient("fixtures/minion-task-backlog")
+	defer tc.recorder.Stop()
 
 	// Setup our minion
 	minionName := "Kevin"
-	testMinion := minion.NewEtcdMinion(minionName, cfg)
+	testMinion := minion.NewEtcdMinion(minionName, tc.config)
 	minionId := testMinion.ID()
 
-	err = testMinion.SetName(minionName)
+	err := testMinion.SetName(minionName)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,13 +28,13 @@ func TestMinionTaskBacklog(t *testing.T) {
 	wantTask := task.New("foo", "bar")
 	wantTask.TaskID = uuid.Parse("e6d2bebd-2219-4a8c-9d30-a861097c147e")
 
-	err = klient.MinionSubmitTask(minionId, wantTask)
+	err = tc.client.MinionSubmitTask(minionId, wantTask)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Get pending tasks and verify the task we sent is the task we get
-	backlog, err := klient.MinionTaskQueue(minionId)
+	backlog, err := tc.client.MinionTaskQueue(minionId)
 	if err != nil {
 		t.Fatal(err)
 	}

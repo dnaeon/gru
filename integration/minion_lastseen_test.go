@@ -3,40 +3,23 @@ package integration
 import (
 	"testing"
 
-	"github.com/dnaeon/gru/client"
 	"github.com/dnaeon/gru/minion"
-
-	"github.com/dnaeon/go-vcr/recorder"
-
-	etcdclient "github.com/coreos/etcd/client"
 )
 
 func TestMinionLastseen(t *testing.T) {
-	// Start our recorder
-	r, err := recorder.New("fixtures/minion-lastseen")
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer r.Stop()
+	tc := mustNewTestClient("fixtures/minion-lastseen")
+	defer tc.recorder.Stop()
 
-	// Etcd config using our transport
-	cfg := etcdclient.Config{
-		Endpoints:               []string{"http://127.0.0.1:2379"},
-		Transport:               r.Transport, // Inject our transport!
-		HeaderTimeoutPerRequest: etcdclient.DefaultRequestTimeout,
-	}
-
-	m := minion.NewEtcdMinion("Kevin", cfg)
+	m := minion.NewEtcdMinion("Kevin", tc.config)
 	id := m.ID()
 	var want int64 = 1450357761
 
-	err = m.SetLastseen(want)
+	err := m.SetLastseen(want)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	klient := client.NewEtcdMinionClient(cfg)
-	got, err := klient.MinionLastseen(id)
+	got, err := tc.client.MinionLastseen(id)
 
 	if want != got {
 		t.Errorf("want %d lastseen, got %d lastseen", want, got)
