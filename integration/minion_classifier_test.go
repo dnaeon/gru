@@ -14,7 +14,6 @@ import (
 	etcdclient "github.com/coreos/etcd/client"
 )
 
-
 func TestMinionClassifiers(t *testing.T) {
 	// Start our recorder
 	r, err := recorder.New("fixtures/minion-classifier")

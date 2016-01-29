@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pborman/uuid"
 	"github.com/codegangsta/cli"
 	"github.com/gosuri/uitable"
+	"github.com/pborman/uuid"
 )
 
 func NewResultCommand() cli.Command {

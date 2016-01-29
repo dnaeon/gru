@@ -3,8 +3,8 @@ package integration
 import (
 	"testing"
 
-	"github.com/dnaeon/gru/minion"
 	"github.com/dnaeon/gru/client"
+	"github.com/dnaeon/gru/minion"
 
 	"github.com/dnaeon/go-vcr/recorder"
 

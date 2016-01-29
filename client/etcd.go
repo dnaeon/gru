@@ -13,8 +13,8 @@ import (
 	"github.com/dnaeon/gru/task"
 	"github.com/dnaeon/gru/utils"
 
-	"github.com/pborman/uuid"
 	etcdclient "github.com/coreos/etcd/client"
+	"github.com/pborman/uuid"
 	"golang.org/x/net/context"
 )
 

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/pborman/uuid"
 	"github.com/codegangsta/cli"
 	etcdclient "github.com/coreos/etcd/client"
 	"github.com/gosuri/uitable"
+	"github.com/pborman/uuid"
 )
 
 func NewLogCommand() cli.Command {

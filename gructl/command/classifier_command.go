@@ -3,10 +3,10 @@ package command
 import (
 	"fmt"
 
-	"github.com/pborman/uuid"
 	"github.com/codegangsta/cli"
-	"github.com/gosuri/uitable"
 	etcdclient "github.com/coreos/etcd/client"
+	"github.com/gosuri/uitable"
+	"github.com/pborman/uuid"
 )
 
 func NewClassifierCommand() cli.Command {

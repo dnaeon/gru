@@ -5,13 +5,13 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/dnaeon/gru/minion"
 	"github.com/dnaeon/gru/client"
+	"github.com/dnaeon/gru/minion"
 
 	"github.com/dnaeon/go-vcr/recorder"
 
-	"github.com/pborman/uuid"
 	etcdclient "github.com/coreos/etcd/client"
+	"github.com/pborman/uuid"
 )
 
 func TestMinionList(t *testing.T) {
