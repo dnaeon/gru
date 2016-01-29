@@ -54,7 +54,7 @@ type Task struct {
 	State string `json:"state"`
 }
 
-func NewTask(command string, args ...string) *Task {
+func New(command string, args ...string) *Task {
 	t := &Task{
 		Command: command,
 		Args:    args,

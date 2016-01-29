@@ -42,7 +42,7 @@ func TestMinionTaskBacklog(t *testing.T) {
 	}
 
 	// Create a test task and submit it
-	wantTask := task.NewTask("foo", "bar")
+	wantTask := task.New("foo", "bar")
 	wantTask.TaskID = uuid.Parse("e6d2bebd-2219-4a8c-9d30-a861097c147e")
 
 	err = klient.MinionSubmitTask(minionId, wantTask)
