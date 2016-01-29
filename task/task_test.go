@@ -6,7 +6,7 @@ import (
 )
 
 func TestTaskState(t *testing.T) {
-	dummyTask := NewTask("dummy")
+	dummyTask := New("dummy")
 	got := dummyTask.State
 	want := TaskStateUnknown
 	if want != got {
@@ -15,7 +15,7 @@ func TestTaskState(t *testing.T) {
 }
 
 func TestTaskCommand(t *testing.T) {
-	dummyTask := NewTask("dummy")
+	dummyTask := New("dummy")
 	got := dummyTask.Command
 	want := "dummy"
 
@@ -25,7 +25,7 @@ func TestTaskCommand(t *testing.T) {
 }
 
 func TestTaskWithArgs(t *testing.T) {
-	dummyTask := NewTask("dummy", "foo", "bar")
+	dummyTask := New("dummy", "foo", "bar")
 	got := dummyTask.Args
 	want := []string{"foo", "bar"}
 
@@ -35,7 +35,7 @@ func TestTaskWithArgs(t *testing.T) {
 }
 
 func TestTaskWithoutArgs(t *testing.T) {
-	dummyTask := NewTask("dummy")
+	dummyTask := New("dummy")
 	got := dummyTask.Args
 	var want []string
 
@@ -45,7 +45,7 @@ func TestTaskWithoutArgs(t *testing.T) {
 }
 
 func TestTaskTimeReceivedProcessed(t *testing.T) {
-	dummyTask := NewTask("dummy", "foo", "bar")
+	dummyTask := New("dummy", "foo", "bar")
 
 	// Task time received and processed should be 0 when initially created
 	var want int64 = 0
@@ -62,7 +62,7 @@ func TestTaskTimeReceivedProcessed(t *testing.T) {
 }
 
 func TestTaskResult(t *testing.T) {
-	dummyTask := NewTask("dummy")
+	dummyTask := New("dummy")
 	got := dummyTask.Result
 	want := ""
 
@@ -72,7 +72,7 @@ func TestTaskResult(t *testing.T) {
 }
 
 func TestTaskIsConcurrent(t *testing.T) {
-	dummyTask := NewTask("dummy")
+	dummyTask := New("dummy")
 	got := dummyTask.IsConcurrent
 	want := false
 
@@ -82,7 +82,7 @@ func TestTaskIsConcurrent(t *testing.T) {
 }
 
 func TestTaskError(t *testing.T) {
-	dummyTask := NewTask("dummy")
+	dummyTask := New("dummy")
 	got := dummyTask.Result
 	want := ""
 
