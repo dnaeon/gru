@@ -5,6 +5,8 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/gosuri/uitable"
+
+	etcdclient "github.com/coreos/etcd/client"
 )
 
 func NewListCommand() cli.Command {
@@ -31,8 +33,11 @@ func execListCommand(c *cli.Context) {
 	cFlag := c.String("with-classifier")
 	minions, err := parseClassifierPattern(client, cFlag)
 
+	// Ignore errors about missing minion directory
 	if err != nil {
-		displayError(err, 1)
+		if eerr, ok := err.(etcdclient.Error); !ok || eerr.Code != etcdclient.ErrorCodeKeyNotFound {
+			displayError(err, 1)
+		}
 	}
 
 	if len(minions) == 0 {
