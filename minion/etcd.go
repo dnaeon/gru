@@ -129,13 +129,15 @@ func (m *etcdMinion) periodicRunner() {
 	ticker := time.NewTicker(schedule)
 	log.Printf("Periodic scheduler set to run every %s\n", schedule)
 
-	select {
-	case <-m.done:
-		return
-	case now := <-ticker.C:
-		// Run periodic jobs
-		m.classify()
-		m.SetLastseen(now.Unix())
+	for {
+		select {
+		case <-m.done:
+			break
+		case now := <-ticker.C:
+			// Run periodic jobs
+			m.classify()
+			m.SetLastseen(now.Unix())
+		}
 	}
 }
 
@@ -300,18 +302,20 @@ func (m *etcdMinion) TaskListener(c chan<- *task.Task) error {
 func (m *etcdMinion) TaskRunner(c <-chan *task.Task) error {
 	log.Println("Starting task runner")
 
-	select {
-	case <-m.done:
-		return nil
-	case t := <-c:
-		t.State = task.TaskStateQueued
-		t.TimeReceived = time.Now().Unix()
-		m.SaveTaskResult(t)
+	for {
+		select {
+		case <-m.done:
+			break
+		case t := <-c:
+			t.State = task.TaskStateQueued
+			t.TimeReceived = time.Now().Unix()
+			m.SaveTaskResult(t)
 
-		if t.IsConcurrent {
-			go m.processTask(t)
-		} else {
-			m.processTask(t)
+			if t.IsConcurrent {
+				go m.processTask(t)
+			} else {
+				m.processTask(t)
+			}
 		}
 	}
 
