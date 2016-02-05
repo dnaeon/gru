@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"log"
+	"math/rand"
 	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/dnaeon/backoff"
 	"github.com/dnaeon/gru/classifier"
 	"github.com/dnaeon/gru/task"
 	"github.com/dnaeon/gru/utils"
@@ -264,6 +266,14 @@ func (m *etcdMinion) SetClassifier(c *classifier.Classifier) error {
 func (m *etcdMinion) TaskListener(c chan<- *task.Task) error {
 	log.Printf("Task listener is watching %s\n", m.queueDir)
 
+	rand.Seed(time.Now().UTC().UnixNano())
+	b := backoff.Backoff{
+		Min:    1 * time.Second,
+		Max:    10 * time.Minute,
+		Factor: 2.0,
+		Jitter: true,
+	}
+
 	watcherOpts := &etcdclient.WatcherOptions{
 		Recursive: true,
 	}
@@ -272,7 +282,10 @@ func (m *etcdMinion) TaskListener(c chan<- *task.Task) error {
 	for {
 		resp, err := watcher.Next(context.Background())
 		if err != nil {
-			log.Printf("Failed to receive task: %s\n", err)
+			// Use a backoff and retry later again
+			duration := b.Duration()
+			log.Printf("%s, retrying in %s\n", err, duration)
+			time.Sleep(duration)
 			continue
 		}
 
