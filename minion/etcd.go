@@ -138,6 +138,7 @@ func (m *etcdMinion) periodicRunner() {
 		case now := <-ticker.C:
 			// Run periodic jobs
 			m.classify()
+			m.checkQueue()
 			m.SetLastseen(now.Unix())
 		}
 	}
@@ -372,8 +373,8 @@ func (m *etcdMinion) Serve() error {
 
 	// Start minion services
 	go m.classify()
-	go m.periodicRunner()
 	go m.checkQueue()
+	go m.periodicRunner()
 	go m.TaskRunner(m.taskQueue)
 	go m.TaskListener(m.taskQueue)
 
