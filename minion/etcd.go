@@ -290,6 +290,9 @@ func (m *etcdMinion) TaskListener(c chan<- *task.Task) error {
 			continue
 		}
 
+		// Reset the backoff counter on successful receive
+		b.Reset()
+
 		// Ignore "delete" events when removing a task from the queue
 		action := strings.ToLower(resp.Action)
 		if strings.EqualFold(action, "delete") {
