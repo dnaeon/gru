@@ -2,6 +2,33 @@
 
 [![Build Status](https://travis-ci.org/dnaeon/gru.svg)](https://travis-ci.org/dnaeon/gru)
 
-Gru is a simple orchestration framework written in Golang.
+Gru is a simple orchestration framework written in Go, which
+allows you to manage your UNIX/Linux systems with ease.
 
-More info coming soon!
+## Installation
+
+The easiest way to get Gru is to use one of the pre-built binaries
+from the [Gru releases page](https://github.com/dnaeon/gru/releases/).
+
+For those wanting to try out the latest version of Gru you should
+follow these instructions instead:
+
+```bash
+$ git clone https://github.com/dnaeon/gru
+$ cd gru
+$ make
+```
+
+Gru uses
+[etcd](https://github.com/coreos/etcd) for discovery of minions and
+communication between the minions and clients. In order to use Gru,
+first make sure that you have `etcd` up and running.
+
+## Usage
+
+[![asciicast](https://asciinema.org/a/35920.png)](https://asciinema.org/a/35920)
+
+## License
+
+`Gru` is Open Source and licensed under the
+[BSD License](http://opensource.org/licenses/BSD-2-Clause)
