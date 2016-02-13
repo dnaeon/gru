@@ -1,6 +1,7 @@
 ## Gru - A Simple Orchestration Framework
 
 [![Build Status](https://travis-ci.org/dnaeon/gru.svg)](https://travis-ci.org/dnaeon/gru)
+[![GoDoc](https://godoc.org/github.com/dnaeon/gru?status.svg)](https://godoc.org/github.com/dnaeon/gru)
 
 Gru is a simple orchestration framework written in Go, which
 allows you to manage your UNIX/Linux systems with ease.
