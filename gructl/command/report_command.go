@@ -41,11 +41,7 @@ func execReportCommand(c *cli.Context) {
 		if err != nil {
 			displayError(err, 1)
 		}
-		if _, ok := report[classifier.Value]; ok {
-			report[classifier.Value] += 1
-		} else {
-			report[classifier.Value] = 1
-		}
+		report[classifier.Value] += 1
 	}
 
 	table := uitable.New()
