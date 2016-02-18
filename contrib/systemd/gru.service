@@ -1,0 +1,14 @@
+[Unit]
+Description=Gru orchestration framework
+Documentation=https://github.com/dnaeon/gru
+After=network.target
+
+[Service]
+Type=simple
+Environment=GRUCTL_ENDPOINT=http://127.0.0.1:2379,http://127.0.0.1:4001
+ExecStart=/usr/local/bin/gructl serve
+KillMode=process
+KillSignal=SIGINT
+
+[Install]
+WantedBy=multi-user.target
