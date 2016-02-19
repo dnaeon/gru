@@ -10,6 +10,8 @@ import (
 	"github.com/pborman/uuid"
 )
 
+// NewInfoCommand creates a new sub-command for retrieving
+// minion information
 func NewInfoCommand() cli.Command {
 	cmd := cli.Command{
 		Name:   "info",

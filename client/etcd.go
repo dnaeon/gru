@@ -27,8 +27,8 @@ type etcdMinionClient struct {
 	kapi etcdclient.KeysAPI
 }
 
-// Convinience function that creates a new
-// client for managing minions in etcd
+// NewEtcdMinion creates a new client for interacting with
+// minions using etcd as their interface implementation
 func NewEtcdMinionClient(cfg etcdclient.Config) Client {
 	c, err := etcdclient.New(cfg)
 	if err != nil {
@@ -43,7 +43,7 @@ func NewEtcdMinionClient(cfg etcdclient.Config) Client {
 	return klient
 }
 
-// Gets all registered minions
+// MinionList returns a slice containing all registered minions
 func (c *etcdMinionClient) MinionList() ([]uuid.UUID, error) {
 	resp, err := c.kapi.Get(context.Background(), minion.EtcdMinionSpace, nil)
 
@@ -65,7 +65,7 @@ func (c *etcdMinionClient) MinionList() ([]uuid.UUID, error) {
 	return result, nil
 }
 
-// Gets the name of a minion
+// MinionName returns the name of a minion identified by its uuid
 func (c *etcdMinionClient) MinionName(m uuid.UUID) (string, error) {
 	nameKey := filepath.Join(minion.EtcdMinionSpace, m.String(), "name")
 	resp, err := c.kapi.Get(context.Background(), nameKey, nil)
@@ -77,7 +77,7 @@ func (c *etcdMinionClient) MinionName(m uuid.UUID) (string, error) {
 	return resp.Node.Value, nil
 }
 
-// Gets the time a minion was last seen
+// MinionLastSeen retrieves the time a minion was last seen
 func (c *etcdMinionClient) MinionLastseen(m uuid.UUID) (int64, error) {
 	lastseenKey := filepath.Join(minion.EtcdMinionSpace, m.String(), "lastseen")
 	resp, err := c.kapi.Get(context.Background(), lastseenKey, nil)
@@ -91,7 +91,7 @@ func (c *etcdMinionClient) MinionLastseen(m uuid.UUID) (int64, error) {
 	return lastseen, nil
 }
 
-// Gets a classifier identified with the given key
+// MinionClassifier retrieves a classifier with the given key
 func (c *etcdMinionClient) MinionClassifier(m uuid.UUID, key string) (*classifier.Classifier, error) {
 	// Classifier key in etcd
 	classifierKey := filepath.Join(minion.EtcdMinionSpace, m.String(), "classifier", key)
@@ -107,7 +107,7 @@ func (c *etcdMinionClient) MinionClassifier(m uuid.UUID, key string) (*classifie
 	return klassifier, err
 }
 
-// Gets all classifier keys for a minion
+// MinionClassifierKeys returns all classifier keys that a minion has
 func (c *etcdMinionClient) MinionClassifierKeys(m uuid.UUID) ([]string, error) {
 	// Classifier directory in etcd
 	classifierDir := filepath.Join(minion.EtcdMinionSpace, m.String(), "classifier")
@@ -134,7 +134,8 @@ func (c *etcdMinionClient) MinionClassifierKeys(m uuid.UUID) ([]string, error) {
 	return classifierKeys, nil
 }
 
-// Gets minions which are classified with a given classifier key
+// MinionWithClassifierKey returns all minions which are classified
+// with a given classifier key
 func (c *etcdMinionClient) MinionWithClassifierKey(key string) ([]uuid.UUID, error) {
 	// Concurrent slice to hold the result
 	cs := utils.NewConcurrentSlice()
@@ -199,7 +200,7 @@ func (c *etcdMinionClient) MinionWithClassifierKey(key string) ([]uuid.UUID, err
 	return result, nil
 }
 
-// Gets the result of a task for a minion
+// MinionTaskResult retrieves the result of a task for a given minion
 func (c *etcdMinionClient) MinionTaskResult(m uuid.UUID, t uuid.UUID) (*task.Task, error) {
 	// Task key in etcd
 	taskKey := filepath.Join(minion.EtcdMinionSpace, m.String(), "log", t.String())
@@ -216,7 +217,8 @@ func (c *etcdMinionClient) MinionTaskResult(m uuid.UUID, t uuid.UUID) (*task.Tas
 	return result, err
 }
 
-// Gets the minions which have a task result with the given uuid
+// MinionWithTaskResult returns all minions which have a task result
+// with the given task uuid
 func (c *etcdMinionClient) MinionWithTaskResult(t uuid.UUID) ([]uuid.UUID, error) {
 	// Concurrent slice to hold the result
 	cs := utils.NewConcurrentSlice()
@@ -281,7 +283,7 @@ func (c *etcdMinionClient) MinionWithTaskResult(t uuid.UUID) ([]uuid.UUID, error
 	return result, nil
 }
 
-// Gets the tasks which are currently pending in the queue
+// MinionTaskQueue returns the tasks which are currently pending in the queue
 func (c *etcdMinionClient) MinionTaskQueue(m uuid.UUID) ([]*task.Task, error) {
 	queueDir := filepath.Join(minion.EtcdMinionSpace, m.String(), "queue")
 	opts := &etcdclient.GetOptions{
@@ -306,7 +308,8 @@ func (c *etcdMinionClient) MinionTaskQueue(m uuid.UUID) ([]*task.Task, error) {
 	return tasks, nil
 }
 
-// Gets the uuids of tasks which have already been processed
+// MinionTaskLog returns the uuids of tasks which have already been
+// processed by a minion
 func (c *etcdMinionClient) MinionTaskLog(m uuid.UUID) ([]uuid.UUID, error) {
 	logDir := filepath.Join(minion.EtcdMinionSpace, m.String(), "log")
 	opts := &etcdclient.GetOptions{
@@ -331,7 +334,7 @@ func (c *etcdMinionClient) MinionTaskLog(m uuid.UUID) ([]uuid.UUID, error) {
 	return tasks, nil
 }
 
-// Submits a task to a minion
+// MinionSubmitTask submits a new task to a given minion uuid
 func (c *etcdMinionClient) MinionSubmitTask(m uuid.UUID, t *task.Task) error {
 	rootDir := filepath.Join(minion.EtcdMinionSpace, m.String())
 	queueDir := filepath.Join(rootDir, "queue")

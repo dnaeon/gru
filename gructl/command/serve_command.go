@@ -9,6 +9,8 @@ import (
 	"github.com/dnaeon/gru/minion"
 )
 
+// NewServeCommand creates a new sub-command for starting a
+// minion and its services
 func NewServeCommand() cli.Command {
 	cmd := cli.Command{
 		Name:   "serve",

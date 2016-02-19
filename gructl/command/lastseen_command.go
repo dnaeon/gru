@@ -8,6 +8,8 @@ import (
 	"github.com/gosuri/uitable"
 )
 
+// NewLastseenCommand creates a new sub-command for
+// retrieving the last time minions were seen
 func NewLastseenCommand() cli.Command {
 	cmd := cli.Command{
 		Name:   "lastseen",

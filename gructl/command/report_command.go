@@ -7,6 +7,8 @@ import (
 	"github.com/gosuri/uitable"
 )
 
+// NewReportCommand creates a new sub-command for
+// generating reports based on minion classifiers
 func NewReportCommand() cli.Command {
 	cmd := cli.Command{
 		Name:   "report",

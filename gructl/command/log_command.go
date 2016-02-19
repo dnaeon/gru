@@ -10,6 +10,8 @@ import (
 	"github.com/pborman/uuid"
 )
 
+// NewLogCommand creates a new sub-command for retrieving the
+// log of previously executed tasks by minions
 func NewLogCommand() cli.Command {
 	cmd := cli.Command{
 		Name:   "log",

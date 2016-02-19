@@ -10,6 +10,7 @@ import (
 	"github.com/codegangsta/cli"
 )
 
+// Main is the entry point of gructl
 func Main() {
 	app := cli.NewApp()
 	app.Name = "gructl"

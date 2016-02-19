@@ -9,6 +9,8 @@ import (
 	"github.com/pborman/uuid"
 )
 
+// NewClassifierCommand creates a new sub-command for retrieving
+// minion classifiers
 func NewClassifierCommand() cli.Command {
 	cmd := cli.Command{
 		Name:   "classifier",

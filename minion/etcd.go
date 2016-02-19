@@ -178,7 +178,7 @@ func (m *etcdMinion) processTask(t *task.Task) error {
 
 // Classifies the minion
 func (m *etcdMinion) classify() error {
-	for key, _ := range classifier.Registry {
+	for key := range classifier.Registry {
 		klassifier, err := classifier.Get(key)
 
 		if err != nil {

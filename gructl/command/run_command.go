@@ -11,6 +11,8 @@ import (
 	"github.com/gosuri/uitable"
 )
 
+// NewRunCommand creates a new sub-command for submitting
+// tasks to minions
 func NewRunCommand() cli.Command {
 	cmd := cli.Command{
 		Name:   "run",

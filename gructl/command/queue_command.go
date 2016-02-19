@@ -10,6 +10,8 @@ import (
 	"github.com/pborman/uuid"
 )
 
+// NewQueueCommand creates a new sub-command for retrieving the
+// currently pending tasks for minions
 func NewQueueCommand() cli.Command {
 	cmd := cli.Command{
 		Name:   "queue",

@@ -9,6 +9,8 @@ import (
 	etcdclient "github.com/coreos/etcd/client"
 )
 
+// NewListCommand creates a new sub-command for retrieving the
+// list of registered minions
 func NewListCommand() cli.Command {
 	cmd := cli.Command{
 		Name:   "list",

@@ -9,6 +9,8 @@ import (
 	"github.com/pborman/uuid"
 )
 
+// NewResultCommand creates a new sub-command for retrieving
+// results of previously executed tasks by minions
 func NewResultCommand() cli.Command {
 	cmd := cli.Command{
 		Name:   "result",
