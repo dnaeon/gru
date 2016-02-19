@@ -4,6 +4,7 @@ import "errors"
 
 var errNotFound = errors.New("Classifier key not found")
 
+// Classifier type contains a key/value pair repsenting a classifier
 type Classifier struct {
 	// Classifier key
 	Key string `json:"key"`
@@ -17,18 +18,17 @@ type Classifier struct {
 // actual evaluation of a classifier
 type provider func() (string, error)
 
-// Global classifier registry
+// Registry provides a global registry for all classifiers
 var Registry = make(map[string]provider)
 
-// Adds a classifier to the registry
+// Register registers a new classifier to the registry
 func Register(key string, p provider) error {
 	Registry[key] = p
 
 	return nil
 }
 
-// Evaluates a classifier provider and returns the
-// classifier value
+// Get retrieves a classifier from the registry by looking up its key
 func Get(key string) (*Classifier, error) {
 	c := new(Classifier)
 
