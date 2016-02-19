@@ -6,7 +6,7 @@ import (
 	"github.com/pborman/uuid"
 )
 
-// Generates a uuid for a minion
+// GenerateUUID generates a new uuid for a minion
 func GenerateUUID(name string) uuid.UUID {
 	u := uuid.NewSHA1(uuid.NameSpace_DNS, []byte(name))
 
@@ -20,13 +20,13 @@ type concurrentMap struct {
 	items map[string]interface{}
 }
 
-// Concurrent map item
+// ConcurrentMapItem contains a key/value pair item of a concurrent map
 type ConcurrentMapItem struct {
 	Key   string
 	Value interface{}
 }
 
-// Creates a new concurrent map
+// NewConcurrentMap creates a new concurrent map
 func NewConcurrentMap() *concurrentMap {
 	cm := &concurrentMap{
 		items: make(map[string]interface{}),
@@ -35,7 +35,7 @@ func NewConcurrentMap() *concurrentMap {
 	return cm
 }
 
-// Sets a key in a concurrent map
+// Set adds an item to a concurrent map
 func (cm *concurrentMap) Set(key string, value interface{}) {
 	cm.Lock()
 	defer cm.Unlock()
@@ -43,7 +43,7 @@ func (cm *concurrentMap) Set(key string, value interface{}) {
 	cm.items[key] = value
 }
 
-// Gets a key from a concurrent map
+// Get retrieves the value for a concurrent map item
 func (cm *concurrentMap) Get(key string) (interface{}, bool) {
 	cm.Lock()
 	defer cm.Unlock()
@@ -53,7 +53,7 @@ func (cm *concurrentMap) Get(key string) (interface{}, bool) {
 	return value, ok
 }
 
-// Iterates over the items in a concurrent map
+// Iter iterates over the items in a concurrent map
 // Each item is sent over a channel, so that
 // we can iterate over the map using the builtin range keyword
 func (cm *concurrentMap) Iter() <-chan ConcurrentMapItem {
@@ -79,13 +79,14 @@ type concurrentSlice struct {
 	items []interface{}
 }
 
-// Concurrent slice item
+// ConcurrentSliceItem contains the index/value pair of an item in a
+// concurrent slice
 type ConcurrentSliceItem struct {
 	Index int
 	Value interface{}
 }
 
-// Convenience function that creates a new concurrent slice
+// NewConcurrentSlice creates a new concurrent slice
 func NewConcurrentSlice() *concurrentSlice {
 	cs := &concurrentSlice{
 		items: make([]interface{}, 0),
@@ -94,7 +95,7 @@ func NewConcurrentSlice() *concurrentSlice {
 	return cs
 }
 
-// Append an item to the concurrent slice
+// Append adds an item to the concurrent slice
 func (cs *concurrentSlice) Append(item interface{}) {
 	cs.Lock()
 	defer cs.Unlock()
@@ -102,7 +103,7 @@ func (cs *concurrentSlice) Append(item interface{}) {
 	cs.items = append(cs.items, item)
 }
 
-// Iterates over the items in the concurrent slice
+// Iter iterates over the items in the concurrent slice
 // Each item is sent over a channel, so that
 // we can iterate over the slice using the builin range keyword
 func (cs *concurrentSlice) Iter() <-chan ConcurrentSliceItem {

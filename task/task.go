@@ -25,6 +25,7 @@ const (
 	TaskStateFailed = "failed"
 )
 
+// Task type represents a task that is processed by minions
 type Task struct {
 	// Command to be executed by the minion
 	Command string `json:"command"`
@@ -54,6 +55,7 @@ type Task struct {
 	State string `json:"state"`
 }
 
+// New creates a new task
 func New(command string, args ...string) *Task {
 	t := &Task{
 		Command: command,

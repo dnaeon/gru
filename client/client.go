@@ -7,6 +7,7 @@ import (
 	"github.com/pborman/uuid"
 )
 
+// Client interface for interacting with minions
 type Client interface {
 	// Gets all registered minions
 	MinionList() ([]uuid.UUID, error)

@@ -21,7 +21,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-// Minions keyspace in etcd
+// EtcdMinionSpace is the keyspace in etcd used by minions
 const EtcdMinionSpace = "/gru/minion"
 
 // Etcd Minion
@@ -54,7 +54,7 @@ type etcdMinion struct {
 	done chan struct{}
 }
 
-// Creates a new etcd minion
+// NewEtcdMinion creates a new minion with etcd backend
 func NewEtcdMinion(name string, cfg etcdclient.Config) Minion {
 	c, err := etcdclient.New(cfg)
 	if err != nil {
@@ -192,7 +192,7 @@ func (m *etcdMinion) classify() error {
 	return nil
 }
 
-// Unmarshals task from etcd
+// EtcdUnmarshalTask unmarshals tasks from an etcd node
 func EtcdUnmarshalTask(node *etcdclient.Node) (*task.Task, error) {
 	task := new(task.Task)
 	err := json.Unmarshal([]byte(node.Value), &task)
@@ -200,12 +200,12 @@ func EtcdUnmarshalTask(node *etcdclient.Node) (*task.Task, error) {
 	return task, err
 }
 
-// Returns the minion unique identifier
+// ID returns the minion unique identifier
 func (m *etcdMinion) ID() uuid.UUID {
 	return m.id
 }
 
-// Set the human-readable name of the minion in etcd
+// SetName sets the human-readable name of the minion in etcd
 func (m *etcdMinion) SetName(name string) error {
 	nameKey := filepath.Join(m.rootDir, "name")
 	opts := &etcdclient.SetOptions{
@@ -220,7 +220,8 @@ func (m *etcdMinion) SetName(name string) error {
 	return err
 }
 
-// Set the time the minion was last seen in seconds since the Epoch
+// SetLastseen sets the time the minion was last seen in
+// seconds since the Epoch
 func (m *etcdMinion) SetLastseen(s int64) error {
 	lastseenKey := filepath.Join(m.rootDir, "lastseen")
 	lastseenValue := strconv.FormatInt(s, 10)
@@ -236,7 +237,7 @@ func (m *etcdMinion) SetLastseen(s int64) error {
 	return err
 }
 
-// Classifies the minion
+// SetClassifier sets a classifier for the minion in etcd
 func (m *etcdMinion) SetClassifier(c *classifier.Classifier) error {
 	// Classifiers in etcd expire after an hour
 	opts := &etcdclient.SetOptions{
@@ -263,7 +264,7 @@ func (m *etcdMinion) SetClassifier(c *classifier.Classifier) error {
 	return nil
 }
 
-// Monitors etcd for new tasks
+// TaskListener monitors etcd for new tasks
 func (m *etcdMinion) TaskListener(c chan<- *task.Task) error {
 	log.Printf("Task listener is watching %s\n", m.queueDir)
 
@@ -315,7 +316,7 @@ func (m *etcdMinion) TaskListener(c chan<- *task.Task) error {
 	return nil
 }
 
-// Processes new tasks
+// TaskRunner processes new tasks
 func (m *etcdMinion) TaskRunner(c <-chan *task.Task) error {
 	log.Println("Starting task runner")
 
@@ -339,7 +340,7 @@ func (m *etcdMinion) TaskRunner(c <-chan *task.Task) error {
 	return nil
 }
 
-// Saves a task in etcd
+// SaveTaskResult stores the result of a task in etcd
 func (m *etcdMinion) SaveTaskResult(t *task.Task) error {
 	taskKey := filepath.Join(m.logDir, t.TaskID.String())
 
@@ -361,7 +362,7 @@ func (m *etcdMinion) SaveTaskResult(t *task.Task) error {
 	return err
 }
 
-// Main entry point of the minion
+// Seve starts the minion
 func (m *etcdMinion) Serve() error {
 	err := m.SetName(m.name)
 	if err != nil {
@@ -386,7 +387,7 @@ func (m *etcdMinion) Serve() error {
 	return nil
 }
 
-// Stops the minion and performs any cleanup tasks
+// Stop shutdowns the minions and its services
 func (m *etcdMinion) Stop() error {
 	log.Println("Minion is shutting down")
 
