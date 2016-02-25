@@ -1,5 +1,11 @@
 package resource
 
+// Resources states
+const (
+	Present = "present"
+	Absent  = "absent"
+)
+
 // State type represents the current and wanted state of a resource
 type State struct {
 	// Current state of the resource
