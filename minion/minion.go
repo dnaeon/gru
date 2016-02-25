@@ -7,6 +7,7 @@ import (
 	"github.com/pborman/uuid"
 )
 
+// Minion interface type
 type Minion interface {
 	// Returns the unique identifier of a minion
 	ID() uuid.UUID

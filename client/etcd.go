@@ -27,7 +27,7 @@ type etcdMinionClient struct {
 	kapi etcdclient.KeysAPI
 }
 
-// NewEtcdMinion creates a new client for interacting with
+// NewEtcdMinionClient creates a new client for interacting with
 // minions using etcd as their interface implementation
 func NewEtcdMinionClient(cfg etcdclient.Config) Client {
 	c, err := etcdclient.New(cfg)
