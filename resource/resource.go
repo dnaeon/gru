@@ -28,5 +28,5 @@ type Resource interface {
 	Delete() error
 
 	// Updates the resource
-	Update() erorr
+	Update() error
 }
