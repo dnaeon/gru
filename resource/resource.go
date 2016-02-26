@@ -15,9 +15,10 @@ type State struct {
 	Want string
 }
 
-// Resource interface type
+// Resource is the base interface type for resources
 type Resource interface {
-	// Returns the current and wanted state for a resource
+	// Evaluates the resource and returns the current and
+	// wanted states for a resource
 	Evaluate() (State, error)
 
 	// Creates the resource
