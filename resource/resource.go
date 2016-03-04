@@ -52,6 +52,9 @@ type Resource interface {
 	// ID returns the unique identifier of a resource
 	ID() string
 
+	// Returns the wanted resources
+	Want() []string
+
 	// Evaluates the resource and returns it's state
 	Evaluate() (State, error)
 
