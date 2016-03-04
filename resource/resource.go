@@ -10,6 +10,7 @@ import (
 const (
 	Present = "present"
 	Absent  = "absent"
+	Update  = "update"
 )
 
 // Provider is used to create new resources from an HCL AST object item
