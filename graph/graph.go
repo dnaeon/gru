@@ -2,6 +2,8 @@ package graph
 
 import "errors"
 
+var ErrCircularDependency = errors.New("Circular dependency found in graph")
+
 // Node represents a single node in the graph
 type Node struct {
 	// Name of the node
@@ -70,7 +72,7 @@ func (g *Graph) Sort() ([]*Node, error) {
 
 		// If there aren't any ready nodes, then we have a cicular dependency
 		if len(ready) == 0 {
-			return nil, errors.New("Circular dependency found in graph")
+			return nil, ErrCircularDependency
 		}
 
 		// Remove the ready nodes and add them to the sorted result
