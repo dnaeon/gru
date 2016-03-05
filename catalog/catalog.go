@@ -47,8 +47,8 @@ func (c *Catalog) Exists(id string) bool {
 	return ok
 }
 
-// Run processes the resources from the catalog
-func (c *Catalog) Run() error {
+// Graph returns the sorted resources DAG graph
+func (c *Catalog) Graph() ([]*graph.Node, error) {
 	// Create a DAG graph of the resources and perform
 	// topological sorting of the graph to determine the
 	// order of processing the resources
@@ -70,7 +70,7 @@ func (c *Catalog) Run() error {
 		for _, dep := range deps {
 			if !c.Exists(dep) {
 				e := fmt.Errorf("Resource '%s' wants '%s', which is not found in catalog", name, dep)
-				return e
+				return nil, e
 			}
 			g.AddEdge(nodes[name], nodes[dep])
 		}
@@ -78,6 +78,17 @@ func (c *Catalog) Run() error {
 
 	// Perform topological sort of the graph
 	sorted, err := g.Sort()
+	if err != nil {
+		return nil, err
+	}
+
+	return sorted, nil
+}
+
+// Run processes the resources from the catalog
+func (c *Catalog) Run() error {
+	// Perform topological sort of the graph
+	sorted, err := c.Graph()
 	if err != nil {
 		return err
 	}
