@@ -52,7 +52,7 @@ type Resource interface {
 	// ID returns the unique identifier of a resource
 	ID() string
 
-	// Returns the wanted resources
+	// Returns the wanted resources/dependencies
 	Want() []string
 
 	// Evaluates the resource and returns it's state
@@ -66,4 +66,23 @@ type Resource interface {
 
 	// Updates the resource
 	Update() error
+}
+
+// BaseResource partially implements the Resource interface
+// It provides the common set of fields used by all resources
+// The purpose of BaseResource is to be embedded into other resources
+type BaseResource struct {
+	// Name of the resource
+	Name string `hcl:"name"`
+
+	// State of the resource
+	State string `hcl:"state"`
+
+	// Wanted resources/dependencies
+	WantResource []string `hcl:"want"`
+}
+
+// Want returns the wanted resources/dependencies
+func (b *BaseResource) Want() []string {
+	return b.WantResource
 }
