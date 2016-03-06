@@ -29,7 +29,12 @@ first make sure that you have `etcd` up and running.
 
 [![asciicast](https://asciinema.org/a/35920.png)](https://asciinema.org/a/35920)
 
+## Status
+
+Experimental. Gru is in early development stage. Consider the
+API unstable for as now as things change rapidly.
+
 ## License
 
-`Gru` is Open Source and licensed under the
+Gru is Open Source and licensed under the
 [BSD License](http://opensource.org/licenses/BSD-2-Clause)
