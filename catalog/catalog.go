@@ -5,12 +5,16 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
+	"strings"
 
 	"github.com/dnaeon/gru/graph"
 	"github.com/dnaeon/gru/resource"
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/ast"
 )
+
+var ErrEmptyCatalog = errors.New("Catalog does not contain any resources")
 
 // Catalog type contains resources loaded from a given HCL input
 type Catalog struct {
@@ -124,9 +128,38 @@ func (c *Catalog) Run() error {
 	return nil
 }
 
+// GenerateResourceDot generates a DOT file of the resources graph
+func (c *Catalog) GenerateResourceDot(path string) error {
+	if len(c.resources) == 0 {
+		return ErrEmptyCatalog
+	}
+
+	dotfile, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer dotfile.Close()
+
+	var node string
+	dotfile.Write([]byte("digraph resources {\n"))
+	for id, r := range c.resources {
+		want := r.Want()
+		if want == nil {
+			continue
+		}
+
+		deps := strings.Join(want, " -> ")
+		node = fmt.Sprintf("\t%q -> %q;\n", id, deps)
+		dotfile.Write([]byte(node))
+	}
+	dotfile.Write([]byte("}\n"))
+
+	return nil
+}
+
 // Load reads a catalog from the given input and creates resources
 func Load(path string) (*Catalog, error) {
-	c := NewCatalog()
+	c := newCatalog()
 
 	input, err := ioutil.ReadFile(path)
 	if err != nil {
