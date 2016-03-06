@@ -7,12 +7,13 @@ import (
 )
 
 var (
-	errMissingMinion     = errors.New("Missing minion uuid")
-	errInvalidUUID       = errors.New("Invalid uuid given")
-	errNoMinionFound     = errors.New("No minion(s) found")
-	errMissingClassifier = errors.New("Missing classifier key")
-	errInvalidClassifier = errors.New("Invalid classifier pattern")
-	errMissingTask       = errors.New("Missing task uuid")
+	errMissingMinion       = errors.New("Missing minion uuid")
+	errInvalidUUID         = errors.New("Invalid uuid given")
+	errNoMinionFound       = errors.New("No minion(s) found")
+	errMissingClassifier   = errors.New("Missing classifier key")
+	errInvalidClassifier   = errors.New("Invalid classifier pattern")
+	errMissingTask         = errors.New("Missing task uuid")
+	errMissingResourceFile = errors.New("Missing resource file")
 )
 
 // Displays the error and exists with the

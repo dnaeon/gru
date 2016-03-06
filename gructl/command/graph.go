@@ -1,0 +1,38 @@
+package command
+
+import (
+	"os"
+
+	"github.com/codegangsta/cli"
+	"github.com/dnaeon/gru/catalog"
+)
+
+// NewGraphCommand creates a new sub-command for
+// generating the resource DAG graph
+func NewGraphCommand() cli.Command {
+	cmd := cli.Command{
+		Name:   "graph",
+		Usage:  "generate a DOT file of the resources graph",
+		Action: execGraphCommand,
+	}
+
+	return cmd
+}
+
+// Executes the "graph" command
+func execGraphCommand(c *cli.Context) {
+	if len(c.Args()) < 1 {
+		displayError(errMissingResourceFile, 64)
+	}
+
+	resourceFile := c.Args()[0]
+	katalog, err := catalog.Load(resourceFile)
+	if err != nil {
+		displayError(err, 1)
+	}
+
+	err = katalog.GenerateResourceDot(os.Stdout)
+	if err != nil {
+		displayError(err, 1)
+	}
+}

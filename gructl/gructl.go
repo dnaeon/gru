@@ -53,6 +53,7 @@ func Main() {
 		command.NewLogCommand(),
 		command.NewLastseenCommand(),
 		command.NewResultCommand(),
+		command.NewGraphCommand(),
 	}
 
 	app.Run(os.Args)
