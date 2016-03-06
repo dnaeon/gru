@@ -17,8 +17,8 @@ type Catalog struct {
 	resources map[string]resource.Resource
 }
 
-// NewCatalog creates a new empty catalog
-func NewCatalog() *Catalog {
+// newCatalog creates a new empty catalog
+func newCatalog() *Catalog {
 	c := &Catalog{
 		resources: make(map[string]resource.Resource),
 	}
@@ -26,11 +26,11 @@ func NewCatalog() *Catalog {
 	return c
 }
 
-// Add adds a new resource to the catalog
-func (c *Catalog) Add(r resource.Resource) error {
+// addResource adds a new resource to the catalog
+func (c *Catalog) addResource(r resource.Resource) error {
 	id := r.ID()
 
-	if c.Exists(id) {
+	if c.resourceExists(id) {
 		return fmt.Errorf("Resource '%s' is already declared", id)
 	}
 
@@ -39,16 +39,16 @@ func (c *Catalog) Add(r resource.Resource) error {
 	return nil
 }
 
-// Exists returns true if the resource id already exists in the catalog
+// resourceExists returns true if the resource id already exists in the catalog
 // Otherwise it returns false
-func (c *Catalog) Exists(id string) bool {
+func (c *Catalog) resourceExists(id string) bool {
 	_, ok := c.resources[id]
 
 	return ok
 }
 
 // Graph returns the sorted resources DAG graph
-func (c *Catalog) Graph() ([]*graph.Node, error) {
+func (c *Catalog) sortedResourceGraph() ([]*graph.Node, error) {
 	// Create a DAG graph of the resources and perform
 	// topological sorting of the graph to determine the
 	// order of processing the resources
@@ -68,7 +68,7 @@ func (c *Catalog) Graph() ([]*graph.Node, error) {
 	for name, r := range c.resources {
 		deps := r.Want()
 		for _, dep := range deps {
-			if !c.Exists(dep) {
+			if !c.resourceExists(dep) {
 				e := fmt.Errorf("Resource '%s' wants '%s', which is not found in catalog", name, dep)
 				return nil, e
 			}
@@ -88,7 +88,7 @@ func (c *Catalog) Graph() ([]*graph.Node, error) {
 // Run processes the resources from the catalog
 func (c *Catalog) Run() error {
 	// Perform topological sort of the graph
-	sorted, err := c.Graph()
+	sorted, err := c.sortedResourceGraph()
 	if err != nil {
 		return err
 	}
@@ -171,7 +171,7 @@ func Load(path string) (*Catalog, error) {
 			return c, err
 		}
 
-		err = c.Add(r)
+		err = c.addResource(r)
 		if err != nil {
 			return c, err
 		}
