@@ -3,9 +3,9 @@ package catalog
 import (
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
-	"os"
 	"strings"
 
 	"github.com/dnaeon/gru/graph"
@@ -129,19 +129,13 @@ func (c *Catalog) Run() error {
 }
 
 // GenerateResourceDot generates a DOT file of the resources graph
-func (c *Catalog) GenerateResourceDot(path string) error {
+func (c *Catalog) GenerateResourceDot(w io.Writer) error {
 	if len(c.resources) == 0 {
 		return ErrEmptyCatalog
 	}
 
-	dotfile, err := os.Create(path)
-	if err != nil {
-		return err
-	}
-	defer dotfile.Close()
-
 	var node string
-	dotfile.Write([]byte("digraph resources {\n"))
+	w.Write([]byte("digraph resources {\n"))
 	for id, r := range c.resources {
 		want := r.Want()
 		if want == nil {
@@ -150,9 +144,9 @@ func (c *Catalog) GenerateResourceDot(path string) error {
 
 		deps := strings.Join(want, " -> ")
 		node = fmt.Sprintf("\t%q -> %q;\n", id, deps)
-		dotfile.Write([]byte(node))
+		w.Write([]byte(node))
 	}
-	dotfile.Write([]byte("}\n"))
+	w.Write([]byte("}\n"))
 
 	return nil
 }
