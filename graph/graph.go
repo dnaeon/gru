@@ -51,8 +51,15 @@ func (g *Graph) AddEdge(node *Node, edges ...*Node) {
 	}
 }
 
-// Sort performs a topological sorting of the graph
+// Sort performs a topological sort of the graph
 // https://en.wikipedia.org/wiki/Topological_sorting
+//
+// If the graph can be topologically sorted the result will
+// contain the sorted nodes.
+//
+// If the graph cannot be sorted in case of circular dependencies,
+// then the result will contain the remaining nodes from the graph,
+// which are the ones causing the circular dependency.
 func (g *Graph) Sort() ([]*Node, error) {
 	sorted := make([]*Node, 0)
 
@@ -72,7 +79,13 @@ func (g *Graph) Sort() ([]*Node, error) {
 
 		// If there aren't any ready nodes, then we have a cicular dependency
 		if len(ready) == 0 {
-			return nil, ErrCircularDependency
+			// The remaining nodes in the graph are the ones causing the
+			// circular dependency.
+			remaining := make([]*Node, 0)
+			for _, n := range g.nodes {
+				remaining = append(remaining, n)
+			}
+			return remaining, ErrCircularDependency
 		}
 
 		// Remove the ready nodes and add them to the sorted result
