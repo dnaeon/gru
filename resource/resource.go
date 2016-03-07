@@ -1,14 +1,10 @@
 package resource
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/hashicorp/hcl/hcl/ast"
 )
-
-// ErrInvalidResourceName indicates that an invalid name was used for the resource
-var ErrInvalidResourceName = errors.New("Invalid resource name")
 
 // Resource states
 const (
