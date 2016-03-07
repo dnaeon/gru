@@ -12,15 +12,15 @@ import (
 	"github.com/imdario/mergo"
 )
 
+// Path to the pacman package manager
+const pacmanPath = "/usr/bin/pacman"
+
 // Name of the resource type in HCL
 const pacmanResourceTypeName = "pacman"
 
 // PacmanResource type is the resource for managing
 // packages on an Arch Linux system
 type PacmanResource struct {
-	// Path to the pacman package manager
-	pacmanPath string
-
 	// Name of the resource
 	Name string `hcl:"name"`
 
@@ -39,9 +39,8 @@ func NewPacmanResource(name string, obj *ast.ObjectItem) (Resource, error) {
 
 	// Resource defaults
 	defaults := &PacmanResource{
-		pacmanPath: "/usr/bin/pacman",
-		Name:       name,
-		State:      ResourceStatePresent,
+		Name:  name,
+		State: ResourceStatePresent,
 	}
 
 	// Decode the object from HCL
@@ -76,12 +75,12 @@ func (p *PacmanResource) Evaluate() (State, error) {
 		Want:    p.State,
 	}
 
-	_, err := exec.LookPath(p.pacmanPath)
+	_, err := exec.LookPath(pacmanPath)
 	if err != nil {
 		return s, err
 	}
 
-	cmd := exec.Command(p.pacmanPath, "--query", p.Name)
+	cmd := exec.Command(pacmanPath, "--query", p.Name)
 	_, err = cmd.CombinedOutput()
 
 	if err != nil {
@@ -95,7 +94,7 @@ func (p *PacmanResource) Evaluate() (State, error) {
 
 // Create creates the resource
 func (p *PacmanResource) Create() error {
-	cmd := exec.Command(p.pacmanPath, "--sync", "--noconfirm", p.Name)
+	cmd := exec.Command(pacmanPath, "--sync", "--noconfirm", p.Name)
 	output, err := cmd.CombinedOutput()
 	log.Println(string(output))
 
@@ -104,7 +103,7 @@ func (p *PacmanResource) Create() error {
 
 // Delete deletes the resource
 func (p *PacmanResource) Delete() error {
-	cmd := exec.Command(p.pacmanPath, "--remove", "--noconfirm", p.Name)
+	cmd := exec.Command(pacmanPath, "--remove", "--noconfirm", p.Name)
 	output, err := cmd.CombinedOutput()
 	log.Println(string(output))
 
