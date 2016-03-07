@@ -113,11 +113,11 @@ func (c *Catalog) Run() error {
 
 		log.Printf("%s is %s, should be %s", id, state.Current, state.Want)
 		switch {
-		case state.Want == resource.Present && state.Current == resource.Absent:
+		case state.Want == resource.ResourceStatePresent && state.Current == resource.ResourceStateAbsent:
 			r.Create()
-		case state.Want == resource.Absent && state.Current != resource.Absent:
+		case state.Want == resource.ResourceStateAbsent && state.Current != resource.ResourceStateAbsent:
 			r.Delete()
-		case state.Want == resource.Update && state.Current == resource.Present:
+		case state.Want == resource.ResourceStateUpdate && state.Current == resource.ResourceStatePresent:
 			r.Update()
 		default:
 			// TODO: Validate resource states before evaluation them

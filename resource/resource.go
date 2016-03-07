@@ -1,20 +1,25 @@
 package resource
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/hashicorp/hcl/hcl/ast"
 )
 
+// ErrInvalidResourceName indicates that an invalid name was used for the resource
+var ErrInvalidResourceName = errors.New("Invalid resource name")
+
 // Resource states
 const (
-	Present = "present"
-	Absent  = "absent"
-	Update  = "update"
+	ResourceStateUnknown = "unknown"
+	ResourceStatePresent = "present"
+	ResourceStateAbsent  = "absent"
+	ResourceStateUpdate  = "update"
 )
 
 // Provider is used to create new resources from an HCL AST object item
-type Provider func(item *ast.ObjectItem) (Resource, error)
+type Provider func(name string, item *ast.ObjectItem) (Resource, error)
 
 // Registry contains all known resource types and their providers
 var registry = make(map[string]Provider)
@@ -66,23 +71,4 @@ type Resource interface {
 
 	// Updates the resource
 	Update() error
-}
-
-// BaseResource partially implements the Resource interface
-// It provides the common set of fields used by all resources
-// The purpose of BaseResource is to be embedded into other resources
-type BaseResource struct {
-	// Name of the resource
-	Name string `hcl:"name"`
-
-	// State of the resource
-	State string `hcl:"state"`
-
-	// Wanted resources/dependencies
-	WantResource []string `hcl:"want"`
-}
-
-// Want returns the wanted resources/dependencies
-func (b *BaseResource) Want() []string {
-	return b.WantResource
 }
