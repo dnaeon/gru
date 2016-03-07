@@ -32,5 +32,8 @@ func execApplyCommand(c *cli.Context) {
 	}
 
 	log.Printf("Loaded %d resources in catalog", katalog.Len())
-	katalog.Run()
+	err = katalog.Run()
+	if err != nil {
+		displayError(err, 1)
+	}
 }
