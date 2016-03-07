@@ -177,15 +177,22 @@ func Load(path string) (*Catalog, error) {
 	for _, item := range resources.Items {
 		position := item.Val.Pos().String()
 
-		// The item is expected to have exactly one key,
-		// which represents the resource type
-		if len(item.Keys) != 1 {
+		// The item is expected to have at least one key which
+		// represents the resource type name.
+		// If there is a second key we use it as the resource name
+		numKeys := len(item.Keys)
+		if numKeys < 1 || numKeys > 2 {
 			e := fmt.Errorf("Invalid resource declaration found at %s", position)
 			return c, e
 		}
 
-		// Get the resource type and create the actual resource
+		// Get the resource type and name
+		resourceName := ""
 		resourceType := item.Keys[0].Token.Value().(string)
+		if numKeys == 2 {
+			resourceName = item.Keys[1].Token.Value().(string)
+		}
+
 		provider, ok := resource.Get(resourceType)
 		if !ok {
 			e := fmt.Errorf("Unknown resource type '%s' found at %s", resourceType, position)
@@ -193,7 +200,7 @@ func Load(path string) (*Catalog, error) {
 		}
 
 		// Create the actual resource
-		r, err := provider(item)
+		r, err := provider(resourceName, item)
 		if err != nil {
 			return c, err
 		}
