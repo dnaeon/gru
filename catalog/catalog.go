@@ -151,6 +151,11 @@ func (c *Catalog) GenerateResourceDot(w io.Writer) error {
 	return nil
 }
 
+// Len returns the number of resources found in catalog
+func (c *Catalog) Len() int {
+	return len(c.resources)
+}
+
 // Load reads a catalog from the given input and creates resources
 func Load(path string) (*Catalog, error) {
 	c := newCatalog()
