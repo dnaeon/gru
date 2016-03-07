@@ -6,7 +6,6 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"strings"
 
 	"github.com/dnaeon/gru/graph"
 	"github.com/dnaeon/gru/resource"
@@ -51,8 +50,8 @@ func (c *Catalog) resourceExists(id string) bool {
 	return ok
 }
 
-// Graph returns the sorted resources DAG graph
-func (c *Catalog) sortedResourceGraph() ([]*graph.Node, error) {
+// resourceGraph creates a DAG graph for the resources in catalog
+func (c *Catalog) resourceGraph() (*graph.Graph, error) {
 	// Create a DAG graph of the resources and perform
 	// topological sorting of the graph to determine the
 	// order of processing the resources
@@ -74,25 +73,24 @@ func (c *Catalog) sortedResourceGraph() ([]*graph.Node, error) {
 		for _, dep := range deps {
 			if !c.resourceExists(dep) {
 				e := fmt.Errorf("Resource '%s' wants '%s', which is not found in catalog", name, dep)
-				return nil, e
+				return g, e
 			}
 			g.AddEdge(nodes[name], nodes[dep])
 		}
 	}
 
-	// Perform topological sort of the graph
-	sorted, err := g.Sort()
-	if err != nil {
-		return nil, err
-	}
-
-	return sorted, nil
+	return g, nil
 }
 
 // Run processes the resources from the catalog
 func (c *Catalog) Run() error {
 	// Perform topological sort of the graph
-	sorted, err := c.sortedResourceGraph()
+	g, err := c.resourceGraph()
+	if err != nil {
+		return err
+	}
+
+	sorted, err := g.Sort()
 	if err != nil {
 		return err
 	}
@@ -127,30 +125,28 @@ func (c *Catalog) Run() error {
 	return nil
 }
 
-// GenerateResourceDot generates a DOT file of the resources graph
-func (c *Catalog) GenerateResourceDot(w io.Writer) error {
+// GenerateCatalogDOT generates a DOT file of the resources graph from catalog
+func (c *Catalog) GenerateCatalogDOT(w io.Writer) error {
 	if len(c.resources) == 0 {
 		return ErrEmptyCatalog
 	}
 
-	var node string
-	w.Write([]byte("digraph resources {\n"))
-	for id, r := range c.resources {
-		want := r.Want()
-
-		// Resource has no dependencies
-		if want == nil {
-			node = fmt.Sprintf("\t%q\n", id)
-			w.Write([]byte(node))
-			continue
-		}
-
-		// Resource has dependencies
-		deps := strings.Join(want, " -> ")
-		node = fmt.Sprintf("\t%q -> %q;\n", id, deps)
-		w.Write([]byte(node))
+	// Generate the graph for all registered resources
+	g, err := c.resourceGraph()
+	if err != nil {
+		return err
 	}
-	w.Write([]byte("}\n"))
+	g.GenerateDOT("resources", w)
+
+	// Try a topological sort of the graph
+	// In case of circular dependencies in the graph
+	// generate a DOT file for the remaining nodes in the graph,
+	// which would give us the resources causing circular dependencies
+	if nodes, err := g.Sort(); err == graph.ErrCircularDependency {
+		circularGraph := graph.NewGraph()
+		circularGraph.AddNode(nodes...)
+		circularGraph.GenerateDOT("resources_circular", w)
+	}
 
 	return nil
 }

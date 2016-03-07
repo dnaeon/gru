@@ -31,7 +31,7 @@ func execGraphCommand(c *cli.Context) {
 		displayError(err, 1)
 	}
 
-	err = katalog.GenerateResourceDot(os.Stdout)
+	err = katalog.GenerateCatalogDOT(os.Stdout)
 	if err != nil {
 		displayError(err, 1)
 	}
