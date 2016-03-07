@@ -137,10 +137,15 @@ func (c *Catalog) GenerateResourceDot(w io.Writer) error {
 	w.Write([]byte("digraph resources {\n"))
 	for id, r := range c.resources {
 		want := r.Want()
+
+		// Resource has no dependencies
 		if want == nil {
+			node = fmt.Sprintf("\t%q\n", id)
+			w.Write([]byte(node))
 			continue
 		}
 
+		// Resource has dependencies
 		deps := strings.Join(want, " -> ")
 		node = fmt.Sprintf("\t%q -> %q;\n", id, deps)
 		w.Write([]byte(node))
