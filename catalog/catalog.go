@@ -35,7 +35,7 @@ func (c *Catalog) addResource(r resource.Resource) error {
 	id := r.ID()
 
 	if c.resourceExists(id) {
-		return fmt.Errorf("Resource '%s' is already declared", id)
+		return fmt.Errorf("Duplicate declaration for resource '%s' found", id)
 	}
 
 	c.resources[id] = r

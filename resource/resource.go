@@ -28,7 +28,7 @@ var registry = make(map[string]Provider)
 func Register(name string, p Provider) error {
 	_, ok := registry[name]
 	if ok {
-		return fmt.Errorf("Resource '%s' is already registered", name)
+		return fmt.Errorf("Resource provider for '%s' is already registered", name)
 	}
 
 	registry[name] = p
