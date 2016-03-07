@@ -43,6 +43,7 @@ func Main() {
 	}
 
 	app.Commands = []cli.Command{
+		command.NewApplyCommand(),
 		command.NewListCommand(),
 		command.NewInfoCommand(),
 		command.NewServeCommand(),
