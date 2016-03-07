@@ -100,7 +100,6 @@ func (c *Catalog) Run() error {
 	for _, node := range sorted {
 		r := c.resources[node.Name]
 		id := r.ID()
-		log.Printf("Evaluating resource '%s'", id)
 		state, err := r.Evaluate()
 		if err != nil {
 			log.Printf("Failed to evaluate resource '%s': %s", id, err)
