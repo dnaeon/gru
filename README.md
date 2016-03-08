@@ -33,7 +33,7 @@ first make sure that you have `etcd` up and running.
 ## Status
 
 Experimental. Gru is in early development stage. Consider the
-API unstable for as now as things change rapidly.
+API unstable for now as things may change without a notice.
 
 ## License
 
