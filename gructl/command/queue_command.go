@@ -25,7 +25,7 @@ func NewQueueCommand() cli.Command {
 // Executes the "queue" command
 func execQueueCommand(c *cli.Context) {
 	if len(c.Args()) == 0 {
-		displayError(errMissingMinion, 64)
+		displayError(errNoMinion, 64)
 	}
 
 	minion := uuid.Parse(c.Args()[0])

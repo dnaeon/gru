@@ -24,7 +24,7 @@ func NewClassifierCommand() cli.Command {
 // Executes the "classifier" command
 func execClassifierCommand(c *cli.Context) {
 	if len(c.Args()) == 0 {
-		displayError(errMissingMinion, 64)
+		displayError(errNoMinion, 64)
 	}
 
 	arg := c.Args()[0]

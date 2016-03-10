@@ -22,7 +22,7 @@ func NewApplyCommand() cli.Command {
 // Executes the "apply" command
 func execApplyCommand(c *cli.Context) {
 	if len(c.Args()) < 1 {
-		displayError(errMissingResourceFile, 64)
+		displayError(errNoModuleFile, 64)
 	}
 
 	resourceFile := c.Args()[0]

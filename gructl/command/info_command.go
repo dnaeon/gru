@@ -25,7 +25,7 @@ func NewInfoCommand() cli.Command {
 // Executes the "info" command
 func execInfoCommand(c *cli.Context) {
 	if len(c.Args()) == 0 {
-		displayError(errMissingMinion, 64)
+		displayError(errNoMinion, 64)
 	}
 
 	arg := c.Args()[0]

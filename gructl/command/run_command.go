@@ -37,7 +37,7 @@ func NewRunCommand() cli.Command {
 // Executes the "run" command
 func execRunCommand(c *cli.Context) {
 	if len(c.Args()) < 1 {
-		displayError(errMissingTask, 64)
+		displayError(errNoTask, 64)
 	}
 
 	client := newEtcdMinionClientFromFlags(c)

@@ -34,7 +34,7 @@ func NewResultCommand() cli.Command {
 // Executes the "result" command
 func execResultCommand(c *cli.Context) {
 	if len(c.Args()) == 0 {
-		displayError(errMissingTask, 64)
+		displayError(errNoTask, 64)
 	}
 
 	arg := c.Args()[0]

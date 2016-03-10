@@ -22,7 +22,7 @@ func NewReportCommand() cli.Command {
 // Executes the "report" command
 func execReportCommand(c *cli.Context) {
 	if len(c.Args()) == 0 {
-		displayError(errMissingClassifier, 64)
+		displayError(errNoClassifier, 64)
 	}
 
 	classifierKey := c.Args()[0]
