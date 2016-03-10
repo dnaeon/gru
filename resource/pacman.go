@@ -22,24 +22,23 @@ const pacmanResourceTypeName = "pacman"
 // packages on an Arch Linux system
 type PacmanResource struct {
 	// Name of the resource
-	Name string `hcl:"name"`
+	Name string `json:"name"`
 
 	// State of the resource
-	State string `hcl:"state"`
+	State string `json:"state"`
 
 	// Resource dependencies
-	WantResource []string `hcl:"want"`
+	WantResource []string `json:"want"`
 }
 
 // NewPacmanResource creates a new resource for managing packages
 // using the pacman package manager on an Arch Linux system
-func NewPacmanResource(name string, obj *ast.ObjectItem) (Resource, error) {
+func NewPacmanResource(obj *ast.ObjectItem) (Resource, error) {
 	// Position of the resource declaration
 	position := obj.Val.Pos().String()
 
 	// Resource defaults
 	defaults := &PacmanResource{
-		Name:  name,
 		State: ResourceStatePresent,
 	}
 
