@@ -15,7 +15,7 @@ const (
 )
 
 // Provider is used to create new resources from an HCL AST object item
-type Provider func(name string, item *ast.ObjectItem) (Resource, error)
+type Provider func(item *ast.ObjectItem) (Resource, error)
 
 // Registry contains all known resource types and their providers
 var registry = make(map[string]Provider)
