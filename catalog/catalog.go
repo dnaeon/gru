@@ -13,66 +13,78 @@ import (
 	"github.com/hashicorp/hcl/hcl/ast"
 )
 
-var ErrEmptyCatalog = errors.New("Catalog does not contain any resources")
+var ErrEmptyCatalog = errors.New("Catalog is empty")
 
-// Catalog type contains resources loaded from a given HCL input
+type resourceItem struct {
+	// Position of the resource declaration in HCL
+	position string
+
+	// An instantiated resource after calling it's provider
+	r resource.Resource
+}
+
+// resourceJsonItem type represents a single resource declaration
+// represented in JSON.
+// Keys of the map are the resource types, e.g. "package", "service", etc.
+// Value of each key is the actual instantiated resource
+type resourceJsonItem map[string]resource.Resource
+
+// Catalog type contains resources loaded from a given HCL or JSON input
 type Catalog struct {
-	resources map[string]resource.Resource
+	// Contains resources to be serialized in JSON
+	ResourceJsonItems []resourceJsonItem `json:"resource"`
+
+	// Map containing the unique resource ids of instantiated resources.
+	// The map is used to keep track of where resources were declared,
+	// for detecting possibly duplicate resource declarations,
+	// for building the resource dependency graph and perform
+	// topological sort in order to determine the proper order of
+	// evaluating the resources
+	resourceIdMap map[string]resourceItem
 }
 
 // newCatalog creates a new empty catalog
 func newCatalog() *Catalog {
 	c := &Catalog{
-		resources: make(map[string]resource.Resource),
+		ResourceJsonItems: make([]resourceJsonItem, 0),
+		resourceIdMap:     make(map[string]resourceItem),
 	}
 
 	return c
 }
 
-// addResource adds a new resource to the catalog
-func (c *Catalog) addResource(r resource.Resource) error {
-	id := r.ID()
-
-	if c.resourceExists(id) {
-		return fmt.Errorf("Duplicate declaration for resource '%s' found", id)
-	}
-
-	c.resources[id] = r
-
-	return nil
-}
-
-// resourceExists returns true if the resource id already exists in the catalog
-// Otherwise it returns false
-func (c *Catalog) resourceExists(id string) bool {
-	_, ok := c.resources[id]
+// resourceIsRegistered returns true if the resource id already exists in the catalog
+func (c *Catalog) resourceIsRegistered(id string) bool {
+	_, ok := c.resourceIdMap[id]
 
 	return ok
 }
 
 // resourceGraph creates a DAG graph for the resources in catalog
 func (c *Catalog) resourceGraph() (*graph.Graph, error) {
-	// Create a DAG graph of the resources and perform
-	// topological sorting of the graph to determine the
-	// order of processing the resources
+	// Create a DAG graph of the currently registered resources
+	// The generated graph can be topologically sorted in order to
+	// determine the proper order of evaluating resources
+	// If the graph cannot be sorted, it means we have a
+	// circular dependency in our resources
 	g := graph.NewGraph()
 
 	// A map containing the resource ids and their nodes in the graph
 	nodes := make(map[string]*graph.Node)
 
 	// Create the graph nodes for each resource from the catalog
-	for name := range c.resources {
+	for name := range c.resourceIdMap {
 		node := graph.NewNode(name)
 		nodes[name] = node
 		g.AddNode(node)
 	}
 
 	// Connect the nodes in the graph
-	for name, r := range c.resources {
-		deps := r.Want()
+	for name, ri := range c.resourceIdMap {
+		deps := ri.r.Want()
 		for _, dep := range deps {
-			if !c.resourceExists(dep) {
-				e := fmt.Errorf("Resource '%s' wants '%s', which is not found in catalog", name, dep)
+			if !c.resourceIsRegistered(dep) {
+				e := fmt.Errorf("Resource '%s' declared at %s wants '%s', which is not found in catalog", name, ri.position, dep)
 				return g, e
 			}
 			g.AddEdge(nodes[name], nodes[dep])
@@ -82,9 +94,9 @@ func (c *Catalog) resourceGraph() (*graph.Graph, error) {
 	return g, nil
 }
 
-// Run processes the resources from the catalog
+// Run processes the catalog
 func (c *Catalog) Run() error {
-	// Perform topological sort of the graph
+	// Perform topological sort of the resources graph
 	g, err := c.resourceGraph()
 	if err != nil {
 		return err
@@ -96,7 +108,7 @@ func (c *Catalog) Run() error {
 	}
 
 	for _, node := range sorted {
-		r := c.resources[node.Name]
+		r := c.resourceIdMap[node.Name].r
 		id := r.ID()
 		state, err := r.Evaluate()
 		if err != nil {
@@ -117,7 +129,6 @@ func (c *Catalog) Run() error {
 		case state.Want == resource.ResourceStateUpdate && state.Current == resource.ResourceStatePresent:
 			r.Update()
 		default:
-			// TODO: Validate resource states before evaluation them
 			log.Printf("Unknown state '%s' for resource '%s'", state.Want, id)
 		}
 	}
@@ -127,7 +138,7 @@ func (c *Catalog) Run() error {
 
 // GenerateCatalogDOT generates a DOT file of the resources graph from catalog
 func (c *Catalog) GenerateCatalogDOT(w io.Writer) error {
-	if len(c.resources) == 0 {
+	if len(c.resourceIdMap) == 0 {
 		return ErrEmptyCatalog
 	}
 
@@ -151,12 +162,63 @@ func (c *Catalog) GenerateCatalogDOT(w io.Writer) error {
 	return nil
 }
 
-// Len returns the number of resources found in catalog
+// Len returns the number of unique resources found in catalog
 func (c *Catalog) Len() int {
-	return len(c.resources)
+	return len(c.resourceIdMap)
 }
 
-// Load reads a catalog from the given input and creates resources
+// hclLoadResources loads all resource declarations from the given HCL input
+func (c *Catalog) hclLoadResources(root *ast.ObjectList) error {
+	hclResources := root.Filter("resource")
+	for _, item := range hclResources.Items {
+		position := item.Val.Pos().String()
+
+		// The item is expected to have exactly one key which
+		// represents the resource type.
+		if len(item.Keys) != 1 {
+			e := fmt.Errorf("Invalid resource declaration found at %s", position)
+			return e
+		}
+
+		// Get the resource type and create the actual resource
+		resourceType := item.Keys[0].Token.Value().(string)
+		provider, ok := resource.Get(resourceType)
+		if !ok {
+			e := fmt.Errorf("Unknown resource type '%s' found at %s", resourceType, position)
+			return e
+		}
+
+		// Create the actual resource by calling it's provider
+		r, err := provider(item)
+		if err != nil {
+			return err
+		}
+
+		// Check if we have a duplicate resource declaration
+		id := r.ID()
+		if ri, ok := c.resourceIdMap[id]; ok {
+			e := fmt.Errorf("Duplicate resource declaration for '%s' found at %s, previous declaration was at %s", id, position, ri.position)
+			return e
+		}
+
+		// Add the new resource to the map of known and unique resources
+		ri := resourceItem{
+			position: position,
+			r:        r,
+		}
+		c.resourceIdMap[id] = ri
+
+		// Add the resource for JSON serialization as well
+		rJson := resourceJsonItem{
+			resourceType: r,
+		}
+		c.ResourceJsonItems = append(c.ResourceJsonItems, rJson)
+	}
+
+	return nil
+}
+
+// Load reads a catalog from the given HCL or JSON input and creates a catalog
 func Load(path string) (*Catalog, error) {
 	c := newCatalog()
 
@@ -174,46 +236,12 @@ func Load(path string) (*Catalog, error) {
 	// Top-level node should be an object list
 	root, ok := obj.Node.(*ast.ObjectList)
 	if !ok {
-		return c, errors.New("Missing root node")
+		return c, fmt.Errorf("Missing root node in %s", path)
 	}
 
-	// Get the resource declarations and create the actual resources
-	resources := root.Filter("resource")
-	for _, item := range resources.Items {
-		position := item.Val.Pos().String()
-
-		// The item is expected to have at least one key which
-		// represents the resource type name.
-		// If there is a second key we use it as the resource name
-		numKeys := len(item.Keys)
-		if numKeys < 1 || numKeys > 2 {
-			e := fmt.Errorf("Invalid resource declaration found at %s", position)
-			return c, e
-		}
-
-		// Get the resource type and name
-		resourceName := ""
-		resourceType := item.Keys[0].Token.Value().(string)
-		if numKeys == 2 {
-			resourceName = item.Keys[1].Token.Value().(string)
-		}
-
-		provider, ok := resource.Get(resourceType)
-		if !ok {
-			e := fmt.Errorf("Unknown resource type '%s' found at %s", resourceType, position)
-			return c, e
-		}
-
-		// Create the actual resource
-		r, err := provider(resourceName, item)
-		if err != nil {
-			return c, err
-		}
-
-		err = c.addResource(r)
-		if err != nil {
-			return c, err
-		}
+	err = c.hclLoadResources(root)
+	if err != nil {
+		return c, err
 	}
 
 	return c, nil
