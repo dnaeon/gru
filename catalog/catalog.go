@@ -143,7 +143,7 @@ func (c *Catalog) Run() error {
 	return nil
 }
 
-// GenerateCatalogDOT generates a DOT file of the resources graph from catalog
+// GenerateCatalogDOT generates a DOT file for the resources in catalog
 func (c *Catalog) GenerateCatalogDOT(w io.Writer) error {
 	g, err := c.resourceGraph()
 	if err != nil {
