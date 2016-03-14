@@ -18,17 +18,10 @@ const pacmanPath = "/usr/bin/pacman"
 // Name of the resource type in HCL
 const pacmanResourceTypeName = "pacman"
 
-// PacmanResource type is the resource for managing
-// packages on an Arch Linux system
+// PacmanResource type represents the resource for
+// package management on Arch Linux systems
 type PacmanResource struct {
-	// Name of the resource
-	Name string `json:"name"`
-
-	// State of the resource
-	State string `json:"state"`
-
-	// Resource dependencies
-	WantResource []string `hcl:"want" json:"want,omitempty"`
+	BaseResource `hcl:",squash"`
 }
 
 // NewPacmanResource creates a new resource for managing packages
@@ -39,7 +32,10 @@ func NewPacmanResource(obj *ast.ObjectItem) (Resource, error) {
 
 	// Resource defaults
 	defaults := &PacmanResource{
-		State: ResourceStatePresent,
+		BaseResource{
+			ResourceType: pacmanResourceType,
+			State:        ResourceStatePresent,
+		},
 	}
 
 	// Decode the object from HCL
@@ -58,18 +54,6 @@ func NewPacmanResource(obj *ast.ObjectItem) (Resource, error) {
 	}
 
 	return &p, err
-}
-
-// Type returns the resource type for this resource
-func (p *PacmanResource) Type() string {
-	return "pacman"
-}
-
-// ID returns the unique resource identifier
-func (p *PacmanResource) ID() string {
-	id := fmt.Sprintf("%s[%s]", pacmanResourceTypeName, p.Name)
-
-	return id
 }
 
 // Evaluate evaluates the resource
@@ -118,11 +102,6 @@ func (p *PacmanResource) Delete() error {
 func (p *PacmanResource) Update() error {
 	// Create() handles package updates as well
 	return p.Create()
-}
-
-// Want returns the wanted dependencies
-func (p *PacmanResource) Want() []string {
-	return p.WantResource
 }
 
 func init() {
