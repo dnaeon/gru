@@ -4,87 +4,88 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 
 	"github.com/dnaeon/gru/graph"
+	"github.com/dnaeon/gru/module"
 	"github.com/dnaeon/gru/resource"
-	"github.com/hashicorp/hcl"
-	"github.com/hashicorp/hcl/hcl/ast"
 )
 
+// ErrEmptyCatalog is returned when no resources were found from the
+// loaded modules in the catalog
 var ErrEmptyCatalog = errors.New("Catalog is empty")
 
-type resourceItem struct {
-	// Position of the resource declaration in HCL
-	position string
+type resourceMap map[string]resource.Resource
 
-	// An instantiated resource after calling it's provider
-	r resource.Resource
-}
-
-// resourceJsonItem type represents a single resource declaration
-// represented in JSON.
-// Keys of the map are the resource types, e.g. "package", "service", etc.
-// Value of each key is the actual instantiated resource
-type resourceJsonItem map[string]resource.Resource
-
-// Catalog type contains resources loaded from a given HCL or JSON input
+// Catalog type represents a collection of modules loaded from HCL or JSON
 type Catalog struct {
-	// Contains resources to be serialized in JSON
-	ResourceJsonItems []resourceJsonItem `json:"resource"`
-
-	// Map containing the unique resource ids of instantiated resources.
-	// The map is used to keep track of where resources were declared,
-	// for detecting possibly duplicate resource declarations,
-	// for building the resource dependency graph and perform
-	// topological sort in order to determine the proper order of
-	// evaluating the resources
-	resourceIdMap map[string]resourceItem
+	modules []*module.Module
 }
 
 // newCatalog creates a new empty catalog
 func newCatalog() *Catalog {
 	c := &Catalog{
-		ResourceJsonItems: make([]resourceJsonItem, 0),
-		resourceIdMap:     make(map[string]resourceItem),
+		modules: make([]*module.Module, 0),
 	}
 
 	return c
 }
 
-// resourceIsRegistered returns true if the resource id already exists in the catalog
-func (c *Catalog) resourceIsRegistered(id string) bool {
-	_, ok := c.resourceIdMap[id]
+// createResourceMap creates a map of the unique resource IDs and
+// the actual resource instances
+func (c *Catalog) createResourceMap() (resourceMap, error) {
+	// A map containing the unique resource ID and the
+	// module where the resource has been declared
+	rModuleMap := make(map[string]string)
 
-	return ok
+	rMap := make(resourceMap)
+	for _, m := range c.modules {
+		for _, r := range m.Resources {
+			id := r.ID()
+			if _, ok := rMap[id]; ok {
+				return rMap, fmt.Errorf("Duplicate resource %s in %s, previous declaration was in %s", id, m.Name, rModuleMap[id])
+			}
+			rModuleMap[id] = m.Name
+			rMap[id] = r
+		}
+	}
+
+	if len(rMap) == 0 {
+		return rMap, ErrEmptyCatalog
+	}
+
+	return rMap, nil
 }
 
 // resourceGraph creates a DAG graph for the resources in catalog
 func (c *Catalog) resourceGraph() (*graph.Graph, error) {
-	// Create a DAG graph of the currently registered resources
+	// Create a DAG graph of the resources in catalog
 	// The generated graph can be topologically sorted in order to
 	// determine the proper order of evaluating resources
 	// If the graph cannot be sorted, it means we have a
 	// circular dependency in our resources
 	g := graph.NewGraph()
 
-	// A map containing the resource ids and their nodes in the graph
-	nodes := make(map[string]*graph.Node)
+	resources, err := c.createResourceMap()
+	if err != nil {
+		return g, err
+	}
 
-	// Create the graph nodes for each resource from the catalog
-	for name := range c.resourceIdMap {
+	// A map containing the resource ids and their nodes in the graph
+	// Create a graph nodes for each resource from the catalog
+	nodes := make(map[string]*graph.Node)
+	for name := range resources {
 		node := graph.NewNode(name)
 		nodes[name] = node
 		g.AddNode(node)
 	}
 
 	// Connect the nodes in the graph
-	for name, ri := range c.resourceIdMap {
-		deps := ri.r.Want()
+	for name, r := range resources {
+		deps := r.Want()
 		for _, dep := range deps {
-			if !c.resourceIsRegistered(dep) {
-				e := fmt.Errorf("Resource '%s' declared at %s wants '%s', which is not found in catalog", name, ri.position, dep)
+			if _, ok := resources[dep]; !ok {
+				e := fmt.Errorf("Resource %s wants %s, which is not in catalog", name, dep)
 				return g, e
 			}
 			g.AddEdge(nodes[name], nodes[dep])
@@ -96,6 +97,11 @@ func (c *Catalog) resourceGraph() (*graph.Graph, error) {
 
 // Run processes the catalog
 func (c *Catalog) Run() error {
+	rMap, err := c.createResourceMap()
+	if err != nil {
+		return err
+	}
+
 	// Perform topological sort of the resources graph
 	g, err := c.resourceGraph()
 	if err != nil {
@@ -108,7 +114,7 @@ func (c *Catalog) Run() error {
 	}
 
 	for _, node := range sorted {
-		r := c.resourceIdMap[node.Name].r
+		r := rMap[node.Name]
 		id := r.ID()
 		state, err := r.Evaluate()
 		if err != nil {
@@ -138,11 +144,6 @@ func (c *Catalog) Run() error {
 
 // GenerateCatalogDOT generates a DOT file of the resources graph from catalog
 func (c *Catalog) GenerateCatalogDOT(w io.Writer) error {
-	if len(c.resourceIdMap) == 0 {
-		return ErrEmptyCatalog
-	}
-
-	// Generate the graph for all registered resources
 	g, err := c.resourceGraph()
 	if err != nil {
 		return err
@@ -164,84 +165,87 @@ func (c *Catalog) GenerateCatalogDOT(w io.Writer) error {
 
 // Len returns the number of unique resources found in catalog
 func (c *Catalog) Len() int {
-	return len(c.resourceIdMap)
-}
-
-// hclLoadResources loads all resource declarations from the given HCL input
-func (c *Catalog) hclLoadResources(root *ast.ObjectList) error {
-	hclResources := root.Filter("resource")
-	for _, item := range hclResources.Items {
-		position := item.Val.Pos().String()
-
-		// The item is expected to have exactly one key which
-		// represents the resource type.
-		if len(item.Keys) != 1 {
-			e := fmt.Errorf("Invalid resource declaration found at %s", position)
-			return e
-		}
-
-		// Get the resource type and create the actual resource
-		resourceType := item.Keys[0].Token.Value().(string)
-		provider, ok := resource.Get(resourceType)
-		if !ok {
-			e := fmt.Errorf("Unknown resource type '%s' found at %s", resourceType, position)
-			return e
-		}
-
-		// Create the actual resource by calling it's provider
-		r, err := provider(item)
-		if err != nil {
-			return err
-		}
-
-		// Check if we have a duplicate resource declaration
-		id := r.ID()
-		if ri, ok := c.resourceIdMap[id]; ok {
-			e := fmt.Errorf("Duplicate resource declaration for '%s' found at %s, previous declaration was at %s", id, position, ri.position)
-			return e
-		}
-
-		// Add the new resource to the map of known and unique resources
-		ri := resourceItem{
-			position: position,
-			r:        r,
-		}
-		c.resourceIdMap[id] = ri
-
-		// Add the resource for JSON serialization as well
-		rJson := resourceJsonItem{
-			resourceType: r,
-		}
-		c.ResourceJsonItems = append(c.ResourceJsonItems, rJson)
+	resources, err := c.createResourceMap()
+	if err != nil {
+		return 0
 	}
 
-	return nil
+	return len(resources)
 }
 
-// Load reads a catalog from the given HCL or JSON input and creates a catalog
-func Load(path string) (*Catalog, error) {
+// Load creates a catalog from the provided module name
+func Load(main, path string) (*Catalog, error) {
 	c := newCatalog()
 
-	input, err := ioutil.ReadFile(path)
+	// Discover all modules from the provided module path
+	registry, err := module.Discover(path)
+	if _, ok := registry[main]; !ok {
+		return c, fmt.Errorf("Module %s was not found in the module path", main)
+	}
+
+	// A map containing the module names and the actual loaded modules
+	moduleNames := make(map[string]*module.Module)
+	for n, p := range registry {
+		m, err := module.Load(n, p)
+		if err != nil {
+			return c, err
+		}
+		moduleNames[n] = m
+	}
+
+	// A map containing the modules as graph nodes
+	// The graph is used to determine if we have
+	// circular module imports and also to provide the
+	// proper ordering of loading modules after a
+	// topological sort of the graph nodes
+	nodes := make(map[string]*graph.Node)
+	for n := range moduleNames {
+		node := graph.NewNode(n)
+		nodes[n] = node
+	}
+
+	// Recursively find all imports that the main module has and
+	// resolve the dependency graph
+	g := graph.NewGraph()
+	var createModuleGraph func(m *module.Module) error
+	createModuleGraph = func(m *module.Module) error {
+		if !g.NodeExists(m.Name) {
+			g.AddNode(nodes[m.Name])
+		} else {
+			return nil
+		}
+
+		for _, importName := range m.ModuleImport.Module {
+			if _, ok := moduleNames[importName]; !ok {
+				return fmt.Errorf("Module %s imports %s, which is not in the module path", m.Name, importName)
+			}
+
+			// Build the dependencies of imported modules as well
+			createModuleGraph(moduleNames[importName])
+
+			// Finally connect the nodes in the graph
+			g.AddEdge(nodes[m.Name], nodes[importName])
+		}
+
+		return nil
+	}
+
+	//	Build the dependency graph of the module imports
+	err = createModuleGraph(moduleNames[main])
 	if err != nil {
 		return c, err
 	}
 
-	// Parse configuration
-	obj, err := hcl.Parse(string(input))
+	// Topologically sort the graph
+	// In case of an error it means we have a circular import
+	sorted, err := g.Sort()
 	if err != nil {
 		return c, err
 	}
 
-	// Top-level node should be an object list
-	root, ok := obj.Node.(*ast.ObjectList)
-	if !ok {
-		return c, fmt.Errorf("Missing root node in %s", path)
-	}
-
-	err = c.hclLoadResources(root)
-	if err != nil {
-		return c, err
+	// Finally add the sorted modules to the catalog
+	for _, node := range sorted {
+		c.modules = append(c.modules, moduleNames[node.Name])
 	}
 
 	return c, nil
