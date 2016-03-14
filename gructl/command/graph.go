@@ -25,8 +25,8 @@ func execGraphCommand(c *cli.Context) {
 		displayError(errNoModuleFile, 64)
 	}
 
-	resourceFile := c.Args()[0]
-	katalog, err := catalog.Load(resourceFile)
+	main := c.Args()[0]
+	katalog, err := catalog.Load(main, c.GlobalString("modulepath"))
 	if err != nil {
 		displayError(err, 1)
 	}
