@@ -25,13 +25,13 @@ func execApplyCommand(c *cli.Context) {
 		displayError(errNoModuleFile, 64)
 	}
 
-	resourceFile := c.Args()[0]
-	katalog, err := catalog.Load(resourceFile)
+	main := c.Args()[0]
+	katalog, err := catalog.Load(main, c.GlobalString("modulepath"))
 	if err != nil {
 		displayError(err, 1)
 	}
 
-	log.Printf("Loaded %d resources in catalog", katalog.Len())
+	log.Printf("Loaded %d resource(s) in catalog", katalog.Len())
 	err = katalog.Run()
 	if err != nil {
 		displayError(err, 1)
