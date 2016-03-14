@@ -1,6 +1,7 @@
 package catalog
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -249,4 +250,26 @@ func Load(main, path string) (*Catalog, error) {
 	}
 
 	return c, nil
+}
+
+// MarshalJSON creates a stripped down version of the catalog in JSON,
+// which contains all resources from the catalog and is suitable for
+// clients to consume in order to create a single-module catalog from it.
+func (c *Catalog) MarshalJSON() ([]byte, error) {
+	rMap, err := c.createResourceMap()
+	if err != nil {
+		return nil, err
+	}
+
+	resources := make([]resourceMap, 0)
+	for _, r := range rMap {
+		rJson := resourceMap{
+			r.Type(): r,
+		}
+		resources = append(resources, rJson)
+	}
+
+	return json.Marshal(map[string]interface{}{
+		"resource": resources,
+	})
 }
