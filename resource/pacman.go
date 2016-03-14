@@ -28,7 +28,7 @@ type PacmanResource struct {
 	State string `json:"state"`
 
 	// Resource dependencies
-	WantResource []string `json:"want"`
+	WantResource []string `hcl:"want" json:"want,omitempty"`
 }
 
 // NewPacmanResource creates a new resource for managing packages
@@ -58,6 +58,11 @@ func NewPacmanResource(obj *ast.ObjectItem) (Resource, error) {
 	}
 
 	return &p, err
+}
+
+// Type returns the resource type for this resource
+func (p *PacmanResource) Type() string {
+	return "pacman"
 }
 
 // ID returns the unique resource identifier

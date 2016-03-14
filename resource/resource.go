@@ -50,6 +50,9 @@ type State struct {
 
 // Resource is the base interface type for all resources
 type Resource interface {
+	// Type of the resource
+	Type() string
+
 	// ID returns the unique identifier of a resource
 	ID() string
 
