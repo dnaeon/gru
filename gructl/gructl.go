@@ -21,19 +21,19 @@ func Main() {
 			Name:   "endpoint",
 			Value:  "http://127.0.0.1:2379,http://localhost:4001",
 			Usage:  "etcd cluster endpoints",
-			EnvVar: "GRUCTL_ENDPOINT",
+			EnvVar: "GRU_ENDPOINT",
 		},
 		cli.StringFlag{
 			Name:   "username",
 			Value:  "",
 			Usage:  "username to use for authentication",
-			EnvVar: "GRUCTL_USERNAME",
+			EnvVar: "GRU_USERNAME",
 		},
 		cli.StringFlag{
 			Name:   "password",
 			Value:  "",
 			Usage:  "password to use for authentication",
-			EnvVar: "GRUCTL_PASSWORD",
+			EnvVar: "GRU_PASSWORD",
 		},
 		cli.StringFlag{
 			Name:   "modulepath",
