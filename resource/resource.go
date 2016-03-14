@@ -71,3 +71,35 @@ type Resource interface {
 	// Updates the resource
 	Update() error
 }
+
+// BaseResource is the base resource type for all resources
+// The purpose of this type is to be embedded into other resources
+// Partially implements the Resource interface
+type BaseResource struct {
+	// Name of the resource
+	Name string `json:"name"`
+
+	// Desired state of the resource
+	State string `json:"state"`
+
+	// Type of the resource
+	ResourceType string `json:"-"`
+
+	// Resource dependencies
+	WantResource []string `json:"want,omitempty" hcl:"want"`
+}
+
+// Type returns the resource type name
+func (b *BaseResource) Type() string {
+	return b.ResourceType
+}
+
+// ID returns the unique resource id
+func (b *BaseResource) ID() string {
+	return fmt.Sprintf("%s[%s]", b.ResourceType, b.Name)
+}
+
+// Want returns the wanted resources/dependencies
+func (b *BaseResource) Want() []string {
+	return b.WantResource
+}
