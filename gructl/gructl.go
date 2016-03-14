@@ -35,6 +35,12 @@ func Main() {
 			Usage:  "password to use for authentication",
 			EnvVar: "GRUCTL_PASSWORD",
 		},
+		cli.StringFlag{
+			Name:   "modulepath",
+			Value:  "",
+			Usage:  "path to modules",
+			EnvVar: "GRU_MODULEPATH",
+		},
 		cli.DurationFlag{
 			Name:  "timeout",
 			Value: time.Second,
