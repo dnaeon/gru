@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	mapset "github.com/deckarep/golang-set"
 )
 
 var ErrCircularDependency = errors.New("Circular dependency found in graph")
@@ -56,6 +58,12 @@ func (g *Graph) AddEdge(node *Node, edges ...*Node) {
 	}
 }
 
+func (g *Graph) NodeExists(name string) bool {
+	_, ok := g.nodes[name]
+
+	return ok
+}
+
 // Sort performs a topological sort of the graph
 // https://en.wikipedia.org/wiki/Topological_sorting
 //
@@ -73,17 +81,18 @@ func (g *Graph) Sort() ([]*Node, error) {
 	// nodes without edges, that means we have a circular dependency
 	for len(g.nodes) > 0 {
 		// Contains the ready nodes, which have no edges to other nodes
-		ready := make([]*Node, 0)
+		//ready := make([]*Node, 0)
+		ready := mapset.NewSet()
 
 		// Find the nodes with no edges
 		for _, node := range g.nodes {
 			if len(node.edges) == 0 {
-				ready = append(ready, node)
+				ready.Add(node)
 			}
 		}
 
 		// If there aren't any ready nodes, then we have a cicular dependency
-		if len(ready) == 0 {
+		if ready.Cardinality() == 0 {
 			// The remaining nodes in the graph are the ones causing the
 			// circular dependency.
 			remaining := make([]*Node, 0)
@@ -94,25 +103,25 @@ func (g *Graph) Sort() ([]*Node, error) {
 		}
 
 		// Remove the ready nodes and add them to the sorted result
-		for _, node := range ready {
+		for item := range ready.Iter() {
+			node := item.(*Node)
 			delete(g.nodes, node.Name)
 			sorted = append(sorted, node)
 		}
 
 		// Remove ready nodes from the remaining node edges as well
 		for _, node := range g.nodes {
-			// Remove the ready nodes from any remaining edges
-			newEdges := make([]*Node, len(node.edges))
-			copy(newEdges, node.edges)
-
-			for i, edge := range node.edges {
-				for _, r := range ready {
-					if edge.Name == r.Name {
-						newEdges = append(newEdges[:i], newEdges[i+1:]...)
-					}
-				}
+			// Add the remaining nodes in a set
+			currentEdgeSet := mapset.NewSet()
+			for _, edge := range node.edges {
+				currentEdgeSet.Add(edge)
 			}
-			node.edges = newEdges
+
+			newEdgeSet := currentEdgeSet.Difference(ready)
+			node.edges = make([]*Node, 0)
+			for edge := range newEdgeSet.Iter() {
+				node.edges = append(node.edges, edge.(*Node))
+			}
 		}
 	}
 
