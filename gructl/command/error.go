@@ -14,6 +14,7 @@ var (
 	errInvalidClassifier = errors.New("Invalid classifier pattern")
 	errNoTask            = errors.New("Missing task uuid")
 	errNoModuleFile      = errors.New("Missing module file")
+	errInvalidModulePath = errors.New("Invalid module path")
 )
 
 // Displays the error and exists with the

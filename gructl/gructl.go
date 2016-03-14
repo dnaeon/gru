@@ -62,6 +62,7 @@ func Main() {
 		command.NewResultCommand(),
 		command.NewGraphCommand(),
 		command.NewValidateCommand(),
+		command.NewModuleCommand(),
 	}
 
 	app.Run(os.Args)
