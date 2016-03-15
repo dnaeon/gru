@@ -6,14 +6,6 @@ import (
 	"github.com/hashicorp/hcl/hcl/ast"
 )
 
-// Resource states
-const (
-	ResourceStateUnknown = "unknown"
-	ResourceStatePresent = "present"
-	ResourceStateAbsent  = "absent"
-	ResourceStateUpdate  = "update"
-)
-
 // Provider is used to create new resources from an HCL AST object item
 type Provider func(item *ast.ObjectItem) (Resource, error)
 
@@ -56,6 +48,9 @@ type Resource interface {
 	// ID returns the unique identifier of a resource
 	ID() string
 
+	// Validates the resource
+	Validate() error
+
 	// Returns the wanted resources/dependencies
 	Want() []string
 
@@ -97,6 +92,15 @@ func (b *BaseResource) Type() string {
 // ID returns the unique resource id
 func (b *BaseResource) ID() string {
 	return fmt.Sprintf("%s[%s]", b.ResourceType, b.Name)
+}
+
+// Validate checks if the resource contains valid information
+func (b *BaseResource) Validate() error {
+	if b.Name == "" {
+		return fmt.Errorf("Missing name for resource %s", b.ID())
+	}
+
+	return nil
 }
 
 // Want returns the wanted resources/dependencies
