@@ -117,9 +117,21 @@ func (c *Catalog) Run() error {
 	for _, node := range sorted {
 		r := rMap[node.Name]
 		id := r.ID()
+
+		err = r.Validate()
+		if err != nil {
+			log.Printf("Failed to validate resource %s: %s", id, err)
+			continue
+		}
+
 		state, err := r.Evaluate()
 		if err != nil {
 			log.Printf("Failed to evaluate resource '%s': %s", id, err)
+			continue
+		}
+
+		if !resource.StateIsValid(state.Want) || !resource.StateIsValid(state.Current) {
+			log.Printf("Invalid state(s) for resource %s: want %s, current %s", id, state.Want, state.Current)
 			continue
 		}
 
@@ -127,16 +139,21 @@ func (c *Catalog) Run() error {
 			continue
 		}
 
-		log.Printf("%s is %s, should be %s", id, state.Current, state.Want)
-		switch {
-		case state.Want == resource.ResourceStatePresent && state.Current == resource.ResourceStateAbsent:
-			r.Create()
-		case state.Want == resource.ResourceStateAbsent && state.Current != resource.ResourceStateAbsent:
-			r.Delete()
-		case state.Want == resource.ResourceStateUpdate && state.Current == resource.ResourceStatePresent:
-			r.Update()
-		default:
-			log.Printf("Unknown state '%s' for resource '%s'", state.Want, id)
+		if state.Want == resource.StatePresent || state.Want == resource.StateRunning {
+			switch state.Current {
+			case resource.StateAbsent, resource.StateStopped:
+				log.Printf("%s is %s, should be %s", id, state.Current, state.Want)
+				r.Create()
+			case resource.StateUpdate:
+				log.Printf("%s changed, should be updated", id)
+				r.Update()
+			}
+		} else if state.Want == resource.StateAbsent || state.Want == resource.StateStopped {
+			switch state.Current {
+			case resource.StatePresent, resource.StateRunning, resource.StateUpdate:
+				log.Printf("%s is %s, should be %s", id, state.Current, state.Want)
+				r.Delete()
+			}
 		}
 	}
 
