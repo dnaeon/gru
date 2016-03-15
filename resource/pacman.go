@@ -15,7 +15,7 @@ import (
 // Path to the pacman package manager
 const pacmanPath = "/usr/bin/pacman"
 
-// Name of the resource type in HCL
+// Name of the resource type
 const pacmanResourceTypeName = "pacman"
 
 // PacmanResource type represents the resource for
@@ -53,7 +53,7 @@ func NewPacmanResource(obj *ast.ObjectItem) (Resource, error) {
 		return nil, fmt.Errorf("Missing resource name at %s", position)
 	}
 
-	return &p, err
+	return &p, nil
 }
 
 // Evaluate evaluates the resource
