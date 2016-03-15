@@ -33,8 +33,8 @@ func NewPacmanResource(obj *ast.ObjectItem) (Resource, error) {
 	// Resource defaults
 	defaults := &PacmanResource{
 		BaseResource{
-			ResourceType: pacmanResourceType,
-			State:        ResourceStatePresent,
+			ResourceType: pacmanResourceTypeName,
+			State:        StatePresent,
 		},
 	}
 
@@ -59,7 +59,7 @@ func NewPacmanResource(obj *ast.ObjectItem) (Resource, error) {
 // Evaluate evaluates the resource
 func (p *PacmanResource) Evaluate() (State, error) {
 	s := State{
-		Current: ResourceStateUnknown,
+		Current: StateUnknown,
 		Want:    p.State,
 	}
 
@@ -72,9 +72,9 @@ func (p *PacmanResource) Evaluate() (State, error) {
 	_, err = cmd.CombinedOutput()
 
 	if err != nil {
-		s.Current = ResourceStateAbsent
+		s.Current = StateAbsent
 	} else {
-		s.Current = ResourceStatePresent
+		s.Current = StatePresent
 	}
 
 	return s, nil
