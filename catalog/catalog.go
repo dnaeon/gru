@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
+	"strings"
 
 	"github.com/dnaeon/gru/graph"
 	"github.com/dnaeon/gru/module"
@@ -299,4 +301,19 @@ func (c *Catalog) MarshalJSON() ([]byte, error) {
 	return json.Marshal(map[string]interface{}{
 		"resource": resources,
 	})
+}
+
+// UnmarshalJSON loads a catalog from JSON input
+// The loaded catalog is a catalog with a single
+// module named "main"
+func (c *Catalog) UnmarshalJSON(input []byte) error {
+	r := strings.NewReader(string(input))
+	main, err := module.Load("main", r)
+	if err != nil {
+		return err
+	}
+
+	c.modules = append(c.modules, main)
+
+	return nil
 }
