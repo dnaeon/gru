@@ -23,8 +23,8 @@ type Catalog struct {
 	modules []*module.Module
 }
 
-// newCatalog creates a new empty catalog
-func newCatalog() *Catalog {
+// NewCatalog creates a new empty catalog
+func NewCatalog() *Catalog {
 	c := &Catalog{
 		modules: make([]*module.Module, 0),
 	}
@@ -196,7 +196,7 @@ func (c *Catalog) Len() int {
 
 // Load creates a catalog from the provided module name
 func Load(main, path string) (*Catalog, error) {
-	c := newCatalog()
+	c := NewCatalog()
 
 	// Discover all modules from the provided module path
 	registry, err := module.Discover(path)
@@ -207,11 +207,18 @@ func Load(main, path string) (*Catalog, error) {
 	// A map containing the module names and the actual loaded modules
 	moduleNames := make(map[string]*module.Module)
 	for n, p := range registry {
-		m, err := module.Load(n, p)
+		f, err := os.Open(p)
+		if err != nil {
+			return c, err
+		}
+
+		m, err := module.Load(n, f)
 		if err != nil {
 			return c, err
 		}
 		moduleNames[n] = m
+
+		f.Close()
 	}
 
 	// A map containing the modules as graph nodes
