@@ -3,6 +3,7 @@ package module
 import (
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 
 	"github.com/dnaeon/gru/resource"
@@ -46,10 +47,10 @@ func New(name string) *Module {
 }
 
 // Load loads a module from the given HCL or JSON input
-func Load(name, path string) (*Module, error) {
+func Load(name string, r io.Reader) (*Module, error) {
 	m := New(name)
 
-	input, err := ioutil.ReadFile(path)
+	input, err := ioutil.ReadAll(r)
 	if err != nil {
 		return m, err
 	}
@@ -63,7 +64,7 @@ func Load(name, path string) (*Module, error) {
 	// Top-level node should be an object list
 	root, ok := obj.Node.(*ast.ObjectList)
 	if !ok {
-		return m, fmt.Errorf("Missing root node in %s", path)
+		return m, fmt.Errorf("Missing root node in %s", name)
 	}
 
 	err = m.hclLoadImport(root)
