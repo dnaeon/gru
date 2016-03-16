@@ -3,7 +3,6 @@
 package resource
 
 import (
-	"fmt"
 	"log"
 	"os/exec"
 
@@ -16,7 +15,7 @@ import (
 const pacmanPath = "/usr/bin/pacman"
 
 // Name of the resource type
-const pacmanResourceTypeName = "pacman"
+const pacmanResourceType = "pacman"
 
 // PacmanResource type represents the resource for
 // package management on Arch Linux systems
@@ -27,13 +26,10 @@ type PacmanResource struct {
 // NewPacmanResource creates a new resource for managing packages
 // using the pacman package manager on an Arch Linux system
 func NewPacmanResource(obj *ast.ObjectItem) (Resource, error) {
-	// Position of the resource declaration
-	position := obj.Val.Pos().String()
-
 	// Resource defaults
 	defaults := &PacmanResource{
 		BaseResource{
-			ResourceType: pacmanResourceTypeName,
+			ResourceType: pacmanResourceType,
 			State:        StatePresent,
 		},
 	}
@@ -48,15 +44,10 @@ func NewPacmanResource(obj *ast.ObjectItem) (Resource, error) {
 	// Merge in the decoded object with the resource defaults
 	err = mergo.Merge(&p, defaults)
 
-	// Sanity check the resource
-	if p.Name == "" {
-		return nil, fmt.Errorf("Missing resource name at %s", position)
-	}
-
-	return &p, nil
+	return &p, err
 }
 
-// Evaluate evaluates the resource
+// Evaluate evaluates the state of the resource
 func (p *PacmanResource) Evaluate() (State, error) {
 	s := State{
 		Current: StateUnknown,
@@ -105,5 +96,5 @@ func (p *PacmanResource) Update() error {
 }
 
 func init() {
-	Register(pacmanResourceTypeName, NewPacmanResource)
+	Register(pacmanResourceType, NewPacmanResource)
 }
