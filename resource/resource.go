@@ -31,15 +31,6 @@ func Get(name string) (Provider, bool) {
 	return p, ok
 }
 
-// State type represents the current and wanted states of a resource
-type State struct {
-	// Current state of the resource
-	Current string
-
-	// Wanted state of the resource
-	Want string
-}
-
 // Resource is the base interface type for all resources
 type Resource interface {
 	// Type of the resource
