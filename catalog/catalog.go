@@ -136,8 +136,10 @@ func (c *Catalog) Run() error {
 		}
 
 		// If resource is in the desired state, but out of date
-		if state.Want == state.Current && state.Update {
-			r.Update()
+		if state.Want == state.Current {
+			if state.Update {
+				r.Update()
+			}
 			continue
 		}
 
