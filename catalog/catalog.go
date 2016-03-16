@@ -135,25 +135,25 @@ func (c *Catalog) Run() error {
 			continue
 		}
 
-		if state.Want == state.Current {
+		// If resource is in the desired state, but out of date
+		if state.Want == state.Current && state.Update {
+			r.Update()
 			continue
 		}
 
+		log.Printf("%s is %s, should be %s", id, state.Current, state.Want)
 		if state.Want == resource.StatePresent || state.Want == resource.StateRunning {
-			switch state.Current {
-			case resource.StateAbsent, resource.StateStopped:
-				log.Printf("%s is %s, should be %s", id, state.Current, state.Want)
+			if state.Current == resource.StateAbsent || state.Current == resource.StateStopped {
 				r.Create()
-			case resource.StateUpdate:
-				log.Printf("%s changed, should be updated", id)
-				r.Update()
 			}
-		} else if state.Want == resource.StateAbsent || state.Want == resource.StateStopped {
-			switch state.Current {
-			case resource.StatePresent, resource.StateRunning, resource.StateUpdate:
-				log.Printf("%s is %s, should be %s", id, state.Current, state.Want)
+		} else {
+			if state.Current == resource.StatePresent || state.Current == resource.StateRunning {
 				r.Delete()
 			}
+		}
+
+		if state.Update {
+			r.Update()
 		}
 	}
 
