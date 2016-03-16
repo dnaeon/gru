@@ -63,16 +63,16 @@ type Resource interface {
 // Partially implements the Resource interface
 type BaseResource struct {
 	// Name of the resource
-	Name string `json:"name"`
+	Name string `hcl:"name" json:"name"`
 
 	// Desired state of the resource
-	State string `json:"state"`
+	State string `hcl:"state" json:"state"`
 
 	// Type of the resource
 	ResourceType string `json:"-"`
 
 	// Resource dependencies
-	WantResource []string `json:"want,omitempty" hcl:"want"`
+	WantResource []string `hcl:"want" json:"want,omitempty"`
 }
 
 // Type returns the resource type name
