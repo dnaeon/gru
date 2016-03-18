@@ -23,7 +23,7 @@ func NewApplyCommand() cli.Command {
 // Executes the "apply" command
 func execApplyCommand(c *cli.Context) {
 	if len(c.Args()) < 1 {
-		displayError(errNoModuleFile, 64)
+		displayError(errNoModuleName, 64)
 	}
 
 	main := c.Args()[0]

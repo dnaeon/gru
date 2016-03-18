@@ -22,7 +22,7 @@ func NewGraphCommand() cli.Command {
 // Executes the "graph" command
 func execGraphCommand(c *cli.Context) {
 	if len(c.Args()) < 1 {
-		displayError(errNoModuleFile, 64)
+		displayError(errNoModuleName, 64)
 	}
 
 	main := c.Args()[0]

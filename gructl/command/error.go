@@ -13,7 +13,7 @@ var (
 	errNoClassifier      = errors.New("Missing classifier key")
 	errInvalidClassifier = errors.New("Invalid classifier pattern")
 	errNoTask            = errors.New("Missing task uuid")
-	errNoModuleFile      = errors.New("Missing module file")
+	errNoModuleName      = errors.New("Missing module name")
 	errInvalidModulePath = errors.New("Invalid module path")
 )
 

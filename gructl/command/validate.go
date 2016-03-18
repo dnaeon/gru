@@ -29,7 +29,7 @@ func NewValidateCommand() cli.Command {
 // Executes the "validate" command
 func execValidateCommand(c *cli.Context) {
 	if len(c.Args()) < 1 {
-		displayError(errNoModuleFile, 64)
+		displayError(errNoModuleName, 64)
 	}
 
 	main := c.Args()[0]
