@@ -2,6 +2,7 @@ package resource
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/hashicorp/hcl/hcl/ast"
 )
@@ -49,13 +50,13 @@ type Resource interface {
 	Evaluate() (State, error)
 
 	// Creates the resource
-	Create() error
+	Create(w io.Writer) error
 
 	// Deletes the resource
-	Delete() error
+	Delete(w io.Writer) error
 
 	// Updates the resource
-	Update() error
+	Update(w io.Writer) error
 }
 
 // BaseResource is the base resource type for all resources
@@ -97,4 +98,13 @@ func (b *BaseResource) Validate() error {
 // Want returns the wanted resources/dependencies
 func (b *BaseResource) Want() []string {
 	return b.WantResource
+}
+
+// Printf works just like fmt.Printf except that it writes to the
+// given resource writer object and prepends the
+// resource id to the output
+func (b *BaseResource) Printf(w io.Writer, format string, a ...interface{}) (int, error) {
+	fmt.Fprintf(w, "%s ", b.ID())
+
+	return fmt.Fprintf(w, format, a...)
 }
