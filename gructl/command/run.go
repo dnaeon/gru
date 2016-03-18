@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/dnaeon/gru/catalog"
 	"github.com/dnaeon/gru/task"
 
 	"github.com/codegangsta/cli"
@@ -37,8 +38,18 @@ func NewRunCommand() cli.Command {
 // Executes the "run" command
 func execRunCommand(c *cli.Context) {
 	if len(c.Args()) < 1 {
-		displayError(errNoTask, 64)
+		displayError(errNoModuleName, 64)
 	}
+
+	// Create the task that we send to our minions
+	main := c.Args()[0]
+	katalog, err := catalog.Load(main, c.GlobalString("modulepath"))
+	if err != nil {
+		displayError(err, 1)
+	}
+
+	t := task.New(katalog)
+	t.IsConcurrent = c.Bool("is-concurrent")
 
 	client := newEtcdMinionClientFromFlags(c)
 
@@ -56,16 +67,6 @@ func execRunCommand(c *cli.Context) {
 
 	fmt.Printf("Found %d minion(s) for task processing\n\n", numMinions)
 
-	// Create the task that we send to our minions
-	// The first argument is the command and anything else
-	// that follows is considered task arguments
-	args := c.Args()
-	isConcurrent := c.Bool("is-concurrent")
-	taskCommand := args[0]
-	taskArgs := args[1:]
-	t := task.New(taskCommand, taskArgs...)
-	t.IsConcurrent = isConcurrent
-
 	// Progress bar to display while submitting task
 	progress := uiprogress.New()
 	bar := progress.AddBar(numMinions)
@@ -78,10 +79,10 @@ func execRunCommand(c *cli.Context) {
 
 	// Submit task to minions
 	fmt.Println("Submitting task to minion(s) ...")
-	for _, minion := range minions {
-		err = client.MinionSubmitTask(minion, t)
+	for _, m := range minions {
+		err = client.MinionSubmitTask(m, t)
 		if err != nil {
-			fmt.Printf("Failed to submit task to %s: %s\n", minion, err)
+			fmt.Printf("Failed to submit task to %s: %s\n", m, err)
 			failed += 1
 		}
 		bar.Incr()
