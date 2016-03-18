@@ -153,7 +153,7 @@ func (m *etcdMinion) processTask(t *task.Task) error {
 	log.Printf("Processing task %s\n", t.TaskID)
 
 	var buf bytes.Buffer
-	fmt.Fprintf(&buf, "Loaded %d resources from catalog", t.Catalog.Len())
+	fmt.Fprintf(&buf, "Loaded %d resources from catalog\n", t.Catalog.Len())
 	err := t.Catalog.Run(&buf)
 	t.TimeProcessed = time.Now().Unix()
 	t.Result = buf.String()
