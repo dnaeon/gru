@@ -38,6 +38,12 @@ func execValidateCommand(c *cli.Context) {
 		displayError(err, 1)
 	}
 
+	// Validate() returns a slice of errors
+	resourceErrors := katalog.Validate()
+	for _, err = range resourceErrors {
+		fmt.Print(err)
+	}
+
 	if c.Bool("tojson") {
 		data, err := json.MarshalIndent(katalog, "", "  ")
 		if err != nil {
