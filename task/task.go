@@ -1,6 +1,9 @@
 package task
 
-import "github.com/pborman/uuid"
+import (
+	"github.com/dnaeon/gru/catalog"
+	"github.com/pborman/uuid"
+)
 
 // Task states
 const (
@@ -27,11 +30,8 @@ const (
 
 // Task type represents a task that is processed by minions
 type Task struct {
-	// Command to be executed by the minion
-	Command string `json:"command"`
-
-	// Command arguments
-	Args []string `json:"args"`
+	// Catalog to be processed
+	Catalog *catalog.Catalog `json:"catalog"`
 
 	// Time when the command was sent for processing
 	TimeReceived int64 `json:"timeReceived"`
@@ -48,18 +48,14 @@ type Task struct {
 	// If true this task can run concurrently with other tasks
 	IsConcurrent bool `json:"isConcurrent"`
 
-	// Task error, if any
-	Error string `json:"error"`
-
 	// Task state
 	State string `json:"state"`
 }
 
 // New creates a new task
-func New(command string, args ...string) *Task {
+func New(c *catalog.Catalog) *Task {
 	t := &Task{
-		Command: command,
-		Args:    args,
+		Catalog: c,
 		TaskID:  uuid.NewRandom(),
 		State:   TaskStateUnknown,
 	}
