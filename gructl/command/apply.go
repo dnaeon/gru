@@ -1,7 +1,8 @@
 package command
 
 import (
-	"log"
+	"fmt"
+	"os"
 
 	"github.com/codegangsta/cli"
 	"github.com/dnaeon/gru/catalog"
@@ -31,8 +32,8 @@ func execApplyCommand(c *cli.Context) {
 		displayError(err, 1)
 	}
 
-	log.Printf("Loaded %d resource(s) in catalog", katalog.Len())
-	err = katalog.Run()
+	fmt.Printf("Loaded %d resource(s) in catalog\n", katalog.Len())
+	err = katalog.Run(os.Stdout)
 	if err != nil {
 		displayError(err, 1)
 	}
