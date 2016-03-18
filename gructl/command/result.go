@@ -38,8 +38,8 @@ func execResultCommand(c *cli.Context) {
 	}
 
 	arg := c.Args()[0]
-	taskId := uuid.Parse(arg)
-	if taskId == nil {
+	taskID := uuid.Parse(arg)
+	if taskID == nil {
 		displayError(errInvalidUUID, 64)
 	}
 
@@ -56,7 +56,7 @@ func execResultCommand(c *cli.Context) {
 	if mFlag == "" {
 		// No minion was specified, get all minions
 		// with the given task uuid
-		m, err := client.MinionWithTaskResult(taskId)
+		m, err := client.MinionWithTaskResult(taskID)
 		if err != nil {
 			displayError(err, 1)
 		}
@@ -88,25 +88,22 @@ func execResultCommand(c *cli.Context) {
 		table.AddRow("MINION", "RESULT", "STATE")
 	}
 
-	for _, minion := range minionWithTask {
-		task, err := client.MinionTaskResult(minion, taskId)
+	for _, minionID := range minionWithTask {
+		t, err := client.MinionTaskResult(minionID, taskID)
 		if err != nil {
 			displayError(err, 1)
 		}
 
 		if c.Bool("details") {
-			table.AddRow("Minion:", minion)
-			table.AddRow("Task ID:", task.TaskID)
-			table.AddRow("State:", task.State)
-			table.AddRow("Command:", task.Command)
-			table.AddRow("Args:", task.Args)
-			table.AddRow("Concurrent:", task.IsConcurrent)
-			table.AddRow("Received:", time.Unix(task.TimeReceived, 0))
-			table.AddRow("Processed:", time.Unix(task.TimeProcessed, 0))
-			table.AddRow("Result:", task.Result)
-			table.AddRow("Error:", task.Error)
+			table.AddRow("Minion:", minionID)
+			table.AddRow("Task ID:", t.TaskID)
+			table.AddRow("State:", t.State)
+			table.AddRow("Concurrent:", t.IsConcurrent)
+			table.AddRow("Received:", time.Unix(t.TimeReceived, 0))
+			table.AddRow("Processed:", time.Unix(t.TimeProcessed, 0))
+			table.AddRow("Result:", t.Result)
 		} else {
-			table.AddRow(minion, task.Result, task.State)
+			table.AddRow(minionID, t.Result, t.State)
 		}
 	}
 
