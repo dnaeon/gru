@@ -3,9 +3,9 @@ package minion
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 	"math/rand"
-	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -146,25 +146,20 @@ func (m *etcdMinion) periodicRunner() {
 
 // Processes new tasks
 func (m *etcdMinion) processTask(t *task.Task) error {
-	var buf bytes.Buffer
-
 	// Update state of task to indicate that we are now processing it
 	t.State = task.TaskStateProcessing
 	m.SaveTaskResult(t)
 
-	cmd := exec.Command(t.Command, t.Args...)
-	cmd.Stdout = &buf
-	cmd.Stderr = &buf
-
 	log.Printf("Processing task %s\n", t.TaskID)
 
-	cmdError := cmd.Run()
+	var buf bytes.Buffer
+	fmt.Fprintf(&buf, "Loaded %d resources from catalog", t.Catalog.Len())
+	err := t.Catalog.Run(&buf)
 	t.TimeProcessed = time.Now().Unix()
 	t.Result = buf.String()
 
-	if cmdError != nil {
-		log.Printf("Failed to process task %s\n", t.TaskID)
-		t.Error = cmdError.Error()
+	if err != nil {
+		log.Printf("Failed to process task %s: %s\n", t.TaskID, err)
 		t.State = task.TaskStateFailed
 	} else {
 		log.Printf("Finished processing task %s\n", t.TaskID)
@@ -173,7 +168,7 @@ func (m *etcdMinion) processTask(t *task.Task) error {
 
 	m.SaveTaskResult(t)
 
-	return cmdError
+	return err
 }
 
 // Classifies the minion
