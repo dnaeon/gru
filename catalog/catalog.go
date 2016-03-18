@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"strings"
 
@@ -99,7 +98,15 @@ func (c *Catalog) resourceGraph() (*graph.Graph, error) {
 }
 
 // Run processes the catalog
-func (c *Catalog) Run() error {
+func (c *Catalog) Run(w io.Writer) error {
+	resourceErrors := c.Validate()
+	if len(resourceErrors) > 0 {
+		for _, e := range resourceErrors {
+			fmt.Fprint(w, e)
+		}
+		return errors.New("Failed to validate catalog resources")
+	}
+
 	rMap, err := c.createResourceMap()
 	if err != nil {
 		return err
