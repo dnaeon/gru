@@ -3,7 +3,7 @@
 package resource
 
 import (
-	"log"
+	"io"
 	"os/exec"
 
 	"github.com/hashicorp/hcl"
@@ -72,27 +72,29 @@ func (p *PacmanResource) Evaluate() (State, error) {
 }
 
 // Create creates the resource
-func (p *PacmanResource) Create() error {
+func (p *PacmanResource) Create(w io.Writer) error {
 	cmd := exec.Command(pacmanPath, "--sync", "--noconfirm", p.Name)
 	output, err := cmd.CombinedOutput()
-	log.Println(string(output))
+
+	p.Printf(w, string(output))
 
 	return err
 }
 
 // Delete deletes the resource
-func (p *PacmanResource) Delete() error {
+func (p *PacmanResource) Delete(w io.Writer) error {
 	cmd := exec.Command(pacmanPath, "--remove", "--noconfirm", p.Name)
 	output, err := cmd.CombinedOutput()
-	log.Println(string(output))
+
+	p.Printf(w, string(output))
 
 	return err
 }
 
 // Update updates the resource
-func (p *PacmanResource) Update() error {
+func (p *PacmanResource) Update(w io.Writer) error {
 	// Create() handles package updates as well
-	return p.Create()
+	return p.Create(w)
 }
 
 func init() {
