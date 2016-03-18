@@ -120,49 +120,62 @@ func (c *Catalog) Run() error {
 		r := rMap[node.Name]
 		id := r.ID()
 
-		err = r.Validate()
-		if err != nil {
-			log.Printf("Failed to validate resource %s: %s", id, err)
-			continue
-		}
-
 		state, err := r.Evaluate()
 		if err != nil {
-			log.Printf("Failed to evaluate resource '%s': %s", id, err)
+			fmt.Fprintf(w, "Failed to evaluate resource %s: %s\n", id, err)
 			continue
 		}
 
 		if !resource.StateIsValid(state.Want) || !resource.StateIsValid(state.Current) {
-			log.Printf("Invalid state(s) for resource %s: want %s, current %s", id, state.Want, state.Current)
+			fmt.Fprintf(w, "Invalid state(s) for resource %s: want %s, current %s\n", id, state.Want, state.Current)
 			continue
 		}
 
 		// If resource is in the desired state, but out of date
 		if state.Want == state.Current {
 			if state.Update {
-				log.Printf("%s is out of date", r.ID())
-				r.Update()
+				fmt.Fprintf(w, "%s is out of date\n", r.ID())
+				r.Update(w)
 			}
 			continue
 		}
 
-		log.Printf("%s is %s, should be %s", id, state.Current, state.Want)
+		fmt.Fprintf(w, "%s is %s, should be %s\n", id, state.Current, state.Want)
 		if state.Want == resource.StatePresent || state.Want == resource.StateRunning {
 			if state.Current == resource.StateAbsent || state.Current == resource.StateStopped {
-				r.Create()
+				r.Create(w)
 			}
 		} else {
 			if state.Current == resource.StatePresent || state.Current == resource.StateRunning {
-				r.Delete()
+				r.Delete(w)
 			}
 		}
 
 		if state.Update {
-			r.Update()
+			r.Update(w)
 		}
 	}
 
 	return nil
+}
+
+// Validate validates the resources from catalog
+func (c *Catalog) Validate() []error {
+	resourceErrors := make([]error, 0)
+
+	rMap, err := c.createResourceMap()
+	if err != nil {
+		resourceErrors = append(resourceErrors, err)
+	}
+
+	for id, r := range rMap {
+		err = r.Validate()
+		if err != nil {
+			resourceErrors = append(resourceErrors, fmt.Errorf("Failed to validate %s: %s\n", id, err))
+		}
+	}
+
+	return resourceErrors
 }
 
 // GenerateCatalogDOT generates a DOT file for the resources in catalog
