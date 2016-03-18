@@ -2,13 +2,12 @@ package resource
 
 import (
 	"fmt"
-	"io"
 
 	"github.com/hashicorp/hcl/hcl/ast"
 )
 
 // Provider is used to create new resources from an HCL AST object item
-type Provider func(item *ast.ObjectItem, w io.Writer) (Resource, error)
+type Provider func(item *ast.ObjectItem) (Resource, error)
 
 // Registry contains all known resource types and their providers
 var registry = make(map[string]Provider)
@@ -74,9 +73,6 @@ type BaseResource struct {
 
 	// Resource dependencies
 	WantResource []string `hcl:"want" json:"want,omitempty"`
-
-	// Writer to which resources can write any info/progress/result messages
-	Writer io.Writer `hcl:"-" json:"-"`
 }
 
 // Type returns the resource type name
@@ -101,10 +97,4 @@ func (b *BaseResource) Validate() error {
 // Want returns the wanted resources/dependencies
 func (b *BaseResource) Want() []string {
 	return b.WantResource
-}
-
-// Printf works just like fmt.Printf except that it writes to the
-// resource writer object.
-func (b *BaseResource) Printf(format string, a ...interface{}) (int, error) {
-	return fmt.Fprintf(b.Writer, format, a...)
 }
