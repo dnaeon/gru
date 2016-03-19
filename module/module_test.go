@@ -6,8 +6,8 @@ import (
 	"testing"
 )
 
-func TestModuleValidHCL(t *testing.T) {
-	const hclModule = `
+func TestModuleHCL(t *testing.T) {
+	hclInput := `
 import {
   module = [
     "base-module",
@@ -28,7 +28,7 @@ resource "service" {
   ]
 }
 `
-	m, err := Load("main", bytes.NewBufferString(hclModule))
+	hclModule, err := Load("main", bytes.NewBufferString(hclInput))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -38,19 +38,75 @@ resource "service" {
 	wantImportNames := []string{"base-module", "some-other-module"}
 	wantNumResources := 2
 
-	if wantName != m.Name {
-		t.Errorf("want module name %q, got name %q", wantName, m.Name)
+	if wantName != hclModule.Name {
+		t.Errorf("want module name %q, got name %q", wantName, hclModule.Name)
 	}
 
-	if wantNumImports != len(m.ModuleImport.Module) {
-		t.Errorf("want %d imports, got %d imports", wantNumImports, len(m.ModuleImport.Module))
+	if wantNumImports != len(hclModule.ModuleImport.Module) {
+		t.Errorf("want %d imports, got %d imports", wantNumImports, len(hclModule.ModuleImport.Module))
 	}
 
-	if !reflect.DeepEqual(wantImportNames, m.ModuleImport.Module) {
-		t.Errorf("want %q import names, got %q names", wantImportNames, m.ModuleImport.Module)
+	if !reflect.DeepEqual(wantImportNames, hclModule.ModuleImport.Module) {
+		t.Errorf("want %q import names, got %q names", wantImportNames, hclModule.ModuleImport.Module)
 	}
 
-	if wantNumResources != len(m.Resources) {
-		t.Errorf("want %d resources, got %d resources", wantNumResources, len(m.Resources))
+	if wantNumResources != len(hclModule.Resources) {
+		t.Errorf("want %d resources, got %d resources", wantNumResources, len(hclModule.Resources))
+	}
+}
+
+func TestModuleJSON(t *testing.T) {
+	jsonInput := `
+{
+  "import": {
+    "module": [
+      "base-module",
+      "some-other-module"
+    ],
+  },
+  "resource": [
+    {
+      "pacman": {
+        "name": "openssh",
+        "state": "present"
+      }
+    },
+    {
+      "service": {
+        "name": "sshd",
+        "state": "running",
+        "want": [
+          "pacman[openssh]"
+        ],
+        "enable": true
+      }
+    }
+  ]
+}
+`
+	jsonModule, err := Load("main", bytes.NewBufferString(jsonInput))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	wantName := "main"
+	wantNumImports := 2
+	wantImportNames := []string{"base-module", "some-other-module"}
+	wantNumResources := 2
+
+	if wantName != jsonModule.Name {
+		t.Errorf("want module name %q, got name %q", wantName, jsonModule.Name)
+	}
+
+	if wantNumImports != len(jsonModule.ModuleImport.Module) {
+		t.Errorf("want %d imports, got %d imports", wantNumImports, len(jsonModule.ModuleImport.Module))
+	}
+
+	if !reflect.DeepEqual(wantImportNames, jsonModule.ModuleImport.Module) {
+		t.Errorf("want %q import names, got %q names", wantImportNames, jsonModule.ModuleImport.Module)
+	}
+
+	if wantNumResources != len(jsonModule.Resources) {
+		t.Errorf("want %d resources, got %d resources", wantNumResources, len(jsonModule.Resources))
 	}
 }
