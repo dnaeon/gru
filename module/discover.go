@@ -6,8 +6,8 @@ import (
 	"strings"
 )
 
-// All valid module files must have this extension
-const moduleExtension = ".hcl"
+// Valid module files must have one of these extension
+var moduleExtension = []string{".hcl", ".json"}
 
 // ModuleRegistry type contains discovered modules as returned by the
 // DiscoverModules() function.
@@ -38,14 +38,23 @@ func Discover(root string) (ModuleRegistry, error) {
 		}
 
 		// Skip files which don't appear to be valid module files
-		if filepath.Ext(info.Name()) != moduleExtension {
+		fileExt := filepath.Ext(info.Name())
+		validExt := false
+		for _, ext := range moduleExtension {
+			if fileExt == ext {
+				validExt = true
+				break
+			}
+		}
+
+		if !validExt {
 			return nil
 		}
 
 		// Remove the root path portion from the discovered module file,
 		// remove the module file extension and register the module
 		moduleFileWithExt := strings.TrimPrefix(path, root)
-		moduleNameWithExt := strings.TrimSuffix(moduleFileWithExt, moduleExtension)
+		moduleNameWithExt := strings.TrimSuffix(moduleFileWithExt, fileExt)
 		moduleName := strings.Trim(moduleNameWithExt, string(os.PathSeparator))
 		absPath, err := filepath.Abs(path)
 		if err != nil {
