@@ -2,19 +2,13 @@
 version: 1
 interactions:
 - request:
-    body: ""
+    body: value=1450357761
     form:
       value:
       - "1450357761"
     headers:
-      Accept-Encoding:
-      - gzip
-      Content-Length:
-      - "16"
       Content-Type:
       - application/x-www-form-urlencoded
-      User-Agent:
-      - Go-http-client/1.1
     url: http://127.0.0.1:2379/v2/keys/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/lastseen
     method: PUT
   response:
@@ -26,13 +20,13 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Mon, 25 Jan 2016 12:14:58 GMT
+      - Sat, 19 Mar 2016 13:25:22 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
       - "6"
       X-Raft-Index:
-      - "32"
+      - "48"
       X-Raft-Term:
       - "2"
     status: 201 Created
@@ -40,11 +34,7 @@ interactions:
 - request:
     body: ""
     form: {}
-    headers:
-      Accept-Encoding:
-      - gzip
-      User-Agent:
-      - Go-http-client/1.1
+    headers: {}
     url: http://127.0.0.1:2379/v2/keys/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/lastseen?quorum=false&recursive=false&sorted=false
     method: GET
   response:
@@ -56,13 +46,13 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Mon, 25 Jan 2016 12:14:58 GMT
+      - Sat, 19 Mar 2016 13:25:22 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
       - "6"
       X-Raft-Index:
-      - "32"
+      - "48"
       X-Raft-Term:
       - "2"
     status: 200 OK

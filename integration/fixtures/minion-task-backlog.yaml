@@ -2,37 +2,31 @@
 version: 1
 interactions:
 - request:
-    body: ""
+    body: value=Kevin
     form:
       value:
       - Kevin
     headers:
-      Accept-Encoding:
-      - gzip
-      Content-Length:
-      - "11"
       Content-Type:
       - application/x-www-form-urlencoded
-      User-Agent:
-      - Go-http-client/1.1
     url: http://127.0.0.1:2379/v2/keys/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/name
     method: PUT
   response:
     body: |
-      {"action":"set","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/name","value":"Kevin","modifiedIndex":8,"createdIndex":8},"prevNode":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/name","value":"Kevin","modifiedIndex":7,"createdIndex":7}}
+      {"action":"set","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/name","value":"Kevin","modifiedIndex":11,"createdIndex":11},"prevNode":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/name","value":"Kevin","modifiedIndex":10,"createdIndex":10}}
     headers:
       Content-Length:
-      - "265"
+      - "269"
       Content-Type:
       - application/json
       Date:
-      - Mon, 25 Jan 2016 12:14:58 GMT
+      - Sat, 19 Mar 2016 13:25:22 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
-      - "8"
+      - "11"
       X-Raft-Index:
-      - "34"
+      - "54"
       X-Raft-Term:
       - "2"
     status: 200 OK
@@ -40,65 +34,55 @@ interactions:
 - request:
     body: ""
     form: {}
-    headers:
-      Accept-Encoding:
-      - gzip
-      User-Agent:
-      - Go-http-client/1.1
+    headers: {}
     url: http://127.0.0.1:2379/v2/keys/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170?quorum=false&recursive=false&sorted=false
     method: GET
   response:
     body: |
-      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170","dir":true,"nodes":[{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier","dir":true,"modifiedIndex":4,"createdIndex":4},{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/lastseen","value":"1450357761","modifiedIndex":6,"createdIndex":6},{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/name","value":"Kevin","modifiedIndex":8,"createdIndex":8}],"modifiedIndex":4,"createdIndex":4}}
+      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170","dir":true,"nodes":[{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier","dir":true,"modifiedIndex":4,"createdIndex":4},{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/lastseen","value":"1450357761","modifiedIndex":6,"createdIndex":6},{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/name","value":"Kevin","modifiedIndex":11,"createdIndex":11}],"modifiedIndex":4,"createdIndex":4}}
     headers:
       Content-Length:
-      - "494"
+      - "496"
       Content-Type:
       - application/json
       Date:
-      - Mon, 25 Jan 2016 12:14:58 GMT
+      - Sat, 19 Mar 2016 13:25:22 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
-      - "8"
+      - "11"
       X-Raft-Index:
-      - "34"
+      - "54"
       X-Raft-Term:
       - "2"
     status: 200 OK
     code: 200
 - request:
-    body: ""
+    body: value=%7B%22catalog%22%3Anull%2C%22timeReceived%22%3A0%2C%22timeProcessed%22%3A0%2C%22taskId%22%3A%22e6d2bebd-2219-4a8c-9d30-a861097c147e%22%2C%22result%22%3A%22%22%2C%22isConcurrent%22%3Afalse%2C%22state%22%3A%22unknown%22%7D
     form:
       value:
-      - '{"command":"foo","args":["bar"],"timeReceived":0,"timeProcessed":0,"taskId":"e6d2bebd-2219-4a8c-9d30-a861097c147e","result":"","isConcurrent":false,"error":"","state":"unknown"}'
+      - '{"catalog":null,"timeReceived":0,"timeProcessed":0,"taskId":"e6d2bebd-2219-4a8c-9d30-a861097c147e","result":"","isConcurrent":false,"state":"unknown"}'
     headers:
-      Accept-Encoding:
-      - gzip
-      Content-Length:
-      - "285"
       Content-Type:
       - application/x-www-form-urlencoded
-      User-Agent:
-      - Go-http-client/1.1
     url: http://127.0.0.1:2379/v2/keys/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/queue
     method: POST
   response:
     body: |
-      {"action":"create","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/queue/00000000000000000009","value":"{\"command\":\"foo\",\"args\":[\"bar\"],\"timeReceived\":0,\"timeProcessed\":0,\"taskId\":\"e6d2bebd-2219-4a8c-9d30-a861097c147e\",\"result\":\"\",\"isConcurrent\":false,\"error\":\"\",\"state\":\"unknown\"}","modifiedIndex":9,"createdIndex":9}}
+      {"action":"create","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/queue/00000000000000000012","value":"{\"catalog\":null,\"timeReceived\":0,\"timeProcessed\":0,\"taskId\":\"e6d2bebd-2219-4a8c-9d30-a861097c147e\",\"result\":\"\",\"isConcurrent\":false,\"state\":\"unknown\"}","modifiedIndex":12,"createdIndex":12}}
     headers:
       Content-Length:
-      - "366"
+      - "331"
       Content-Type:
       - application/json
       Date:
-      - Mon, 25 Jan 2016 12:14:58 GMT
+      - Sat, 19 Mar 2016 13:25:22 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
-      - "9"
+      - "12"
       X-Raft-Index:
-      - "35"
+      - "55"
       X-Raft-Term:
       - "2"
     status: 201 Created
@@ -106,29 +90,25 @@ interactions:
 - request:
     body: ""
     form: {}
-    headers:
-      Accept-Encoding:
-      - gzip
-      User-Agent:
-      - Go-http-client/1.1
+    headers: {}
     url: http://127.0.0.1:2379/v2/keys/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/queue?quorum=false&recursive=true&sorted=false
     method: GET
   response:
     body: |
-      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/queue","dir":true,"nodes":[{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/queue/00000000000000000009","value":"{\"command\":\"foo\",\"args\":[\"bar\"],\"timeReceived\":0,\"timeProcessed\":0,\"taskId\":\"e6d2bebd-2219-4a8c-9d30-a861097c147e\",\"result\":\"\",\"isConcurrent\":false,\"error\":\"\",\"state\":\"unknown\"}","modifiedIndex":9,"createdIndex":9}],"modifiedIndex":9,"createdIndex":9}}
+      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/queue","dir":true,"nodes":[{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/queue/00000000000000000012","value":"{\"catalog\":null,\"timeReceived\":0,\"timeProcessed\":0,\"taskId\":\"e6d2bebd-2219-4a8c-9d30-a861097c147e\",\"result\":\"\",\"isConcurrent\":false,\"state\":\"unknown\"}","modifiedIndex":12,"createdIndex":12}],"modifiedIndex":12,"createdIndex":12}}
     headers:
       Content-Length:
-      - "484"
+      - "451"
       Content-Type:
       - application/json
       Date:
-      - Mon, 25 Jan 2016 12:14:58 GMT
+      - Sat, 19 Mar 2016 13:25:22 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
-      - "9"
+      - "12"
       X-Raft-Index:
-      - "35"
+      - "55"
       X-Raft-Term:
       - "2"
     status: 200 OK

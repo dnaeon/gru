@@ -2,67 +2,57 @@
 version: 1
 interactions:
 - request:
-    body: ""
+    body: value=Kevin
     form:
       value:
       - Kevin
     headers:
-      Accept-Encoding:
-      - gzip
-      Content-Length:
-      - "11"
       Content-Type:
       - application/x-www-form-urlencoded
-      User-Agent:
-      - Go-http-client/1.1
     url: http://127.0.0.1:2379/v2/keys/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/name
     method: PUT
   response:
     body: |
-      {"action":"set","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/name","value":"Kevin","modifiedIndex":7,"createdIndex":7}}
+      {"action":"set","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/name","value":"Kevin","modifiedIndex":10,"createdIndex":10},"prevNode":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/name","value":"Kevin","modifiedIndex":8,"createdIndex":8}}
     headers:
       Content-Length:
-      - "139"
+      - "267"
       Content-Type:
       - application/json
       Date:
-      - Mon, 25 Jan 2016 12:14:58 GMT
+      - Sat, 19 Mar 2016 13:25:22 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
-      - "7"
+      - "10"
       X-Raft-Index:
-      - "33"
+      - "53"
       X-Raft-Term:
       - "2"
-    status: 201 Created
-    code: 201
+    status: 200 OK
+    code: 200
 - request:
     body: ""
     form: {}
-    headers:
-      Accept-Encoding:
-      - gzip
-      User-Agent:
-      - Go-http-client/1.1
+    headers: {}
     url: http://127.0.0.1:2379/v2/keys/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/name?quorum=false&recursive=false&sorted=false
     method: GET
   response:
     body: |
-      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/name","value":"Kevin","modifiedIndex":7,"createdIndex":7}}
+      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/name","value":"Kevin","modifiedIndex":10,"createdIndex":10}}
     headers:
       Content-Length:
-      - "139"
+      - "141"
       Content-Type:
       - application/json
       Date:
-      - Mon, 25 Jan 2016 12:14:58 GMT
+      - Sat, 19 Mar 2016 13:25:22 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
-      - "7"
+      - "10"
       X-Raft-Index:
-      - "33"
+      - "53"
       X-Raft-Term:
       - "2"
     status: 200 OK
