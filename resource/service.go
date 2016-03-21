@@ -14,8 +14,9 @@ import (
 	"github.com/imdario/mergo"
 )
 
-// Name of the service resource type
+// Name and description of the resource
 const serviceResourceType = "service"
+const serviceResourceDesc = "manages services using systemd"
 
 // ServiceResource type is a resource which manages
 // services on a GNU/Linux system running systemd
@@ -247,6 +248,12 @@ func (s *ServiceResource) Update(w io.Writer) error {
 
 func init() {
 	if util.IsRunningSystemd() {
-		Register(serviceResourceType, NewServiceResource)
+		item := RegistryItem{
+			Name:        serviceResourceType,
+			Description: serviceResourceDesc,
+			Provider:    NewServiceResource,
+		}
+
+		Register(item)
 	}
 }

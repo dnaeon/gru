@@ -93,16 +93,16 @@ func (m *Module) hclLoadResources(root *ast.ObjectList) error {
 			return e
 		}
 
-		// Get the resource type and create the actual resource
+		// Get the resource from registry and create the actual resource
 		resourceType := item.Keys[0].Token.Value().(string)
-		provider, ok := resource.Get(resourceType)
+		registryItem, ok := resource.Registry[resourceType]
 		if !ok {
 			e := fmt.Errorf("Unknown resource type '%s' found in %s:%s", resourceType, m.Name, position)
 			return e
 		}
 
 		// Create the actual resource by calling it's provider
-		r, err := provider(item)
+		r, err := registryItem.Provider(item)
 		if err != nil {
 			return err
 		}

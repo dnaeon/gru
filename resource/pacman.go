@@ -14,8 +14,9 @@ import (
 // Path to the pacman package manager
 const pacmanPath = "/usr/bin/pacman"
 
-// Name of the resource type
+// Name and description of the resource
 const pacmanResourceType = "pacman"
+const pacmanResourceDesc = "manages packages using the pacman package manager"
 
 // PacmanResource type represents the resource for
 // package management on Arch Linux systems
@@ -98,5 +99,11 @@ func (p *PacmanResource) Update(w io.Writer) error {
 }
 
 func init() {
-	Register(pacmanResourceType, NewPacmanResource)
+	item := RegistryItem{
+		Name:        pacmanResourceType,
+		Description: pacmanResourceDesc,
+		Provider:    NewPacmanResource,
+	}
+
+	Register(item)
 }
