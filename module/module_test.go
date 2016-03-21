@@ -19,13 +19,9 @@ resource "pacman" {
   name = "openssh"
 }
 
-resource "service" {
-  name = "sshd"
-  state = "running"
-  enable = true
-  want = [
-    "pacman[openssh]",
-  ]
+resource "pacman" {
+  name = "tmux"
+  state = "present"
 }
 `
 	hclModule, err := Load("main", bytes.NewBufferString(hclInput))
@@ -72,13 +68,9 @@ func TestModuleJSON(t *testing.T) {
       }
     },
     {
-      "service": {
-        "name": "sshd",
-        "state": "running",
-        "want": [
-          "pacman[openssh]"
-        ],
-        "enable": true
+      "pacman": {
+        "name": "tmux",
+        "state": "present",
       }
     }
   ]
