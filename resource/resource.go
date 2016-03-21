@@ -7,32 +7,37 @@ import (
 	"github.com/hashicorp/hcl/hcl/ast"
 )
 
-// Provider is used to create new resources from an HCL AST object item
-type Provider func(item *ast.ObjectItem) (Resource, error)
+// Registry contains all known resources
+var Registry = make(map[string]RegistryItem)
 
-// Registry contains all known resource types and their providers
-var registry = make(map[string]Provider)
+// provider is used to create new resources from an HCL AST object item
+type provider func(item *ast.ObjectItem) (Resource, error)
 
-// Register registers a resource type and it's provider
-func Register(name string, p Provider) error {
-	_, ok := registry[name]
+// RegistryItem type represents an item from the registry
+type RegistryItem struct {
+	// Name of the resource type
+	Name string
+
+	// Short desription of the resource
+	Description string
+
+	// Resource provider
+	Provider provider
+}
+
+// Register adds a resource type to the registry
+func Register(item RegistryItem) error {
+	_, ok := Registry[item.Name]
 	if ok {
-		return fmt.Errorf("Resource provider for '%s' is already registered", name)
+		return fmt.Errorf("Resource type '%s' is already registered", item.Name)
 	}
 
-	registry[name] = p
+	Registry[item.Name] = item
 
 	return nil
 }
 
-// Get retrieves the provider for a given resource type
-func Get(name string) (Provider, bool) {
-	p, ok := registry[name]
-
-	return p, ok
-}
-
-// Resource is the base interface type for all resources
+// Resource is the interface type for resources
 type Resource interface {
 	// Type of the resource
 	Type() string
