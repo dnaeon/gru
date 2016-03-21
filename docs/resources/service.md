@@ -9,25 +9,25 @@ system running systemd.
 
 Name of the service resource.
 
-Type: string
-Required: Yes
+* Type: string
+* Required: Yes
 
 ### state
 
 Desired state of the service.
 
-Type: string
-Required: No
-Default: running
+* Type: string
+* Required: No
+* Default: running
 
 ### enable
 
 Boolean flag indicating whether to enable or disable the service
 during boot-time.
 
-Type: bool
-Required: No
-Default: true
+* Type: bool
+* Required: No
+* Default: true
 
 ## Example usage
 
@@ -39,4 +39,5 @@ resource "service" {
     want = [
       "pacman[openssh]",
   ]
-}```
+}
+```
