@@ -36,8 +36,8 @@ resource "service" {
   name = "sshd"
   state = "running"
   enable = true
-    want = [
-      "pacman[openssh]",
+  want = [
+    "pacman[openssh]",
   ]
 }
 ```
