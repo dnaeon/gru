@@ -2,7 +2,9 @@ package classifier
 
 import "errors"
 
-var errNotFound = errors.New("Classifier key not found")
+// ErrClassifierNotFound is returned if the requested classifier was
+// not found in the classifier registry
+var ErrClassifierNotFound = errors.New("Classifier key not found")
 
 // Classifier type contains a key/value pair repsenting a classifier
 type Classifier struct {
@@ -43,5 +45,5 @@ func Get(key string) (*Classifier, error) {
 		return c, err
 	}
 
-	return c, errNotFound
+	return c, ErrClassifierNotFound
 }
