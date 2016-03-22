@@ -74,27 +74,28 @@ func (p *PacmanResource) Evaluate() (State, error) {
 
 // Create creates the resource
 func (p *PacmanResource) Create(w io.Writer) error {
-	cmd := exec.Command(pacmanPath, "--sync", "--noconfirm", p.Name)
-	output, err := cmd.CombinedOutput()
+	p.Printf(w, "installing package")
 
-	p.Printf(w, string(output))
+	cmd := exec.Command(pacmanPath, "--sync", "--noconfirm", p.Name)
+	err := cmd.Run()
 
 	return err
 }
 
 // Delete deletes the resource
 func (p *PacmanResource) Delete(w io.Writer) error {
-	cmd := exec.Command(pacmanPath, "--remove", "--noconfirm", p.Name)
-	output, err := cmd.CombinedOutput()
+	p.Printf(w, "removing package")
 
-	p.Printf(w, string(output))
+	cmd := exec.Command(pacmanPath, "--remove", "--noconfirm", p.Name)
+	err := cmd.Run()
 
 	return err
 }
 
 // Update updates the resource
 func (p *PacmanResource) Update(w io.Writer) error {
-	// Create() handles package updates as well
+	p.Printf(w, "updating package")
+
 	return p.Create(w)
 }
 
