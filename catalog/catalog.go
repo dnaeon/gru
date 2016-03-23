@@ -259,7 +259,7 @@ func Load(main, path string) (*Catalog, error) {
 	g := graph.NewGraph()
 	var createModuleGraph func(m *module.Module) error
 	createModuleGraph = func(m *module.Module) error {
-		if !g.NodeExists(m.Name) {
+		if _, ok := g.GetNode(m.Name); !ok {
 			g.AddNode(nodes[m.Name])
 		} else {
 			return nil

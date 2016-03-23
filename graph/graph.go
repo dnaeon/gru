@@ -2,33 +2,11 @@ package graph
 
 import (
 	"errors"
-	"fmt"
-	"io"
-	"strings"
 
 	mapset "github.com/deckarep/golang-set"
 )
 
 var ErrCircularDependency = errors.New("Circular dependency found in graph")
-
-// Node represents a single node in the graph
-type Node struct {
-	// Name of the node
-	Name string
-
-	// Edges to other nodes in the graph
-	edges []*Node
-}
-
-// NewNode creates a new node with the given name
-func NewNode(name string) *Node {
-	n := &Node{
-		Name:  name,
-		edges: make([]*Node, 0),
-	}
-
-	return n
-}
 
 // Graph represents a DAG graph
 type Graph struct {
@@ -58,10 +36,11 @@ func (g *Graph) AddEdge(node *Node, edges ...*Node) {
 	}
 }
 
-func (g *Graph) NodeExists(name string) bool {
-	_, ok := g.nodes[name]
+// GetNode retrieves the node from the graph with the given name
+func (g *Graph) GetNode(name string) (*Node, bool) {
+	n, ok := g.nodes[name]
 
-	return ok
+	return n, ok
 }
 
 // Sort performs a topological sort of the graph
@@ -126,30 +105,4 @@ func (g *Graph) Sort() ([]*Node, error) {
 	}
 
 	return sorted, nil
-}
-
-// GenerateDOT generates a DOT file for the graph
-// https://en.wikipedia.org/wiki/DOT_(graph_description_language)
-func (g *Graph) GenerateDOT(name string, w io.Writer) {
-	dotNodes := make([]string, 0)
-	dotHeader := []byte(fmt.Sprintf("digraph %s {\n", name))
-	dotFooter := []byte("\n}\n")
-
-	for _, node := range g.nodes {
-		// Insert the node as the first item in the DOT object
-		obj := make([]string, 0)
-		obj = append(obj, fmt.Sprintf("\t%q", node.Name))
-
-		// Now add the node edges as well
-		for _, edge := range node.edges {
-			obj = append(obj, fmt.Sprintf("%q", edge.Name))
-		}
-
-		dotObj := strings.Join(obj, " -> ")
-		dotNodes = append(dotNodes, dotObj)
-	}
-
-	w.Write(dotHeader)
-	w.Write([]byte(strings.Join(dotNodes, "\n")))
-	w.Write(dotFooter)
 }
