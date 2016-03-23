@@ -1,6 +1,6 @@
 [Unit]
 Description=Gru orchestration framework
-Documentation=https://github.com/dnaeon/gru
+Documentation=https://github.com/dnaeon/gru/docs
 After=network.target
 
 [Service]
