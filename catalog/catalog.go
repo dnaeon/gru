@@ -247,7 +247,7 @@ func Load(main, path string) (*Catalog, error) {
 		return c, fmt.Errorf("Module %s was not found in the module path", main)
 	}
 
-	// A map containing the module names and the actually loaded modules
+	// A map containing the discovered module names and the actually loaded modules
 	moduleNames := make(map[string]*module.Module)
 	for n, p := range registry {
 		f, err := os.Open(p)
