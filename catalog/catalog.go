@@ -142,24 +142,37 @@ func (c *Catalog) Run(w io.Writer) error {
 		if state.Want == state.Current {
 			if state.Update {
 				fmt.Fprintf(w, "%s is out of date\n", r.ID())
-				r.Update(w)
+				err = r.Update(w)
+				if err != nil {
+					fmt.Fprintf(w, "%s error: %s\n", r.ID(), err)
+				}
 			}
 			continue
 		}
 
 		fmt.Fprintf(w, "%s is %s, should be %s\n", id, state.Current, state.Want)
+		var action func(w io.Writer) error
 		if state.Want == resource.StatePresent || state.Want == resource.StateRunning {
 			if state.Current == resource.StateAbsent || state.Current == resource.StateStopped {
-				r.Create(w)
+				action = r.Create
 			}
 		} else {
 			if state.Current == resource.StatePresent || state.Current == resource.StateRunning {
-				r.Delete(w)
+				action = r.Delete
 			}
 		}
 
+		// Perform the operation
+		err = action(w)
+		if err != nil {
+			fmt.Fprintf(w, "%s error: %s", r.ID(), err)
+		}
+
 		if state.Update {
-			r.Update(w)
+			err = r.Update(w)
+			if err != nil {
+				fmt.Fprintf(w, "%s error %s\n", r.ID(), err)
+			}
 		}
 	}
 
