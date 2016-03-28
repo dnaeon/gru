@@ -39,9 +39,13 @@ func execValidateCommand(c *cli.Context) {
 	}
 
 	// Validate() returns a slice of errors
-	resourceErrors := katalog.Validate()
-	for _, err = range resourceErrors {
-		fmt.Print(err)
+	foundErrors := katalog.Validate()
+	for _, err = range foundErrors {
+		fmt.Println(err)
+	}
+
+	if len(foundErrors) > 0 {
+		return
 	}
 
 	if c.Bool("tojson") {
