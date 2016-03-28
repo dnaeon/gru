@@ -305,22 +305,20 @@ func Load(main, path string) (*Catalog, error) {
 // which contains all resources from the catalog and is suitable for
 // clients to consume in order to create a single-module catalog from it.
 func (c *Catalog) MarshalJSON() ([]byte, error) {
-	rMap, err := c.createResourceMap()
-	if err != nil {
-		return nil, err
+	resources := make([]resource.Resource, 0)
+	for _, m := range c.modules {
+		resources = append(resources, m.Resources...)
 	}
 
-	resources := make([]resourceMap, 0)
-	for _, r := range rMap {
-		rJson := resourceMap{
-			r.Type(): r,
+	toJson := make(map[string][]resourceMap, 0)
+	for _, r := range resources {
+		item := resourceMap{
+			r.ResourceName(): r,
 		}
-		resources = append(resources, rJson)
+		toJson[r.Type()] = append(toJson[r.Type()], item)
 	}
 
-	return json.Marshal(map[string]interface{}{
-		"resource": resources,
-	})
+	return json.Marshal(toJson)
 }
 
 // UnmarshalJSON loads a catalog from JSON input
