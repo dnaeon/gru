@@ -15,6 +15,9 @@ import (
 // declarations in the same module
 var ErrMultipleImport = errors.New("Multiple import declarations found")
 
+// Valid keys represents a map of valid keys that can be used in modules
+var ValidKeys = validKeys()
+
 // Module type represents a collection of resources and module imports
 type Module struct {
 	// Name of the module
@@ -37,6 +40,22 @@ type Import struct {
 
 	// Path to the module file
 	Path string `hcl:"path"`
+}
+
+// validKeys returns a map of valid keys which can be used in modules
+func validKeys() map[string]struct{} {
+	// All resource types found in resource.Registry are considered
+	// valid keys to be used in modules.
+	keys := make(map[string]struct{})
+
+	for name := range resource.Registry {
+		keys[name] = struct{}{}
+	}
+
+	// Others keys considered as valid
+	keys["import"] = struct{}{}
+
+	return keys
 }
 
 // New creates a new empty module
@@ -90,7 +109,7 @@ func Load(name string, r io.Reader) (*Module, error) {
 	// which can be found in resource.Registry.
 	for _, item := range root.Items {
 		key := item.Keys[0].Token.Value().(string)
-		if _, ok := resource.Registry[key]; !ok {
+		if _, ok := ValidKeys[key]; !ok {
 			m.UnknownKeys = append(m.UnknownKeys, key)
 		}
 	}
