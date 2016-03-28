@@ -39,11 +39,14 @@ func Register(item RegistryItem) error {
 
 // Resource is the interface type for resources
 type Resource interface {
-	// Type of the resource
-	Type() string
-
 	// ID returns the unique identifier of a resource
 	ID() string
+
+	// Type returns the type of the resource
+	Type() string
+
+	// Returns the name of the resource
+	ResourceName() string
 
 	// Validates the resource
 	Validate() error
@@ -81,14 +84,19 @@ type BaseResource struct {
 	WantResource []string `hcl:"want" json:"want,omitempty"`
 }
 
+// ID returns the unique resource id
+func (b *BaseResource) ID() string {
+	return fmt.Sprintf("%s[%s]", b.ResourceType, b.Name)
+}
+
 // Type returns the resource type name
 func (b *BaseResource) Type() string {
 	return b.ResourceType
 }
 
-// ID returns the unique resource id
-func (b *BaseResource) ID() string {
-	return fmt.Sprintf("%s[%s]", b.ResourceType, b.Name)
+// ResourceName returns the resource name
+func (b *BaseResource) ResourceName() string {
+	return b.Name
 }
 
 // Validate checks if the resource contains valid information
