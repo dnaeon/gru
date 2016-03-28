@@ -72,29 +72,33 @@ func Load(name string, r io.Reader) (*Module, error) {
 		return m, err
 	}
 
-	err = m.hclLoadResources(root)
-	if err != nil {
-		return m, err
+	// Load all known resource types from the given input
+	for name := range resource.Registry {
+		err = m.hclLoadResources(name, root)
+		if err != nil {
+			return m, err
+		}
 	}
 
 	return m, nil
 }
 
-// hclLoadResources loads all resource declarations from the given HCL input
-func (m *Module) hclLoadResources(root *ast.ObjectList) error {
-	hclResources := root.Filter("resource")
+// hclLoadResources loads all declarations with the
+// given resource type from the provided HCL input
+func (m *Module) hclLoadResources(resourceType string, root *ast.ObjectList) error {
+	hclResources := root.Filter(resourceType)
 	for _, item := range hclResources.Items {
 		position := item.Val.Pos().String()
 
-		// The item is expected to have exactly one key which
-		// represents the resource type.
+		// The item is expected to exactly one key which
+		// represent the resource name
 		if len(item.Keys) != 1 {
 			e := fmt.Errorf("Invalid resource declaration found in %s:%s", m.Name, position)
 			return e
 		}
 
 		// Get the resource from registry and create the actual resource
-		resourceType := item.Keys[0].Token.Value().(string)
+		resourceName := item.Keys[0].Token.Value().(string)
 		registryItem, ok := resource.Registry[resourceType]
 		if !ok {
 			e := fmt.Errorf("Unknown resource type '%s' found in %s:%s", resourceType, m.Name, position)
@@ -102,7 +106,7 @@ func (m *Module) hclLoadResources(root *ast.ObjectList) error {
 		}
 
 		// Create the actual resource by calling it's provider
-		r, err := registryItem.Provider(item)
+		r, err := registryItem.Provider(resourceName, item)
 		if err != nil {
 			return err
 		}
