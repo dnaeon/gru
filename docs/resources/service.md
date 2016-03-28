@@ -32,12 +32,8 @@ during boot-time.
 ## Example usage
 
 ```hcl
-resource "service" {
-  name = "sshd"
+service "sshd" {
   state = "running"
   enable = true
-  want = [
-    "pacman[openssh]",
-  ]
 }
 ```

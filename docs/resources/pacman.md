@@ -23,8 +23,7 @@ Desired state of the package.
 ## Example usage
 
 ```hcl
-resource "pacman" {
-  name = "tmux"
+pacman "tmux" {
   state = "present"
 }
 ```
