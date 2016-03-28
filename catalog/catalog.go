@@ -181,21 +181,29 @@ func (c *Catalog) Run(w io.Writer) error {
 
 // Validate validates the resources from catalog
 func (c *Catalog) Validate() []error {
-	resourceErrors := make([]error, 0)
+	foundErrors := make([]error, 0)
 
 	rMap, err := c.createResourceMap()
 	if err != nil {
-		resourceErrors = append(resourceErrors, err)
+		foundErrors = append(foundErrors, err)
 	}
 
+	// Validate resources
 	for id, r := range rMap {
 		err = r.Validate()
 		if err != nil {
-			resourceErrors = append(resourceErrors, fmt.Errorf("Failed to validate %s: %s\n", id, err))
+			foundErrors = append(foundErrors, fmt.Errorf("Failed to validate %s: %s\n", id, err))
 		}
 	}
 
-	return resourceErrors
+	// Check for unknown keys
+	for _, m := range c.modules {
+		for _, key := range m.UnknownKeys {
+			foundErrors = append(foundErrors, fmt.Errorf("Unknown key '%s' in module %s", key, m.Name))
+		}
+	}
+
+	return foundErrors
 }
 
 // GenerateCatalogDOT generates a DOT file for the resources in catalog
