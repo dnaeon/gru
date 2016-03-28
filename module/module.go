@@ -84,6 +84,17 @@ func Load(name string, r io.Reader) (*Module, error) {
 		}
 	}
 
+	// Check for unknown keys in the provided input
+	//
+	// For now the only valid keys are the resource types,
+	// which can be found in resource.Registry.
+	for _, item := range root.Items {
+		key := item.Keys[0].Token.Value().(string)
+		if _, ok := resource.Registry[key]; !ok {
+			m.UnknownKeys = append(m.UnknownKeys, key)
+		}
+	}
+
 	return m, nil
 }
 
