@@ -9,18 +9,18 @@ import (
 func TestModuleHCL(t *testing.T) {
 	hclInput := `
 import {
-  module = [
-    "base-module",
-    "some-other-module",
-  ]
+  name = "base-module"
 }
 
-resource "pacman" {
-  name = "openssh"
+import {
+  name = "some-other-module"
 }
 
-resource "pacman" {
-  name = "tmux"
+pacman "openssh" {
+  state = "present"
+}
+
+pacman "tmux" {
   state = "present"
 }
 `
@@ -30,20 +30,18 @@ resource "pacman" {
 	}
 
 	wantName := "main"
-	wantNumImports := 2
-	wantImportNames := []string{"base-module", "some-other-module"}
+	wantImports := []Import{
+		Import{Name: "base-module"},
+		Import{Name: "some-other-module"},
+	}
 	wantNumResources := 2
 
 	if wantName != hclModule.Name {
 		t.Errorf("want module name %q, got name %q", wantName, hclModule.Name)
 	}
 
-	if wantNumImports != len(hclModule.ModuleImport.Module) {
-		t.Errorf("want %d imports, got %d imports", wantNumImports, len(hclModule.ModuleImport.Module))
-	}
-
-	if !reflect.DeepEqual(wantImportNames, hclModule.ModuleImport.Module) {
-		t.Errorf("want %q import names, got %q names", wantImportNames, hclModule.ModuleImport.Module)
+	if !reflect.DeepEqual(wantImports, hclModule.Imports) {
+		t.Errorf("want %q imports, got %q imports", wantImports, hclModule.Imports)
 	}
 
 	if wantNumResources != len(hclModule.Resources) {
@@ -54,21 +52,23 @@ resource "pacman" {
 func TestModuleJSON(t *testing.T) {
 	jsonInput := `
 {
-  "import": {
-    "module": [
-      "base-module",
-      "some-other-module"
-    ],
-  },
-  "resource": [
+  "import": [
     {
-      "pacman": {
+      "name": "base-module"
+    },
+    {
+      "name": "some-other-module"
+    }
+  ],
+  "pacman": [
+    {
+      "openssh": {
         "name": "openssh",
         "state": "present"
       }
     },
     {
-      "pacman": {
+      "valgrind": {
         "name": "tmux",
         "state": "present",
       }
@@ -82,20 +82,18 @@ func TestModuleJSON(t *testing.T) {
 	}
 
 	wantName := "main"
-	wantNumImports := 2
-	wantImportNames := []string{"base-module", "some-other-module"}
+	wantImports := []Import{
+		Import{Name: "base-module"},
+		Import{Name: "some-other-module"},
+	}
 	wantNumResources := 2
 
 	if wantName != jsonModule.Name {
 		t.Errorf("want module name %q, got name %q", wantName, jsonModule.Name)
 	}
 
-	if wantNumImports != len(jsonModule.ModuleImport.Module) {
-		t.Errorf("want %d imports, got %d imports", wantNumImports, len(jsonModule.ModuleImport.Module))
-	}
-
-	if !reflect.DeepEqual(wantImportNames, jsonModule.ModuleImport.Module) {
-		t.Errorf("want %q import names, got %q names", wantImportNames, jsonModule.ModuleImport.Module)
+	if !reflect.DeepEqual(wantImports, jsonModule.Imports) {
+		t.Errorf("want %q imports, got %q imports", wantImports, jsonModule.Imports)
 	}
 
 	if wantNumResources != len(jsonModule.Resources) {
