@@ -26,10 +26,11 @@ type PacmanResource struct {
 
 // NewPacmanResource creates a new resource for managing packages
 // using the pacman package manager on an Arch Linux system
-func NewPacmanResource(obj *ast.ObjectItem) (Resource, error) {
+func NewPacmanResource(name string, obj *ast.ObjectItem) (Resource, error) {
 	// Resource defaults
 	defaults := &PacmanResource{
 		BaseResource{
+			Name:         name,
 			ResourceType: pacmanResourceType,
 			State:        StatePresent,
 		},
@@ -74,7 +75,7 @@ func (p *PacmanResource) Evaluate() (State, error) {
 
 // Create creates the resource
 func (p *PacmanResource) Create(w io.Writer) error {
-	p.Printf(w, "installing package")
+	p.Printf(w, "installing package\n")
 
 	cmd := exec.Command(pacmanPath, "--sync", "--noconfirm", p.Name)
 	err := cmd.Run()
@@ -84,7 +85,7 @@ func (p *PacmanResource) Create(w io.Writer) error {
 
 // Delete deletes the resource
 func (p *PacmanResource) Delete(w io.Writer) error {
-	p.Printf(w, "removing package")
+	p.Printf(w, "removing package\n")
 
 	cmd := exec.Command(pacmanPath, "--remove", "--noconfirm", p.Name)
 	err := cmd.Run()
@@ -94,7 +95,7 @@ func (p *PacmanResource) Delete(w io.Writer) error {
 
 // Update updates the resource
 func (p *PacmanResource) Update(w io.Writer) error {
-	p.Printf(w, "updating package")
+	p.Printf(w, "updating package\n")
 
 	return p.Create(w)
 }

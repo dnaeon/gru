@@ -32,15 +32,16 @@ type ServiceResource struct {
 
 // NewServiceResource creates a new resource for managing services
 // using systemd on a GNU/Linux system
-func NewServiceResource(obj *ast.ObjectItem) (Resource, error) {
+func NewServiceResource(name string, obj *ast.ObjectItem) (Resource, error) {
 	// Resource defaults
 	defaults := &ServiceResource{
 		BaseResource{
+			Name:         name,
 			ResourceType: serviceResourceType,
 			State:        StateRunning,
 		},
 		false, // Enables the service by default
-		"",    // Service unit name is set below
+		fmt.Sprintf("%s.service", name), // The service unit name
 	}
 
 	var s ServiceResource
@@ -51,9 +52,6 @@ func NewServiceResource(obj *ast.ObjectItem) (Resource, error) {
 
 	// Merge the decoded object with the resource defaults
 	err = mergo.Merge(&s, defaults)
-
-	// Set unit name
-	s.UnitName = fmt.Sprintf("%s.service", s.Name)
 
 	return &s, nil
 }

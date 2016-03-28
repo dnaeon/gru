@@ -11,7 +11,7 @@ import (
 var Registry = make(map[string]RegistryItem)
 
 // provider is used to create new resources from an HCL AST object item
-type provider func(item *ast.ObjectItem) (Resource, error)
+type provider func(name string, item *ast.ObjectItem) (Resource, error)
 
 // RegistryItem type represents an item from the registry
 type RegistryItem struct {
