@@ -15,12 +15,6 @@ import (
 // declarations in the same module
 var ErrMultipleImport = errors.New("Multiple import declarations found")
 
-// Import type represents a single import declaration from HCL/JSON
-type ImportType struct {
-	// Module names being imported
-	Module []string
-}
-
 // Module type represents a collection of resources and module imports
 type Module struct {
 	// Name of the module
@@ -30,7 +24,19 @@ type Module struct {
 	Resources []resource.Resource
 
 	// Module imports
-	ModuleImport ImportType
+	Imports []Import
+
+	// Unknown keys found in the module
+	UnknownKeys []string
+}
+
+// Import type represents an import declaration
+type Import struct {
+	// Name of the module that is imported
+	Name string `hcl:"name"`
+
+	// Path to the module file
+	Path string `hcl:"path"`
 }
 
 // New creates a new empty module
@@ -38,9 +44,7 @@ func New(name string) *Module {
 	m := &Module{
 		Name:      name,
 		Resources: make([]resource.Resource, 0),
-		ModuleImport: ImportType{
-			Module: make([]string, 0),
-		},
+		Imports:   make([]Import, 0),
 	}
 
 	return m
@@ -121,18 +125,21 @@ func (m *Module) hclLoadResources(resourceType string, root *ast.ObjectList) err
 func (m *Module) hclLoadImport(root *ast.ObjectList) error {
 	hclImport := root.Filter("import")
 
-	// We expect to have exactly one import declaration per module file
-	if len(hclImport.Items) > 1 {
-		return fmt.Errorf("Multiple import declarations found in %s", m.Name)
-	}
+	for _, item := range hclImport.Items {
+		position := item.Val.Pos().String()
 
-	if len(hclImport.Items) == 0 {
-		return nil
-	}
+		if len(item.Keys) != 0 {
+			e := fmt.Errorf("Invalid module import found in %s:%s", m.Name, position)
+			return e
+		}
 
-	err := hcl.DecodeObject(&m.ModuleImport, hclImport.Items[0])
-	if err != nil {
-		return err
+		var i Import
+		err := hcl.DecodeObject(&i, item)
+		if err != nil {
+			return err
+		}
+
+		m.Imports = append(m.Imports, i)
 	}
 
 	return nil

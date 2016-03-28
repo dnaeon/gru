@@ -239,7 +239,7 @@ func Load(main, path string) (*Catalog, error) {
 		return c, fmt.Errorf("Module %s was not found in the module path", main)
 	}
 
-	// A map containing the module names and the actual loaded modules
+	// A map containing the module names and the actually loaded modules
 	moduleNames := make(map[string]*module.Module)
 	for n, p := range registry {
 		f, err := os.Open(p)
@@ -278,16 +278,16 @@ func Load(main, path string) (*Catalog, error) {
 			return nil
 		}
 
-		for _, importName := range m.ModuleImport.Module {
-			if _, ok := moduleNames[importName]; !ok {
-				return fmt.Errorf("Module %s imports %s, which is not in the module path", m.Name, importName)
+		for _, mi := range m.Imports {
+			if _, ok := moduleNames[mi.Name]; !ok {
+				return fmt.Errorf("Module %s imports %s, which is not in the module path", m.Name, mi.Name)
 			}
 
 			// Build the dependencies of imported modules as well
-			createModuleGraph(moduleNames[importName])
+			createModuleGraph(moduleNames[mi.Name])
 
 			// Finally connect the nodes in the graph
-			g.AddEdge(nodes[m.Name], nodes[importName])
+			g.AddEdge(nodes[m.Name], nodes[mi.Name])
 		}
 
 		return nil
