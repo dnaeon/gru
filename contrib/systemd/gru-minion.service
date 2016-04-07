@@ -1,5 +1,5 @@
 [Unit]
-Description=Gru orchestration framework
+Description=Gru orchestration framework minion
 Documentation=https://github.com/dnaeon/gru/docs
 After=network.target
 
