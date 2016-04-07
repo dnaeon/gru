@@ -42,9 +42,10 @@ func Main() {
 			EnvVar: "GRU_MODULEPATH",
 		},
 		cli.DurationFlag{
-			Name:  "timeout",
-			Value: time.Second,
-			Usage: "connection timeout per request",
+			Name:   "timeout",
+			Value:  time.Second,
+			Usage:  "connection timeout per request",
+			EnvVar: "GRU_TIMEOUT",
 		},
 	}
 
