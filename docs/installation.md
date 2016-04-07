@@ -20,3 +20,11 @@ Gru you need to make sure that you have `etcd` up and running.
 For installing and configuring [etcd](https://github.com/coreos/etcd),
 please refer to the
 [official etcd documentation](https://coreos.com/etcd/docs/latest/).
+
+## Tests
+
+You can also run the tests by executing the command below:
+
+```bash
+$ make test
+```

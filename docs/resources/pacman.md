@@ -1,4 +1,4 @@
-## Pacman
+## pacman
 
 The `pacman` resource is used for package management on Arch Linux
 systems.

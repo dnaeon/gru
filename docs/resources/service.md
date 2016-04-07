@@ -1,4 +1,4 @@
-## Service
+## service
 
 The `service` resource is used for managing services on a GNU/Linux
 system running systemd.
