@@ -40,10 +40,10 @@ func Register(item RegistryItem) error {
 // Resource is the interface type for resources
 type Resource interface {
 	// ID returns the unique identifier of a resource
-	ID() string
+	ResourceID() string
 
 	// Type returns the type of the resource
-	Type() string
+	ResourceType() string
 
 	// Returns the name of the resource
 	ResourceName() string
@@ -51,10 +51,13 @@ type Resource interface {
 	// Validates the resource
 	Validate() error
 
-	// Returns the wanted resources/dependencies
-	Want() []string
+	// Returns the resources before which this resource shoud be processed
+	WantBefore() []string
 
-	// Evaluates the resource and returns it's state
+	// Returns the resources after which this resource should be processed
+	WantAfter() []string
+
+	// Evaluates the resource
 	Evaluate() (State, error)
 
 	// Creates the resource
@@ -78,20 +81,23 @@ type BaseResource struct {
 	State string `hcl:"state" json:"state"`
 
 	// Type of the resource
-	ResourceType string `json:"-"`
+	Type string `json:"-"`
 
-	// Resource dependencies
-	WantResource []string `hcl:"want" json:"want,omitempty"`
+	// Resources before which this resource should be processed
+	Before []string `hcl:"before" json:"before,omitempty"`
+
+	// Resources after which this resource should be processed
+	After []string `hcl:"after" json:"after,omitempty"`
 }
 
-// ID returns the unique resource id
-func (b *BaseResource) ID() string {
-	return fmt.Sprintf("%s[%s]", b.ResourceType, b.Name)
+// ResourceID returns the unique resource id
+func (b *BaseResource) ResourceID() string {
+	return fmt.Sprintf("%s[%s]", b.Type, b.Name)
 }
 
-// Type returns the resource type name
-func (b *BaseResource) Type() string {
-	return b.ResourceType
+// ResourceType returns the resource type name
+func (b *BaseResource) ResourceType() string {
+	return b.Type
 }
 
 // ResourceName returns the resource name
@@ -102,22 +108,29 @@ func (b *BaseResource) ResourceName() string {
 // Validate checks if the resource contains valid information
 func (b *BaseResource) Validate() error {
 	if b.Name == "" {
-		return fmt.Errorf("Missing name for resource %s", b.ID())
+		return fmt.Errorf("Missing name for resource %s", b.ResourceID())
 	}
 
 	return nil
 }
 
-// Want returns the wanted resources/dependencies
-func (b *BaseResource) Want() []string {
-	return b.WantResource
+// WantBefore returns the resources before which this resource
+// should be processed
+func (b *BaseResource) WantBefore() []string {
+	return b.Before
+}
+
+// WantAfter returns the resources after which this resource
+// should be processed
+func (b *BaseResource) WantAfter() []string {
+	return b.After
 }
 
 // Printf works just like fmt.Printf except that it writes to the
 // given resource writer object and prepends the
 // resource id to the output
 func (b *BaseResource) Printf(w io.Writer, format string, a ...interface{}) (int, error) {
-	fmt.Fprintf(w, "%s ", b.ID())
+	fmt.Fprintf(w, "%s ", b.ResourceID())
 
 	return fmt.Fprintf(w, format, a...)
 }
