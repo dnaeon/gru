@@ -43,7 +43,7 @@ func (c *Catalog) createResourceMap() (resourceMap, error) {
 	rMap := make(resourceMap)
 	for _, m := range c.modules {
 		for _, r := range m.Resources {
-			id := r.ID()
+			id := r.ResourceID()
 			if _, ok := rMap[id]; ok {
 				return rMap, fmt.Errorf("Duplicate resource %s in %s, previous declaration was in %s", id, m.Name, rModuleMap[id])
 			}
@@ -84,13 +84,25 @@ func (c *Catalog) resourceGraph() (*graph.Graph, error) {
 
 	// Connect the nodes in the graph
 	for name, r := range resources {
-		deps := r.Want()
-		for _, dep := range deps {
+		before := r.WantBefore()
+		after := r.WantAfter()
+
+		// Connect current resource with the ones that happen after it
+		for _, dep := range after {
 			if _, ok := resources[dep]; !ok {
 				e := fmt.Errorf("Resource %s wants %s, which is not in catalog", name, dep)
 				return g, e
 			}
 			g.AddEdge(nodes[name], nodes[dep])
+		}
+
+		// Connect current resource with the ones that happen before it
+		for _, dep := range before {
+			if _, ok := resources[dep]; !ok {
+				e := fmt.Errorf("Resource %s wants %s, which is not in catalog", name, dep)
+				return g, e
+			}
+			g.AddEdge(nodes[dep], nodes[name])
 		}
 	}
 
@@ -125,7 +137,7 @@ func (c *Catalog) Run(w io.Writer) error {
 
 	for _, node := range sorted {
 		r := rMap[node.Name]
-		id := r.ID()
+		id := r.ResourceID()
 
 		state, err := r.Evaluate()
 		if err != nil {
@@ -141,10 +153,10 @@ func (c *Catalog) Run(w io.Writer) error {
 		// If resource is in the desired state, but out of date
 		if state.Want == state.Current {
 			if state.Update {
-				fmt.Fprintf(w, "%s is out of date\n", r.ID())
+				fmt.Fprintf(w, "%s is out of date\n", r.ResourceID())
 				err = r.Update(w)
 				if err != nil {
-					fmt.Fprintf(w, "%s error: %s\n", r.ID(), err)
+					fmt.Fprintf(w, "%s error: %s\n", r.ResourceID(), err)
 				}
 			}
 			continue
@@ -165,13 +177,13 @@ func (c *Catalog) Run(w io.Writer) error {
 		// Perform the operation
 		err = action(w)
 		if err != nil {
-			fmt.Fprintf(w, "%s error: %s", r.ID(), err)
+			fmt.Fprintf(w, "%s error: %s", r.ResourceID(), err)
 		}
 
 		if state.Update {
 			err = r.Update(w)
 			if err != nil {
-				fmt.Fprintf(w, "%s error %s\n", r.ID(), err)
+				fmt.Fprintf(w, "%s error %s\n", r.ResourceID(), err)
 			}
 		}
 	}
@@ -336,7 +348,7 @@ func (c *Catalog) MarshalJSON() ([]byte, error) {
 		item := resourceMap{
 			r.ResourceName(): r,
 		}
-		toJson[r.Type()] = append(toJson[r.Type()], item)
+		toJson[r.ResourceType()] = append(toJson[r.ResourceType()], item)
 	}
 
 	return json.Marshal(toJson)
