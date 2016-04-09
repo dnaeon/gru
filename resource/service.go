@@ -36,9 +36,9 @@ func NewServiceResource(name string, obj *ast.ObjectItem) (Resource, error) {
 	// Resource defaults
 	defaults := &ServiceResource{
 		BaseResource{
-			Name:         name,
-			ResourceType: serviceResourceType,
-			State:        StateRunning,
+			Name:  name,
+			Type:  serviceResourceType,
+			State: StateRunning,
 		},
 		false, // Enables the service by default
 		fmt.Sprintf("%s.service", name), // The service unit name

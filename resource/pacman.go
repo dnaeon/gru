@@ -30,9 +30,9 @@ func NewPacmanResource(name string, obj *ast.ObjectItem) (Resource, error) {
 	// Resource defaults
 	defaults := &PacmanResource{
 		BaseResource{
-			Name:         name,
-			ResourceType: pacmanResourceType,
-			State:        StatePresent,
+			Name:  name,
+			Type:  pacmanResourceType,
+			State: StatePresent,
 		},
 	}
 
