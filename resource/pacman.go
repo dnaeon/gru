@@ -62,7 +62,7 @@ func (p *PacmanResource) Evaluate() (State, error) {
 	}
 
 	cmd := exec.Command(pacmanPath, "--query", p.Name)
-	_, err = cmd.CombinedOutput()
+	err = cmd.Run()
 
 	if err != nil {
 		s.Current = StateAbsent
