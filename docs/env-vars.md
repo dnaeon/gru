@@ -13,13 +13,13 @@ Default value: http://127.0.0.1:2379,http://localhost:4001
 
 Username to use when authenticating against etcd.
 
-Default: <blank>
+Default: <none>
 
 ### GRU_PASSWORD
 
 Password to use when when authenticating against etcd.
 
-Default: <blank>
+Default: <none>
 
 ### GRU_MODULEPATH
 
