@@ -35,13 +35,13 @@ type ServiceResource struct {
 func NewServiceResource(name string, obj *ast.ObjectItem) (Resource, error) {
 	// Resource defaults
 	defaults := &ServiceResource{
-		BaseResource{
+		BaseResource: BaseResource{
 			Name:  name,
 			Type:  serviceResourceType,
 			State: StateRunning,
 		},
-		false, // Enables the service by default
-		fmt.Sprintf("%s.service", name), // The service unit name
+		Enable:   false,
+		UnitName: fmt.Sprintf("%s.service", name),
 	}
 
 	var s ServiceResource
