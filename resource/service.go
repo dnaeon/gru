@@ -53,7 +53,7 @@ func NewServiceResource(name string, obj *ast.ObjectItem) (Resource, error) {
 	// Merge the decoded object with the resource defaults
 	err = mergo.Merge(&s, defaults)
 
-	return &s, nil
+	return &s, err
 }
 
 // unitProperty retrieves the requested property for the service unit
