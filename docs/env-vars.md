@@ -13,13 +13,13 @@ Default value: http://127.0.0.1:2379,http://localhost:4001
 
 Username to use when authenticating against etcd.
 
-Default: <none>
+Default: none
 
 ### GRU_PASSWORD
 
 Password to use when when authenticating against etcd.
 
-Default: <none>
+Default: none
 
 ### GRU_MODULEPATH
 
@@ -28,3 +28,5 @@ Path where modules can be discovered and loaded.
 ### GRU_TIMEOUT
 
 Specifies the connection timeout per request
+
+Default: 1s
