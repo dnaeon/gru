@@ -78,7 +78,7 @@ func (s *ShellResource) Evaluate() (State, error) {
 
 // Create executes the shell command
 func (s *ShellResource) Create(w io.Writer) error {
-	s.Printf(w, "executing command")
+	s.Printf(w, "executing command\n")
 
 	args := strings.Fields(s.Command)
 	cmd := exec.Command(args[0], args[1:]...)
