@@ -1,7 +1,6 @@
 package resource
 
 import (
-	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -49,33 +48,29 @@ func NewShellResource(name string, obj *ast.ObjectItem) (Resource, error) {
 	return &s, err
 }
 
-// Validate validates the shell resource
-func (s *ShellResource) Validate() error {
-	err := s.BaseResource.Validate()
-	if err != nil {
-		return err
-	}
-
-	if s.Creates == "" {
-		return fmt.Errorf("Missing required field 'creates' in %s", s.ResourceID())
-	}
-
-	return nil
-}
-
 // Evaluate evaluates the state of the resource
 func (s *ShellResource) Evaluate() (State, error) {
+	// Asumes that the command to be executed is idempotent
+	//
+	// Sets the current state to absent and wanted to be present,
+	// which will cause the command to be executed.
+	//
+	// If the command to be executed is not idempotent on it's own,
+	// in order to ensure idempotency we should specify a file,
+	// that can be checked for existence.
 	resourceState := State{
-		Current: StateUnknown,
+		Current: StateAbsent,
 		Want:    s.State,
 		Update:  false,
 	}
 
-	_, err := os.Stat(s.Creates)
-	if os.IsNotExist(err) {
-		resourceState.Current = StateAbsent
-	} else {
-		resourceState.Current = StatePresent
+	if s.Creates != "" {
+		_, err := os.Stat(s.Creates)
+		if os.IsNotExist(err) {
+			resourceState.Current = StateAbsent
+		} else {
+			resourceState.Current = StatePresent
+		}
 	}
 
 	return resourceState, nil
