@@ -346,7 +346,7 @@ func (c *Catalog) MarshalJSON() ([]byte, error) {
 	toJson := make(map[string][]resourceMap, 0)
 	for _, r := range resources {
 		item := resourceMap{
-			r.ResourceName(): r,
+			r.ResourceTitle(): r,
 		}
 		toJson[r.ResourceType()] = append(toJson[r.ResourceType()], item)
 	}

@@ -32,16 +32,17 @@ type ServiceResource struct {
 
 // NewServiceResource creates a new resource for managing services
 // using systemd on a GNU/Linux system
-func NewServiceResource(name string, obj *ast.ObjectItem) (Resource, error) {
+func NewServiceResource(title string, obj *ast.ObjectItem) (Resource, error) {
 	// Resource defaults
 	defaults := &ServiceResource{
 		BaseResource: BaseResource{
-			Name:  name,
+			Title: title,
+			Name:  title,
 			Type:  serviceResourceType,
 			State: StateRunning,
 		},
 		Enable:   false,
-		UnitName: fmt.Sprintf("%s.service", name),
+		UnitName: fmt.Sprintf("%s.service", title),
 	}
 
 	var s ServiceResource

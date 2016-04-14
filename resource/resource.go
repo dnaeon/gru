@@ -11,7 +11,7 @@ import (
 var Registry = make(map[string]RegistryItem)
 
 // provider is used to create new resources from an HCL AST object item
-type provider func(name string, item *ast.ObjectItem) (Resource, error)
+type provider func(title string, item *ast.ObjectItem) (Resource, error)
 
 // RegistryItem type represents an item from the registry
 type RegistryItem struct {
@@ -45,8 +45,8 @@ type Resource interface {
 	// Type returns the type of the resource
 	ResourceType() string
 
-	// Returns the name of the resource
-	ResourceName() string
+	// Returns the title of the resource
+	ResourceTitle() string
 
 	// Validates the resource
 	Validate() error
@@ -74,14 +74,17 @@ type Resource interface {
 // The purpose of this type is to be embedded into other resources
 // Partially implements the Resource interface
 type BaseResource struct {
+	// Type of the resource
+	Type string `json:"-"`
+
+	// Title of the resource
+	Title string `json:"-"`
+
 	// Name of the resource
 	Name string `hcl:"name" json:"name"`
 
 	// Desired state of the resource
 	State string `hcl:"state" json:"state"`
-
-	// Type of the resource
-	Type string `json:"-"`
 
 	// Resources before which this resource should be processed
 	Before []string `hcl:"before" json:"before,omitempty"`
@@ -100,15 +103,15 @@ func (b *BaseResource) ResourceType() string {
 	return b.Type
 }
 
-// ResourceName returns the resource name
-func (b *BaseResource) ResourceName() string {
-	return b.Name
+// ResourceTitle returns the resource title
+func (b *BaseResource) ResourceTitle() string {
+	return b.Title
 }
 
 // Validate checks if the resource contains valid information
 func (b *BaseResource) Validate() error {
-	if b.Name == "" {
-		return fmt.Errorf("Missing name for resource %s", b.ResourceID())
+	if b.Title == "" {
+		return fmt.Errorf("Missing title for resource %s", b.ResourceID())
 	}
 
 	return nil

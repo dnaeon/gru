@@ -26,11 +26,12 @@ type PacmanResource struct {
 
 // NewPacmanResource creates a new resource for managing packages
 // using the pacman package manager on an Arch Linux system
-func NewPacmanResource(name string, obj *ast.ObjectItem) (Resource, error) {
+func NewPacmanResource(title string, obj *ast.ObjectItem) (Resource, error) {
 	// Resource defaults
 	defaults := &PacmanResource{
 		BaseResource{
-			Name:  name,
+			Title: title,
+			Name:  title,
 			Type:  pacmanResourceType,
 			State: StatePresent,
 		},

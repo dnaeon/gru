@@ -25,15 +25,15 @@ type ShellResource struct {
 }
 
 // NewShellResource creates a new resource for executing shell commands
-func NewShellResource(name string, obj *ast.ObjectItem) (Resource, error) {
+func NewShellResource(title string, obj *ast.ObjectItem) (Resource, error) {
 	// Resource defaults
 	defaults := &ShellResource{
 		BaseResource: BaseResource{
-			Name:  name,
+			Title: title,
 			Type:  shellResourceType,
 			State: StatePresent,
 		},
-		Command: name,
+		Command: title,
 	}
 
 	var s ShellResource

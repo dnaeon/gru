@@ -11,6 +11,7 @@ Name of the package.
 
 * Type: string
 * Required: Yes
+* Default: Defaults to the resource title
 
 ### state
 
