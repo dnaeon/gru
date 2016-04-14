@@ -16,3 +16,6 @@ For setting environment variables, make sure to check the
 In order to automatically start your minions during boot-time,
 you should check the document for [enabling services](services.md)
 during boot-time.
+
+You should also check the documentation of
+[available resources](resources/) that you could use in your modules.
