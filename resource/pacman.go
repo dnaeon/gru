@@ -22,6 +22,9 @@ const pacmanResourceDesc = "manages packages using the pacman package manager"
 // package management on Arch Linux systems
 type PacmanResource struct {
 	BaseResource `hcl:",squash"`
+
+	// Name of the package
+	Name string `hcl:"name" json:"name"`
 }
 
 // NewPacmanResource creates a new resource for managing packages
@@ -29,12 +32,12 @@ type PacmanResource struct {
 func NewPacmanResource(title string, obj *ast.ObjectItem) (Resource, error) {
 	// Resource defaults
 	defaults := &PacmanResource{
-		BaseResource{
+		BaseResource: BaseResource{
 			Title: title,
-			Name:  title,
 			Type:  pacmanResourceType,
 			State: StatePresent,
 		},
+		Name: title,
 	}
 
 	// Decode the object from HCL

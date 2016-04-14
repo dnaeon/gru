@@ -80,9 +80,6 @@ type BaseResource struct {
 	// Title of the resource
 	Title string `json:"-"`
 
-	// Name of the resource
-	Name string `hcl:"name" json:"name"`
-
 	// Desired state of the resource
 	State string `hcl:"state" json:"state"`
 

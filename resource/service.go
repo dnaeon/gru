@@ -23,6 +23,9 @@ const serviceResourceDesc = "manages services using systemd"
 type ServiceResource struct {
 	BaseResource `hcl:",squash"`
 
+	// Name of the service
+	Name string `hcl:"name" json:"name"`
+
 	// If true then enable service during boot-time
 	Enable bool `hcl:"enable" json:"enable"`
 
@@ -37,12 +40,11 @@ func NewServiceResource(title string, obj *ast.ObjectItem) (Resource, error) {
 	defaults := &ServiceResource{
 		BaseResource: BaseResource{
 			Title: title,
-			Name:  title,
 			Type:  serviceResourceType,
 			State: StateRunning,
 		},
-		Enable:   false,
-		UnitName: fmt.Sprintf("%s.service", title),
+		Name:   title,
+		Enable: false,
 	}
 
 	var s ServiceResource
@@ -53,6 +55,9 @@ func NewServiceResource(title string, obj *ast.ObjectItem) (Resource, error) {
 
 	// Merge the decoded object with the resource defaults
 	err = mergo.Merge(&s, defaults)
+
+	// Set the unit name for the service we manage
+	s.UnitName = fmt.Sprintf("%s.service", s.Name)
 
 	return &s, err
 }
