@@ -95,10 +95,10 @@ type BaseResource struct {
 
 // ResourceID returns the unique resource id
 func (b *BaseResource) ResourceID() string {
-	return fmt.Sprintf("%s[%s]", b.Type, b.Name)
+	return fmt.Sprintf("%s[%s]", b.Type, b.Title)
 }
 
-// ResourceType returns the resource type name
+// ResourceType returns the resource type
 func (b *BaseResource) ResourceType() string {
 	return b.Type
 }
