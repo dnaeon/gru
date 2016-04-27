@@ -141,7 +141,7 @@ func (c *Catalog) Run(w io.Writer) error {
 
 		state, err := r.Evaluate()
 		if err != nil {
-			fmt.Fprintf(w, "Failed to evaluate resource %s: %s\n", id, err)
+			fmt.Fprintf(w, "%s: %s\n", id, err)
 			continue
 		}
 
