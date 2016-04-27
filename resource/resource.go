@@ -39,16 +39,16 @@ func Register(item RegistryItem) error {
 
 // Resource is the interface type for resources
 type Resource interface {
-	// ID returns the unique identifier of a resource
+	// ResourceID returns the unique identifier of a resource
 	ResourceID() string
 
-	// Type returns the type of the resource
+	// ResourceType returns the type of the resource
 	ResourceType() string
 
-	// Returns the title of the resource
+	// ResourceTitle returns the title of the resource
 	ResourceTitle() string
 
-	// Validates the resource
+	// Validate ensures that the resource is valid
 	Validate() error
 
 	// Returns the resources before which this resource shoud be processed
