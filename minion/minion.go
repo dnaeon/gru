@@ -9,30 +9,30 @@ import (
 
 // Minion interface type
 type Minion interface {
-	// Returns the unique identifier of a minion
+	// ID returns the unique identifier of a minion
 	ID() uuid.UUID
 
-	// Sets the name of the minion
+	// SetName sets the name of the minion
 	SetName(string) error
 
-	// Sets the time the minion was last seen
+	// SetLastseen sets the time the minion was last seen
 	SetLastseen(int64) error
 
-	// Sets a classifier for the minion
+	// SetClassifier sets a classifier for the minion
 	SetClassifier(*classifier.Classifier) error
 
-	// Listens for new tasks and processes them
+	// TaskListener listens for new tasks and processes them
 	TaskListener(c chan<- *task.Task) error
 
-	// Runs new tasks as received by the TaskListener
+	// TaskRunner runs new tasks as received by the TaskListener
 	TaskRunner(c <-chan *task.Task) error
 
-	// Saves the result of a task
+	// SaveTaskResult saves the result of a task
 	SaveTaskResult(t *task.Task) error
 
-	// Start serving
+	// Serve start the minion
 	Serve() error
 
-	// Stops the minion
+	// Stop stops the minion
 	Stop() error
 }
