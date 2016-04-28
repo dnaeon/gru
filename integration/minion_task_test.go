@@ -17,7 +17,7 @@ func TestMinionTaskBacklog(t *testing.T) {
 	// Setup our minion
 	minionName := "Kevin"
 	testMinion := minion.NewEtcdMinion(minionName, tc.config)
-	minionId := testMinion.ID()
+	minionID := testMinion.ID()
 
 	err := testMinion.SetName(minionName)
 	if err != nil {
@@ -28,13 +28,13 @@ func TestMinionTaskBacklog(t *testing.T) {
 	wantTask := task.New(nil)
 	wantTask.TaskID = uuid.Parse("e6d2bebd-2219-4a8c-9d30-a861097c147e")
 
-	err = tc.client.MinionSubmitTask(minionId, wantTask)
+	err = tc.client.MinionSubmitTask(minionID, wantTask)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Get pending tasks and verify the task we sent is the task we get
-	backlog, err := tc.client.MinionTaskQueue(minionId)
+	backlog, err := tc.client.MinionTaskQueue(minionID)
 	if err != nil {
 		t.Fatal(err)
 	}

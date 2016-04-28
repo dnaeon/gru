@@ -16,11 +16,11 @@ func TestMinionClassifiers(t *testing.T) {
 	// Classifiers to test
 	wantClassifierKeys := make([]string, 0)
 	testClassifiers := []*classifier.Classifier{
-		&classifier.Classifier{
+		{
 			Key:   "foo",
 			Value: "bar",
 		},
-		&classifier.Classifier{
+		{
 			Key:   "baz",
 			Value: "qux",
 		},

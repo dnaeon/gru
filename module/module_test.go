@@ -31,8 +31,8 @@ pacman "tmux" {
 
 	wantName := "main"
 	wantImports := []Import{
-		Import{Name: "base-module"},
-		Import{Name: "some-other-module"},
+		{Name: "base-module"},
+		{Name: "some-other-module"},
 	}
 	wantNumResources := 2
 
@@ -83,8 +83,8 @@ func TestModuleJSON(t *testing.T) {
 
 	wantName := "main"
 	wantImports := []Import{
-		Import{Name: "base-module"},
-		Import{Name: "some-other-module"},
+		{Name: "base-module"},
+		{Name: "some-other-module"},
 	}
 	wantNumResources := 2
 
