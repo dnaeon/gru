@@ -30,6 +30,9 @@ type Minion interface {
 	// SaveTaskResult saves the result of a task
 	SaveTaskResult(t *task.Task) error
 
+	// Sync syncs modules and data files
+	Sync() error
+
 	// Serve start the minion
 	Serve() error
 
