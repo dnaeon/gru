@@ -177,27 +177,27 @@ func (m *etcdMinion) periodicRunner() {
 func (m *etcdMinion) processTask(t *task.Task) error {
 	// Update state of task to indicate that we are now processing it
 	t.State = task.TaskStateProcessing
-	m.SaveTaskResult(t)
-
-	log.Printf("Processing task %s\n", t.TaskID)
+	if err := m.SaveTaskResult(t); err != nil {
+		return err
+	}
 
 	var buf bytes.Buffer
 	fmt.Fprintf(&buf, "Loaded %d resources from catalog\n", t.Catalog.Len())
-	err := t.Catalog.Run(&buf)
+	catalogErr := t.Catalog.Run(&buf)
 	t.TimeProcessed = time.Now().Unix()
 	t.Result = buf.String()
 
-	if err != nil {
-		log.Printf("Failed to process task %s: %s\n", t.TaskID, err)
+	if catalogErr != nil {
 		t.State = task.TaskStateFailed
 	} else {
-		log.Printf("Finished processing task %s\n", t.TaskID)
 		t.State = task.TaskStateSuccess
 	}
 
-	m.SaveTaskResult(t)
+	if err := m.SaveTaskResult(t); err != nil {
+		return err
+	}
 
-	return err
+	return catalogErr
 }
 
 // Classifies the minion
@@ -333,7 +333,16 @@ func (m *etcdMinion) TaskListener(c chan<- *task.Task) error {
 			continue
 		}
 
+		// Send the task for processing
 		log.Printf("Received task %s\n", t.TaskID)
+		t.State = task.TaskStateQueued
+		t.TimeReceived = time.Now().Unix()
+		err := m.SaveTaskResult(t)
+		if err != nil {
+			log.Printf("Unable to save task state: %s\n", err)
+			continue
+		}
+
 		c <- t
 	}
 
@@ -349,15 +358,13 @@ func (m *etcdMinion) TaskRunner(c <-chan *task.Task) error {
 		case <-m.done:
 			break
 		case t := <-c:
-			t.State = task.TaskStateQueued
-			t.TimeReceived = time.Now().Unix()
-			err := m.SaveTaskResult(t)
+			log.Printf("Processing task %s\n", t.TaskID)
+			err := m.processTask(t)
 			if err != nil {
-				log.Printf("Unable to save task result: %s\n", err)
-				continue
+				log.Printf("Failed to process task %s: %s\n", t.TaskID, err)
+			} else {
+				log.Printf("Finished processing task %s\n", t.TaskID)
 			}
-
-			m.processTask(t)
 		}
 	}
 
