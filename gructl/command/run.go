@@ -21,6 +21,11 @@ func NewRunCommand() cli.Command {
 		Action: execRunCommand,
 		Flags: []cli.Flag{
 			cli.StringFlag{
+				Name:  "environment",
+				Value: "production",
+				Usage: "specify environment to use",
+			},
+			cli.StringFlag{
 				Name:  "with-classifier",
 				Value: "",
 				Usage: "match minions with given classifier pattern",
@@ -45,6 +50,7 @@ func execRunCommand(c *cli.Context) {
 	}
 
 	t := task.New(katalog)
+	t.Environment = c.String("environment")
 
 	client := newEtcdMinionClientFromFlags(c)
 
