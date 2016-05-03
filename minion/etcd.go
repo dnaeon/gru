@@ -337,8 +337,7 @@ func (m *etcdMinion) TaskListener(c chan<- *task.Task) error {
 		log.Printf("Received task %s\n", t.TaskID)
 		t.State = task.TaskStateQueued
 		t.TimeReceived = time.Now().Unix()
-		err := m.SaveTaskResult(t)
-		if err != nil {
+		if err := m.SaveTaskResult(t); err != nil {
 			log.Printf("Unable to save task state: %s\n", err)
 			continue
 		}
@@ -358,6 +357,9 @@ func (m *etcdMinion) TaskRunner(c <-chan *task.Task) error {
 		case <-m.done:
 			break
 		case t := <-c:
+			// Sync the module and data files, then process the task
+			m.Sync()
+
 			log.Printf("Processing task %s\n", t.TaskID)
 			err := m.processTask(t)
 			if err != nil {
@@ -411,6 +413,7 @@ func (m *etcdMinion) Sync() error {
 	}
 
 	// Open the repository and fetch from the default remote
+	log.Println("starting site repo sync")
 	repo, err := git.OpenRepository(m.siteDir)
 	if err != nil {
 		return err
@@ -422,6 +425,11 @@ func (m *etcdMinion) Sync() error {
 	}
 
 	err = origin.Fetch([]string{}, &git.FetchOptions{}, "")
+	if err != nil {
+		log.Printf("site repo sync failed: %s\n", err)
+	} else {
+		log.Println("site repo sync completed")
+	}
 
 	return err
 }
