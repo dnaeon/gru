@@ -423,7 +423,7 @@ func (m *etcdMinion) Sync() error {
 	return err
 }
 
-// Seve starts the minion
+// Serve starts the minion
 func (m *etcdMinion) Serve() error {
 	err := m.SetName(m.name)
 	if err != nil {
