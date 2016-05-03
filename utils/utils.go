@@ -13,7 +13,7 @@ func GenerateUUID(name string) uuid.UUID {
 	return u
 }
 
-// Concurrentmap is a map type that can be safely shared between
+// ConcurrentMap is a map type that can be safely shared between
 // goroutines that require read/write access to a map
 type ConcurrentMap struct {
 	sync.RWMutex
