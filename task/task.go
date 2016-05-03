@@ -30,6 +30,9 @@ const (
 
 // Task type represents a task that is processed by minions
 type Task struct {
+	// Environment to use for this task
+	Environment string
+
 	// Catalog to be processed
 	Catalog *catalog.Catalog `json:"catalog"`
 

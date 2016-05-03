@@ -357,8 +357,16 @@ func (m *etcdMinion) TaskRunner(c <-chan *task.Task) error {
 		case <-m.done:
 			break
 		case t := <-c:
-			// Sync the module and data files, then process the task
+			// Sync the module and data files first, then process the task
+			// TODO: In case of failures to sync site repo, we may consider
+			//       continuing the task processing from the last known state
 			m.Sync()
+
+			// Switch to the correct environment
+			if err := m.setEnvironment(t.Environment); err != nil {
+				log.Printf("Unable to set environment: %s\n", err)
+				continue
+			}
 
 			log.Printf("Processing task %s\n", t.TaskID)
 			err := m.processTask(t)
@@ -389,6 +397,37 @@ func (m *etcdMinion) SaveTaskResult(t *task.Task) error {
 	_, err = m.kapi.Set(context.Background(), taskKey, string(data), opts)
 
 	return err
+}
+
+// setEnvironment checks out the branch with the
+// provided name in the site repo dir and sets HEAD to detached
+func (m *etcdMinion) setEnvironment(name string) error {
+	repo, err := git.OpenRepository(m.siteDir)
+	if err != nil {
+		return err
+	}
+
+	remoteBranchName := filepath.Join("origin", name)
+	remoteBranch, err := repo.LookupBranch(remoteBranchName, git.BranchRemote)
+	if err != nil {
+		return err
+	}
+
+	err = repo.SetHeadDetached(remoteBranch.Target())
+	if err != nil {
+		return err
+	}
+
+	checkoutOpts := &git.CheckoutOpts{
+		Strategy: git.CheckoutForce,
+	}
+
+	err = repo.CheckoutHead(checkoutOpts)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // Sync syncs module and data files from the upstream Git repository
