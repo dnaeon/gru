@@ -20,10 +20,6 @@ func NewRunCommand() cli.Command {
 		Usage:  "send task to minion(s)",
 		Action: execRunCommand,
 		Flags: []cli.Flag{
-			cli.BoolFlag{
-				Name:  "is-concurrent",
-				Usage: "flag task as concurrent",
-			},
 			cli.StringFlag{
 				Name:  "with-classifier",
 				Value: "",
@@ -49,7 +45,6 @@ func execRunCommand(c *cli.Context) {
 	}
 
 	t := task.New(katalog)
-	t.IsConcurrent = c.Bool("is-concurrent")
 
 	client := newEtcdMinionClientFromFlags(c)
 

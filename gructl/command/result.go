@@ -98,7 +98,6 @@ func execResultCommand(c *cli.Context) {
 			table.AddRow("Minion:", minionID)
 			table.AddRow("Task ID:", t.TaskID)
 			table.AddRow("State:", t.State)
-			table.AddRow("Concurrent:", t.IsConcurrent)
 			table.AddRow("Received:", time.Unix(t.TimeReceived, 0))
 			table.AddRow("Processed:", time.Unix(t.TimeProcessed, 0))
 			table.AddRow("Result:", t.Result)
