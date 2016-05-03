@@ -3,6 +3,7 @@ package minion
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"math/rand"
@@ -22,6 +23,9 @@ import (
 	"github.com/pborman/uuid"
 	"golang.org/x/net/context"
 )
+
+// ErrNoSiteRepo is returned when the minion is not configured with a site repo
+var ErrNoSiteRepo = errors.New("No site repo configured")
 
 // EtcdMinionSpace is the keyspace in etcd used by minions
 const EtcdMinionSpace = "/gru/minion"
@@ -360,7 +364,11 @@ func (m *etcdMinion) TaskRunner(c <-chan *task.Task) error {
 			// Sync the module and data files first, then process the task
 			// TODO: In case of failures to sync site repo, we may consider
 			//       continuing the task processing from the last known state
-			m.Sync()
+			err := m.Sync()
+			if err != nil {
+				log.Printf("Unable to sync site repo, skipping task processing: %s\n", err)
+				continue
+			}
 
 			// Switch to the correct environment
 			if err := m.setEnvironment(t.Environment); err != nil {
@@ -369,7 +377,7 @@ func (m *etcdMinion) TaskRunner(c <-chan *task.Task) error {
 			}
 
 			log.Printf("Processing task %s\n", t.TaskID)
-			err := m.processTask(t)
+			err = m.processTask(t)
 			if err != nil {
 				log.Printf("Failed to process task %s: %s\n", t.TaskID, err)
 			} else {
@@ -402,6 +410,8 @@ func (m *etcdMinion) SaveTaskResult(t *task.Task) error {
 // setEnvironment checks out the branch with the
 // provided name in the site repo dir and sets HEAD to detached
 func (m *etcdMinion) setEnvironment(name string) error {
+	log.Printf("Setting environment to %s\n", name)
+
 	repo, err := git.OpenRepository(m.siteDir)
 	if err != nil {
 		return err
@@ -427,28 +437,25 @@ func (m *etcdMinion) setEnvironment(name string) error {
 		return err
 	}
 
+	log.Printf("Environment %s is at %s\n", name, remoteBranch.Target())
+
 	return nil
 }
 
 // Sync syncs module and data files from the upstream Git repository
 func (m *etcdMinion) Sync() error {
 	if m.gitRepo == "" {
-		log.Printf("site repo url is not set, skipping sync")
-		return nil
-	}
-
-	fi, err := os.Stat(m.siteDir)
-	if err != nil {
-		return err
+		log.Printf("Site repo url is not set, skipping sync")
+		return ErrNoSiteRepo
 	}
 
 	// Site directory does not exist, clone the Git repository from upstream
+	fi, err := os.Stat(m.siteDir)
 	if os.IsNotExist(err) {
-		log.Printf("site repo is missing, performing initial sync from %s\n", m.gitRepo)
+		log.Printf("Site repo is missing, performing initial sync from %s\n", m.gitRepo)
 		opts := &git.CloneOptions{}
-		if _, err := git.Clone(m.gitRepo, m.siteDir, opts); err != nil {
-			return err
-		}
+		_, err := git.Clone(m.gitRepo, m.siteDir, opts)
+		return err
 	}
 
 	// File exists, ensure that it is a valid Git repository
@@ -457,7 +464,7 @@ func (m *etcdMinion) Sync() error {
 	}
 
 	// Open the repository and fetch from the default remote
-	log.Println("starting site repo sync")
+	log.Println("Starting site repo sync")
 	repo, err := git.OpenRepository(m.siteDir)
 	if err != nil {
 		return err
@@ -470,9 +477,9 @@ func (m *etcdMinion) Sync() error {
 
 	err = origin.Fetch([]string{}, &git.FetchOptions{}, "")
 	if err != nil {
-		log.Printf("site repo sync failed: %s\n", err)
+		log.Printf("Site repo sync failed: %s\n", err)
 	} else {
-		log.Println("site repo sync completed")
+		log.Println("Site repo sync completed")
 	}
 
 	return err
