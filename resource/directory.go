@@ -75,6 +75,7 @@ func NewDirectoryResource(title string, obj *ast.ObjectItem) (Resource, error) {
 	return &d, err
 }
 
+// Evaluate evaluates the directory resource
 func (d *DirectoryResource) Evaluate() (State, error) {
 	resourceState := State{
 		Current: StateUnknown,

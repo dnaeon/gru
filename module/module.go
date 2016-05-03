@@ -15,7 +15,7 @@ import (
 // declarations in the same module
 var ErrMultipleImport = errors.New("Multiple import declarations found")
 
-// Valid keys represents a map of valid keys that can be used in modules
+// ValidKeys contains a map of valid keys that can be used in modules
 var ValidKeys = validKeys()
 
 // Module type represents a collection of resources and module imports

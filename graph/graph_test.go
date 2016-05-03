@@ -54,7 +54,7 @@ func TestWorkingGraph(t *testing.T) {
 		t.Error(err)
 	}
 
-	gotSorted := make([]string, 0)
+	var gotSorted []string
 	for _, node := range gotNodes {
 		gotSorted = append(gotSorted, node.Name)
 	}

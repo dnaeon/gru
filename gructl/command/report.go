@@ -43,7 +43,7 @@ func execReportCommand(c *cli.Context) {
 		if err != nil {
 			displayError(err, 1)
 		}
-		report[classifier.Value] += 1
+		report[classifier.Value]++
 	}
 
 	table := uitable.New()

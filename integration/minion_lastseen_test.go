@@ -20,6 +20,9 @@ func TestMinionLastseen(t *testing.T) {
 	}
 
 	got, err := tc.client.MinionLastseen(id)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if want != got {
 		t.Errorf("want %d lastseen, got %d lastseen", want, got)

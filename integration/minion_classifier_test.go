@@ -14,7 +14,7 @@ func TestMinionClassifiers(t *testing.T) {
 	defer tc.recorder.Stop()
 
 	// Classifiers to test
-	wantClassifierKeys := make([]string, 0)
+	var wantClassifierKeys []string
 	testClassifiers := []*classifier.Classifier{
 		{
 			Key:   "foo",
@@ -27,7 +27,7 @@ func TestMinionClassifiers(t *testing.T) {
 	}
 
 	m := minion.NewEtcdMinion("Kevin", tc.config)
-	minionId := m.ID()
+	minionID := m.ID()
 
 	// Set minion classifiers
 	for _, c := range testClassifiers {
@@ -40,7 +40,7 @@ func TestMinionClassifiers(t *testing.T) {
 	sort.Strings(wantClassifierKeys)
 
 	// Get classifiers keys from etcd
-	gotClassifierKeys, err := tc.client.MinionClassifierKeys(minionId)
+	gotClassifierKeys, err := tc.client.MinionClassifierKeys(minionID)
 
 	if err != nil {
 		t.Fatal(err)
@@ -53,7 +53,7 @@ func TestMinionClassifiers(t *testing.T) {
 
 	// Get classifier values
 	for _, c := range testClassifiers {
-		klassifier, err := tc.client.MinionClassifier(minionId, c.Key)
+		klassifier, err := tc.client.MinionClassifier(minionID, c.Key)
 		if err != nil {
 			t.Fatal(err)
 		}

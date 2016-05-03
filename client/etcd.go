@@ -88,7 +88,7 @@ func (c *etcdMinionClient) MinionLastseen(m uuid.UUID) (int64, error) {
 
 	lastseen, err := strconv.ParseInt(resp.Node.Value, 10, 64)
 
-	return lastseen, nil
+	return lastseen, err
 }
 
 // MinionClassifier retrieves a classifier with the given key

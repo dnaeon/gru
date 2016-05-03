@@ -50,7 +50,7 @@ func NewShellResource(title string, obj *ast.ObjectItem) (Resource, error) {
 
 // Evaluate evaluates the state of the resource
 func (s *ShellResource) Evaluate() (State, error) {
-	// Asumes that the command to be executed is idempotent
+	// Assumes that the command to be executed is idempotent
 	//
 	// Sets the current state to absent and wanted to be present,
 	// which will cause the command to be executed.

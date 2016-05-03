@@ -6,6 +6,8 @@ import (
 	mapset "github.com/deckarep/golang-set"
 )
 
+// ErrCircularDependency is returned when the graph cannot be
+// topologically sorted because of circular dependencies
 var ErrCircularDependency = errors.New("Circular dependency found in graph")
 
 // Graph represents a DAG graph
@@ -53,7 +55,7 @@ func (g *Graph) GetNode(name string) (*Node, bool) {
 // then the result will contain the remaining nodes from the graph,
 // which are the ones causing the circular dependency.
 func (g *Graph) Sort() ([]*Node, error) {
-	sorted := make([]*Node, 0)
+	var sorted []*Node
 
 	// Iteratively find and remove nodes from the graph which have no edges.
 	// If at some point there are still nodes in the graph and we cannot find
@@ -74,7 +76,7 @@ func (g *Graph) Sort() ([]*Node, error) {
 		if ready.Cardinality() == 0 {
 			// The remaining nodes in the graph are the ones causing the
 			// circular dependency.
-			remaining := make([]*Node, 0)
+			var remaining []*Node
 			for _, n := range g.nodes {
 				remaining = append(remaining, n)
 			}

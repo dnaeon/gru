@@ -83,7 +83,7 @@ func execRunCommand(c *cli.Context) {
 		err = client.MinionSubmitTask(m, t)
 		if err != nil {
 			fmt.Printf("Failed to submit task to %s: %s\n", m, err)
-			failed += 1
+			failed++
 		}
 		bar.Incr()
 	}

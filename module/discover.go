@@ -9,22 +9,22 @@ import (
 // Valid module files must have one of these extension
 var moduleExtension = []string{".hcl", ".json"}
 
-// ModuleRegistry type contains discovered modules as returned by the
+// Registry type contains discovered modules as returned by the
 // DiscoverModules() function.
 // Keys of the map are the module names and their values are the
 // absolute path to the discovered module files
-type ModuleRegistry map[string]string
+type Registry map[string]string
 
-// NewModuleRegistry creates a new empty module registry
-func NewModuleRegistry() ModuleRegistry {
-	registry := make(map[string]string)
+// NewRegistry creates a new empty module registry
+func NewRegistry() Registry {
+	registry := make(Registry)
 
 	return registry
 }
 
 // Discover is used to discover valid modules in a given module path
-func Discover(root string) (ModuleRegistry, error) {
-	registry := NewModuleRegistry()
+func Discover(root string) (Registry, error) {
+	registry := NewRegistry()
 
 	// Module walker function
 	walker := func(path string, info os.FileInfo, err error) error {

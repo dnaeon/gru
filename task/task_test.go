@@ -15,7 +15,7 @@ func TestTaskTimeReceivedProcessed(t *testing.T) {
 	dummyTask := New(nil)
 
 	// Task time received and processed should be 0 when initially created
-	var want int64 = 0
+	var want int64
 
 	got := dummyTask.TimeReceived
 	if want != got {
@@ -44,6 +44,6 @@ func TestTaskIsConcurrent(t *testing.T) {
 	want := false
 
 	if want != got {
-		t.Errorf("Incorrect task concurrency: want %q, got %q", want, got)
+		t.Errorf("Incorrect task concurrency: want %t, got %t", want, got)
 	}
 }

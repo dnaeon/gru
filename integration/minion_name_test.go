@@ -12,13 +12,13 @@ func TestMinionName(t *testing.T) {
 
 	wantName := "Kevin"
 	m := minion.NewEtcdMinion(wantName, tc.config)
-	minionId := m.ID()
+	minionID := m.ID()
 	err := m.SetName(wantName)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	gotName, err := tc.client.MinionName(minionId)
+	gotName, err := tc.client.MinionName(minionID)
 	if err != nil {
 		t.Fatal(err)
 	}

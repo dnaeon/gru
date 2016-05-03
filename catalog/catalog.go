@@ -193,7 +193,7 @@ func (c *Catalog) Run(w io.Writer) error {
 
 // Validate validates the resources from catalog
 func (c *Catalog) Validate() []error {
-	foundErrors := make([]error, 0)
+	var foundErrors []error
 
 	rMap, err := c.createResourceMap()
 	if err != nil {
@@ -338,20 +338,20 @@ func Load(main, path string) (*Catalog, error) {
 // which contains all resources from the catalog and is suitable for
 // clients to consume in order to create a single-module catalog from it.
 func (c *Catalog) MarshalJSON() ([]byte, error) {
-	resources := make([]resource.Resource, 0)
+	var resources []resource.Resource
 	for _, m := range c.modules {
 		resources = append(resources, m.Resources...)
 	}
 
-	toJson := make(map[string][]resourceMap, 0)
+	toJSON := make(map[string][]resourceMap, 0)
 	for _, r := range resources {
 		item := resourceMap{
 			r.ResourceTitle(): r,
 		}
-		toJson[r.ResourceType()] = append(toJson[r.ResourceType()], item)
+		toJSON[r.ResourceType()] = append(toJSON[r.ResourceType()], item)
 	}
 
-	return json.Marshal(toJson)
+	return json.Marshal(toJSON)
 }
 
 // UnmarshalJSON loads a catalog from JSON input
