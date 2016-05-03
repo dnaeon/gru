@@ -18,4 +18,7 @@ uninstall:
 clean:
 	rm -f bin/gructl
 
-.PHONY: build get test install uninstall clean
+format:
+	go fmt .
+
+.PHONY: build get test install uninstall clean format
