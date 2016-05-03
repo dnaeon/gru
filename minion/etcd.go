@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -15,6 +16,7 @@ import (
 	"github.com/dnaeon/gru/classifier"
 	"github.com/dnaeon/gru/task"
 	"github.com/dnaeon/gru/utils"
+	"github.com/libgit2/git2go"
 
 	etcdclient "github.com/coreos/etcd/client"
 	"github.com/pborman/uuid"
@@ -50,28 +52,53 @@ type etcdMinion struct {
 	// Channel over which tasks are sent for processing
 	taskQueue chan *task.Task
 
-	// Channel used to signal shutdown time
+	// Git repo from which to sync modules and data
+	gitRepo string
+
+	// Site directory contains the modules and data synced from Git
+	siteDir string
+
+	// Channel used to signal for shutdown time
 	done chan struct{}
 }
 
+// EtcdMinionConfig contains configuration settings for
+// minions which use the etcd backend implementation
+type EtcdMinionConfig struct {
+	// Name of the minion
+	Name string
+
+	// GitRepo provides the url from which to sync modules and data
+	GitRepo string
+
+	// EtcdConfig provides etcd-related configuration settings
+	EtcdConfig etcdclient.Config
+}
+
 // NewEtcdMinion creates a new minion with etcd backend
-func NewEtcdMinion(name string, cfg etcdclient.Config) Minion {
-	c, err := etcdclient.New(cfg)
+func NewEtcdMinion(config *EtcdMinionConfig) (Minion, error) {
+	c, err := etcdclient.New(config.EtcdConfig)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
+	}
+
+	cwd, err := os.Getwd()
+	if err != nil {
+		return nil, err
 	}
 
 	kapi := etcdclient.NewKeysAPI(c)
-	id := utils.GenerateUUID(name)
+	id := utils.GenerateUUID(config.Name)
 	rootDir := filepath.Join(EtcdMinionSpace, id.String())
 	queueDir := filepath.Join(rootDir, "queue")
 	classifierDir := filepath.Join(rootDir, "classifier")
 	logDir := filepath.Join(rootDir, "log")
+	siteDir := filepath.Join(cwd, "site")
 	taskQueue := make(chan *task.Task)
 	done := make(chan struct{})
 
 	m := &etcdMinion{
-		name:          name,
+		name:          config.Name,
 		rootDir:       rootDir,
 		queueDir:      queueDir,
 		classifierDir: classifierDir,
@@ -79,10 +106,12 @@ func NewEtcdMinion(name string, cfg etcdclient.Config) Minion {
 		id:            id,
 		kapi:          kapi,
 		taskQueue:     taskQueue,
+		gitRepo:       config.GitRepo,
+		siteDir:       siteDir,
 		done:          done,
 	}
 
-	return m
+	return m, nil
 }
 
 // Checks for any pending tasks and sends them
@@ -353,6 +382,43 @@ func (m *etcdMinion) SaveTaskResult(t *task.Task) error {
 	if err != nil {
 		log.Printf("Failed to save task %s: %s\n", t.TaskID, err)
 	}
+
+	return err
+}
+
+// Sync syncs module and data files from the upstream Git repository
+func (m *etcdMinion) Sync() error {
+	fi, err := os.Stat(m.siteDir)
+	if err != nil {
+		return err
+	}
+
+	// Site directory does not exist, clone the Git repository from upstream
+	if os.IsNotExist(err) {
+		log.Printf("site repo is missing, performing initial sync from %s\n", m.gitRepo)
+		opts := &git.CloneOptions{}
+		if _, err := git.Clone(m.gitRepo, m.siteDir, opts); err != nil {
+			return err
+		}
+	}
+
+	// File exists, ensure that it is a valid Git repository
+	if !fi.IsDir() {
+		return fmt.Errorf("%s exists, but is not a directory", m.siteDir)
+	}
+
+	// Open the repository and fetch from the default remote
+	repo, err := git.OpenRepository(m.siteDir)
+	if err != nil {
+		return err
+	}
+
+	origin, err := repo.Remotes.Lookup("origin")
+	if err != nil {
+		return err
+	}
+
+	err = origin.Fetch([]string{}, &git.FetchOptions{}, "")
 
 	return err
 }
