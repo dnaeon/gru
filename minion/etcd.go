@@ -357,11 +357,7 @@ func (m *etcdMinion) TaskRunner(c <-chan *task.Task) error {
 				continue
 			}
 
-			if t.IsConcurrent {
-				go m.processTask(t)
-			} else {
-				m.processTask(t)
-			}
+			m.processTask(t)
 		}
 	}
 

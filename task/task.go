@@ -45,9 +45,6 @@ type Task struct {
 	// Result of task after processing
 	Result string `json:"result"`
 
-	// If true this task can run concurrently with other tasks
-	IsConcurrent bool `json:"isConcurrent"`
-
 	// Task state
 	State string `json:"state"`
 }
