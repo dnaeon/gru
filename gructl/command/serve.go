@@ -22,6 +22,11 @@ func NewServeCommand() cli.Command {
 				Usage: "set minion name",
 				Value: "",
 			},
+			cli.StringFlag{
+				Name:  "gitrepo",
+				Usage: "sync module and data files from the provided repo",
+				Value: "",
+			},
 		},
 	}
 
@@ -40,8 +45,17 @@ func execServeCommand(c *cli.Context) {
 		name = nameFlag
 	}
 
-	cfg := etcdConfigFromFlags(c)
-	m := minion.NewEtcdMinion(name, cfg)
+	etcdCfg := etcdConfigFromFlags(c)
+	minionCfg := &minion.EtcdMinionConfig{
+		Name:       name,
+		GitRepo:    c.String("gitrepo"),
+		EtcdConfig: etcdCfg,
+	}
+
+	m, err := minion.NewEtcdMinion(minionCfg)
+	if err != nil {
+		displayError(err, 1)
+	}
 
 	// Channel on which the shutdown signal is sent
 	quit := make(chan os.Signal, 1)
