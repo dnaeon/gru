@@ -432,6 +432,11 @@ func (m *etcdMinion) setEnvironment(name string) error {
 
 // Sync syncs module and data files from the upstream Git repository
 func (m *etcdMinion) Sync() error {
+	if m.gitRepo == "" {
+		log.Printf("site repo url is not set, skipping sync")
+		return nil
+	}
+
 	fi, err := os.Stat(m.siteDir)
 	if err != nil {
 		return err
