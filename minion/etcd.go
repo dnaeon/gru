@@ -351,7 +351,11 @@ func (m *etcdMinion) TaskRunner(c <-chan *task.Task) error {
 		case t := <-c:
 			t.State = task.TaskStateQueued
 			t.TimeReceived = time.Now().Unix()
-			m.SaveTaskResult(t)
+			err := m.SaveTaskResult(t)
+			if err != nil {
+				log.Printf("Unable to save task result: %s\n", err)
+				continue
+			}
 
 			if t.IsConcurrent {
 				go m.processTask(t)
@@ -370,7 +374,6 @@ func (m *etcdMinion) SaveTaskResult(t *task.Task) error {
 
 	data, err := json.Marshal(t)
 	if err != nil {
-		log.Printf("Failed to serialize task %s: %s\n", t.TaskID, err)
 		return err
 	}
 
@@ -379,9 +382,6 @@ func (m *etcdMinion) SaveTaskResult(t *task.Task) error {
 	}
 
 	_, err = m.kapi.Set(context.Background(), taskKey, string(data), opts)
-	if err != nil {
-		log.Printf("Failed to save task %s: %s\n", t.TaskID, err)
-	}
 
 	return err
 }
