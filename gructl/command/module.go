@@ -5,6 +5,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/dnaeon/gru/module"
+	"github.com/gosuri/uitable"
 )
 
 // NewModuleCommand creates a new sub-command for
@@ -31,7 +32,12 @@ func execModuleCommand(c *cli.Context) {
 		displayError(err, 1)
 	}
 
-	for name := range registry {
-		fmt.Println(name)
+	table := uitable.New()
+	table.AddRow("MODULE", "PATH")
+
+	for m, p := range registry {
+		table.AddRow(m, p)
 	}
+
+	fmt.Println(table)
 }
