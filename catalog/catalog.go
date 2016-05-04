@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"strings"
 
 	"github.com/dnaeon/gru/graph"
@@ -253,74 +252,17 @@ func (c *Catalog) Len() int {
 func Load(main, path string) (*Catalog, error) {
 	c := NewCatalog()
 
-	// Discover all modules from the provided module path
-	registry, err := module.Discover(path)
-	if _, ok := registry[main]; !ok {
-		return c, fmt.Errorf("Module %s was not found in the module path", main)
-	}
-
-	// A map containing the discovered module names and the actually loaded modules
-	moduleNames := make(map[string]*module.Module)
-	for n, p := range registry {
-		f, err := os.Open(p)
-		if err != nil {
-			return c, err
-		}
-
-		m, err := module.Load(n, f)
-		if err != nil {
-			return c, err
-		}
-		moduleNames[n] = m
-
-		f.Close()
-	}
-
-	// A map containing the modules as graph nodes
-	// The graph is used to determine if we have
-	// circular module imports and also to provide the
-	// proper ordering of loading modules after a
-	// topological sort of the graph nodes
-	nodes := make(map[string]*graph.Node)
-	for n := range moduleNames {
-		node := graph.NewNode(n)
-		nodes[n] = node
-	}
-
-	// Recursively find all imports that the main module has and
-	// resolve the dependency graph
-	g := graph.NewGraph()
-	var createModuleGraph func(m *module.Module) error
-	createModuleGraph = func(m *module.Module) error {
-		if _, ok := g.GetNode(m.Name); !ok {
-			g.AddNode(nodes[m.Name])
-		} else {
-			return nil
-		}
-
-		for _, mi := range m.Imports {
-			if _, ok := moduleNames[mi.Name]; !ok {
-				return fmt.Errorf("Module %s imports %s, which is not in the module path", m.Name, mi.Name)
-			}
-
-			// Build the dependencies of imported modules as well
-			createModuleGraph(moduleNames[mi.Name])
-
-			// Finally connect the nodes in the graph
-			g.AddEdge(nodes[m.Name], nodes[mi.Name])
-		}
-
-		return nil
-	}
-
-	//	Build the dependency graph of the module imports
-	err = createModuleGraph(moduleNames[main])
+	modules, err := module.DiscoverAndLoad(path)
 	if err != nil {
 		return c, err
 	}
 
-	// Topologically sort the graph
-	// In case of an error it means we have a circular import
+	// Get the import graph of the module and sort it
+	g, err := module.ImportGraph(main, path)
+	if err != nil {
+		return c, err
+	}
+
 	sorted, err := g.Sort()
 	if err != nil {
 		return c, err
@@ -328,7 +270,7 @@ func Load(main, path string) (*Catalog, error) {
 
 	// Finally add the sorted modules to the catalog
 	for _, node := range sorted {
-		c.modules = append(c.modules, moduleNames[node.Name])
+		c.modules = append(c.modules, modules[node.Name])
 	}
 
 	return c, nil
