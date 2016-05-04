@@ -217,13 +217,13 @@ func (c *Catalog) Validate() []error {
 	return foundErrors
 }
 
-// GenerateCatalogDOT generates a DOT file for the resources in catalog
-func (c *Catalog) GenerateCatalogDOT(w io.Writer) error {
+// ResourcesAsDot generates a DOT representation for the resources in catalog
+func (c *Catalog) ResourcesAsDot(w io.Writer) error {
 	g, err := c.resourceGraph()
 	if err != nil {
 		return err
 	}
-	g.GenerateDOT("resources", w)
+	g.AsDot("resources", w)
 
 	// Try a topological sort of the graph
 	// In case of circular dependencies in the graph
@@ -232,7 +232,7 @@ func (c *Catalog) GenerateCatalogDOT(w io.Writer) error {
 	if nodes, err := g.Sort(); err == graph.ErrCircularDependency {
 		circularGraph := graph.NewGraph()
 		circularGraph.AddNode(nodes...)
-		circularGraph.GenerateDOT("resources_circular", w)
+		circularGraph.AsDot("resources_circular", w)
 	}
 
 	return nil

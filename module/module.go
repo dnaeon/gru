@@ -253,7 +253,7 @@ func ImportGraphAsDot(main, path string, w io.Writer) error {
 	if nodes, err := g.Sort(); err == graph.ErrCircularDependency {
 		circularGraph := graph.NewGraph()
 		circularGraph.AddNode(nodes...)
-		circularGraph.GenerateDOT("modules_circular", w)
+		circularGraph.AsDot("modules_circular", w)
 	}
 
 	return nil
