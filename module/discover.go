@@ -10,10 +10,15 @@ import (
 var moduleExtension = []string{".hcl", ".json"}
 
 // Registry type contains discovered modules as returned by the
-// DiscoverModules() function.
+// Discover() function.
 // Keys of the map are the module names and their values are the
 // absolute path to the discovered module files
 type Registry map[string]string
+
+// LoadedRegistry type is a map which keys are the
+// discovered modules from a given module path and their
+// values are the actual loaded modules.
+type LoadedRegistry map[string]*Module
 
 // NewRegistry creates a new empty module registry
 func NewRegistry() Registry {
@@ -69,6 +74,33 @@ func Discover(root string) (Registry, error) {
 	err := filepath.Walk(root, walker)
 	if err != nil {
 		return registry, err
+	}
+
+	return registry, nil
+}
+
+// DiscoverAndLoad discovers valid modules from a given
+// module path and attemps to load each valid module file.
+func DiscoverAndLoad(path string) (LoadedRegistry, error) {
+	registry := make(LoadedRegistry)
+
+	discovered, err := Discover(path)
+	if err != nil {
+		return registry, err
+	}
+
+	for n, p := range discovered {
+		f, err := os.Open(p)
+		if err != nil {
+			return registry, err
+		}
+
+		m, err := Load(n, f)
+		if err != nil {
+			return registry, err
+		}
+		registry[n] = m
+		f.Close()
 	}
 
 	return registry, nil
