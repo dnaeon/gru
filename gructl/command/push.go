@@ -12,13 +12,13 @@ import (
 	"github.com/gosuri/uitable"
 )
 
-// NewRunCommand creates a new sub-command for submitting
+// NewPushCommand creates a new sub-command for submitting
 // tasks to minions
-func NewRunCommand() cli.Command {
+func NewPushCommand() cli.Command {
 	cmd := cli.Command{
-		Name:   "run",
+		Name:   "push",
 		Usage:  "send task to minion(s)",
-		Action: execRunCommand,
+		Action: execPushCommand,
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "environment",
@@ -36,8 +36,8 @@ func NewRunCommand() cli.Command {
 	return cmd
 }
 
-// Executes the "run" command
-func execRunCommand(c *cli.Context) {
+// Executes the "push" command
+func execPushCommand(c *cli.Context) {
 	if len(c.Args()) < 1 {
 		displayError(errNoModuleName, 64)
 	}
