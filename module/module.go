@@ -236,3 +236,25 @@ func ImportGraph(main, path string) (*graph.Graph, error) {
 
 	return g, nil
 }
+
+// ImportGraphAsDot creates a DOT representation of the module imports
+func ImportGraphAsDot(main, path string, w io.Writer) error {
+	g, err := ImportGraph(main, path)
+	if err != nil {
+		return err
+	}
+
+	g.AsDot("modules", w)
+
+	// Try a topological sort of the graph
+	// In case of circular dependencies in the graph
+	// generate a DOT for the remaining nodes in the graph,
+	// which would give us the modules causing circular dependencies
+	if nodes, err := g.Sort(); err == graph.ErrCircularDependency {
+		circularGraph := graph.NewGraph()
+		circularGraph.AddNode(nodes...)
+		circularGraph.GenerateDOT("modules_circular", w)
+	}
+
+	return nil
+}
