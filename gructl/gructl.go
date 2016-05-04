@@ -54,7 +54,7 @@ func Main() {
 		command.NewListCommand(),
 		command.NewInfoCommand(),
 		command.NewServeCommand(),
-		command.NewRunCommand(),
+		command.NewPushCommand(),
 		command.NewClassifierCommand(),
 		command.NewReportCommand(),
 		command.NewQueueCommand(),
