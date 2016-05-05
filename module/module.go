@@ -1,7 +1,6 @@
 package module
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -11,10 +10,6 @@ import (
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/ast"
 )
-
-// ErrMultipleImport error is returned if there are multiple import
-// declarations in the same module
-var ErrMultipleImport = errors.New("Multiple import declarations found")
 
 // ValidKeys contains a map of valid keys that can be used in modules
 var ValidKeys = validKeys()
