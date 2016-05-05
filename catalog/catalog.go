@@ -1,11 +1,9 @@
 package catalog
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
-	"strings"
 
 	"github.com/dnaeon/gru/graph"
 	"github.com/dnaeon/gru/module"
@@ -275,39 +273,4 @@ func Load(main, path string) (*Catalog, error) {
 	}
 
 	return c, nil
-}
-
-// MarshalJSON creates a stripped down version of the catalog in JSON,
-// which contains all resources from the catalog and is suitable for
-// clients to consume in order to create a single-module catalog from it.
-func (c *Catalog) MarshalJSON() ([]byte, error) {
-	var resources []resource.Resource
-	for _, m := range c.modules {
-		resources = append(resources, m.Resources...)
-	}
-
-	toJSON := make(map[string][]resourceMap, 0)
-	for _, r := range resources {
-		item := resourceMap{
-			r.ResourceTitle(): r,
-		}
-		toJSON[r.ResourceType()] = append(toJSON[r.ResourceType()], item)
-	}
-
-	return json.Marshal(toJSON)
-}
-
-// UnmarshalJSON loads a catalog from JSON input
-// The loaded catalog is a catalog with a single
-// module named "main"
-func (c *Catalog) UnmarshalJSON(input []byte) error {
-	r := strings.NewReader(string(input))
-	main, err := module.Load("main", r)
-	if err != nil {
-		return err
-	}
-
-	c.modules = append(c.modules, main)
-
-	return nil
 }
