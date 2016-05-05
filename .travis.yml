@@ -1,14 +1,12 @@
-sudo: required
-dist: trusty
-
 language: go
+
+env: LD_LIBRARY_PATH=./libgit2/build
 
 go:
   - tip
 
 before_install:
-  - sudo apt-get -qq update
-  - sudo apt-get install -y libgit2-dev
+  - "./contrib/misc/build-libgit2.sh"
 
 install:
   - make get
