@@ -3,6 +3,7 @@ package command
 import (
 	"errors"
 	"os"
+	"path/filepath"
 
 	"github.com/codegangsta/cli"
 	"github.com/dnaeon/gru/catalog"
@@ -25,6 +26,12 @@ func NewGraphCommand() cli.Command {
 				Name:  "resources",
 				Usage: "create DOT for resources in catalog",
 			},
+			cli.StringFlag{
+				Name:   "sitedir",
+				Value:  "",
+				Usage:  "specify path to the site directory",
+				EnvVar: "GRU_SITEDIR",
+			},
 		},
 	}
 
@@ -46,15 +53,16 @@ func execGraphCommand(c *cli.Context) {
 	}
 
 	main := c.Args()[0]
+	modulePath := filepath.Join(c.String("sitedir"), "modules")
 
 	// Create DOT representation for module imports
 	if c.Bool("modules") {
-		if err := module.ImportGraphAsDot(main, c.GlobalString("modulepath"), os.Stdout); err != nil {
+		if err := module.ImportGraphAsDot(main, modulePath, os.Stdout); err != nil {
 			displayError(err, 1)
 		}
 	} else if c.Bool("resources") {
 		// Create DOT representation for resources
-		katalog, err := catalog.Load(main, c.GlobalString("modulepath"))
+		katalog, err := catalog.Load(main, modulePath)
 		if err != nil {
 			displayError(err, 1)
 		}
