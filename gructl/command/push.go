@@ -20,9 +20,10 @@ func NewPushCommand() cli.Command {
 		Action: execPushCommand,
 		Flags: []cli.Flag{
 			cli.StringFlag{
-				Name:  "environment",
-				Value: "production",
-				Usage: "specify environment to use",
+				Name:   "environment",
+				Value:  "production",
+				Usage:  "specify environment to use",
+				EnvVar: "GRU_ENVIRONMENT",
 			},
 			cli.StringFlag{
 				Name:  "with-classifier",
