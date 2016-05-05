@@ -2,6 +2,7 @@ package command
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/codegangsta/cli"
 	"github.com/dnaeon/gru/module"
@@ -15,6 +16,14 @@ func NewModuleCommand() cli.Command {
 		Name:   "module",
 		Usage:  "display available modules",
 		Action: execModuleCommand,
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:   "sitedir",
+				Value:  "",
+				Usage:  "specify path to the site directory",
+				EnvVar: "GRU_SITEDIR",
+			},
+		},
 	}
 
 	return cmd
@@ -22,12 +31,8 @@ func NewModuleCommand() cli.Command {
 
 // Executes the "module" command
 func execModuleCommand(c *cli.Context) {
-	path := c.GlobalString("modulepath")
-	if path == "" {
-		displayError(errInvalidModulePath, 64)
-	}
-
-	registry, err := module.Discover(path)
+	modulePath := filepath.Join(c.String("sitedir"), "modules")
+	registry, err := module.Discover(modulePath)
 	if err != nil {
 		displayError(err, 1)
 	}
