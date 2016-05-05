@@ -1,6 +1,6 @@
 language: go
 
-env: PKG_CONFIG_PATH=./libgit2/_install/pkgconfig
+sudo: required
 
 go:
   - tip

@@ -1,7 +1,9 @@
 #!/usr/bin/env sh
 
+set -xe
+
 git clone https://github.com/libgit2/libgit2.git
 cd libgit2/
 mkdir build && cd build
-cmake .. -DCMAKE_INSTALL_PREFIX=../_install -DBUILD_CLAR=OFF
-cmake --build . --target install
+cmake -DBUILD_CLAR=OFF .. && make && sudo make install
+sudo ldconfig
