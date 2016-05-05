@@ -2,6 +2,7 @@ package command
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"github.com/codegangsta/cli"
 	"github.com/dnaeon/gru/catalog"
@@ -14,6 +15,14 @@ func NewValidateCommand() cli.Command {
 		Name:   "validate",
 		Usage:  "validate module file",
 		Action: execValidateCommand,
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:   "sitedir",
+				Value:  "",
+				Usage:  "specify path to the site directory",
+				EnvVar: "GRU_SITEDIR",
+			},
+		},
 	}
 
 	return cmd
@@ -26,7 +35,9 @@ func execValidateCommand(c *cli.Context) {
 	}
 
 	main := c.Args()[0]
-	katalog, err := catalog.Load(main, c.GlobalString("modulepath"))
+	modulePath := filepath.Join(c.String("sitedir"), "modules")
+
+	katalog, err := catalog.Load(main, modulePath)
 	if err != nil {
 		displayError(err, 1)
 	}
