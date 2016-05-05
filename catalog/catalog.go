@@ -134,6 +134,7 @@ func (c *Catalog) Run(w io.Writer) error {
 		return err
 	}
 
+	fmt.Fprintf(w, "Loaded %d resources from catalog\n", c.Len())
 	for _, node := range sorted {
 		r := rMap[node.Name]
 		id := r.ResourceID()

@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/dnaeon/backoff"
+	"github.com/dnaeon/gru/catalog"
 	"github.com/dnaeon/gru/classifier"
 	"github.com/dnaeon/gru/task"
 	"github.com/dnaeon/gru/utils"
@@ -179,29 +180,55 @@ func (m *etcdMinion) periodicRunner() {
 
 // Processes new tasks
 func (m *etcdMinion) processTask(t *task.Task) error {
-	// Update state of task to indicate that we are now processing it
-	t.State = task.TaskStateProcessing
-	if err := m.SaveTaskResult(t); err != nil {
+	defer func() {
+		t.TimeProcessed = time.Now().Unix()
+		m.SaveTaskResult(t)
+	}()
+
+	// Sync the module and data files, then process the task
+	err := m.Sync()
+	if err != nil {
+		msg := fmt.Sprintf("Unable to sync site directory: %s\n", err)
+		log.Printf(msg)
+		t.State = task.TaskStateSkipped
+		t.Result = msg
 		return err
 	}
 
+	// Switch to the specified environment
+	if err := m.setEnvironment(t.Environment); err != nil {
+		msg := fmt.Sprintf("Unable to set environment: %s\n", err)
+		log.Printf(msg)
+		t.State = task.TaskStateSkipped
+		t.Result = msg
+		return err
+	}
+
+	// Update state of task to indicate that we are now processing it
+	t.State = task.TaskStateProcessing
+	m.SaveTaskResult(t)
+
+	// Create the catalog and process it
+	// Load the module from the minion's site directory
 	var buf bytes.Buffer
-	fmt.Fprintf(&buf, "Loaded %d resources from catalog\n", t.Catalog.Len())
-	catalogErr := t.Catalog.Run(&buf)
-	t.TimeProcessed = time.Now().Unix()
+	modulePath := filepath.Join(m.siteDir, "modules")
+	katalog, err := catalog.Load(t.Command, modulePath)
+	if err != nil {
+		t.State = task.TaskStateUnknown
+		t.Result = err.Error()
+		return err
+	}
+
+	err = katalog.Run(&buf)
 	t.Result = buf.String()
 
-	if catalogErr != nil {
+	if err != nil {
 		t.State = task.TaskStateFailed
 	} else {
 		t.State = task.TaskStateSuccess
 	}
 
-	if err := m.SaveTaskResult(t); err != nil {
-		return err
-	}
-
-	return catalogErr
+	return err
 }
 
 // Classifies the minion
@@ -338,7 +365,7 @@ func (m *etcdMinion) TaskListener(c chan<- *task.Task) error {
 		}
 
 		// Send the task for processing
-		log.Printf("Received task %s\n", t.TaskID)
+		log.Printf("Received task %s\n", t.ID)
 		t.State = task.TaskStateQueued
 		t.TimeReceived = time.Now().Unix()
 		if err := m.SaveTaskResult(t); err != nil {
@@ -361,28 +388,9 @@ func (m *etcdMinion) TaskRunner(c <-chan *task.Task) error {
 		case <-m.done:
 			break
 		case t := <-c:
-			// Sync the module and data files first, then process the task
-			// TODO: In case of failures to sync site repo, we may consider
-			//       continuing the task processing from the last known state
-			err := m.Sync()
-			if err != nil {
-				log.Printf("Unable to sync site repo, skipping task processing: %s\n", err)
-				continue
-			}
-
-			// Switch to the correct environment
-			if err := m.setEnvironment(t.Environment); err != nil {
-				log.Printf("Unable to set environment: %s\n", err)
-				continue
-			}
-
-			log.Printf("Processing task %s\n", t.TaskID)
-			err = m.processTask(t)
-			if err != nil {
-				log.Printf("Failed to process task %s: %s\n", t.TaskID, err)
-			} else {
-				log.Printf("Finished processing task %s\n", t.TaskID)
-			}
+			log.Printf("Processing task %s\n", t.ID)
+			m.processTask(t)
+			log.Printf("Finished processing task %s\n", t.ID)
 		}
 	}
 
@@ -391,7 +399,7 @@ func (m *etcdMinion) TaskRunner(c <-chan *task.Task) error {
 
 // SaveTaskResult stores the result of a task in etcd
 func (m *etcdMinion) SaveTaskResult(t *task.Task) error {
-	taskKey := filepath.Join(m.logDir, t.TaskID.String())
+	taskKey := filepath.Join(m.logDir, t.ID.String())
 
 	data, err := json.Marshal(t)
 	if err != nil {

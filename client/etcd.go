@@ -328,7 +328,7 @@ func (c *etcdMinionClient) MinionTaskLog(m uuid.UUID) ([]uuid.UUID, error) {
 			return nil, err
 		}
 
-		tasks = append(tasks, t.TaskID)
+		tasks = append(tasks, t.ID)
 	}
 
 	return tasks, nil

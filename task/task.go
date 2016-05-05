@@ -1,9 +1,6 @@
 package task
 
-import (
-	"github.com/dnaeon/gru/catalog"
-	"github.com/pborman/uuid"
-)
+import "github.com/pborman/uuid"
 
 // Task states
 const (
@@ -26,6 +23,9 @@ const (
 	// Task has been processed by the
 	// minion and was flagged as failed
 	TaskStateFailed = "failed"
+
+	// Task has been skipped
+	TaskStateSkipped = "skipped"
 )
 
 // Task type represents a task that is processed by minions
@@ -33,8 +33,8 @@ type Task struct {
 	// Environment to use for this task
 	Environment string
 
-	// Catalog to be processed
-	Catalog *catalog.Catalog `json:"catalog"`
+	// Command to be processed
+	Command string `json:"command"`
 
 	// Time when the command was sent for processing
 	TimeReceived int64 `json:"timeReceived"`
@@ -42,8 +42,8 @@ type Task struct {
 	// Time when the command was processed
 	TimeProcessed int64 `json:"timeProcessed"`
 
-	// Task unique identifier
-	TaskID uuid.UUID `json:"taskId"`
+	// Task unique id
+	ID uuid.UUID `json:"id"`
 
 	// Result of task after processing
 	Result string `json:"result"`
@@ -53,11 +53,12 @@ type Task struct {
 }
 
 // New creates a new task
-func New(c *catalog.Catalog) *Task {
+func New(command, environment string) *Task {
 	t := &Task{
-		Catalog: c,
-		TaskID:  uuid.NewRandom(),
-		State:   TaskStateUnknown,
+		Command:     command,
+		Environment: environment,
+		ID:          uuid.NewRandom(),
+		State:       TaskStateUnknown,
 	}
 
 	return t

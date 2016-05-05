@@ -50,12 +50,12 @@ func execLogCommand(c *cli.Context) {
 	table := uitable.New()
 	table.MaxColWidth = 40
 	table.AddRow("TASK", "STATE", "RECEIVED", "PROCESSED")
-	for _, taskID := range log {
-		t, err := client.MinionTaskResult(minion, taskID)
+	for _, id := range log {
+		t, err := client.MinionTaskResult(minion, id)
 		if err != nil {
 			displayError(err, 1)
 		}
-		table.AddRow(t.TaskID, t.State, time.Unix(t.TimeReceived, 0), time.Unix(t.TimeProcessed, 0))
+		table.AddRow(t.ID, t.State, time.Unix(t.TimeReceived, 0), time.Unix(t.TimeProcessed, 0))
 	}
 
 	fmt.Println(table)

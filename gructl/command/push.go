@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/dnaeon/gru/catalog"
 	"github.com/dnaeon/gru/task"
 
 	"github.com/codegangsta/cli"
@@ -43,14 +42,10 @@ func execPushCommand(c *cli.Context) {
 	}
 
 	// Create the task that we send to our minions
+	// The task's command is the module name that will be
+	// loaded and processed by the remote minions
 	main := c.Args()[0]
-	katalog, err := catalog.Load(main, c.GlobalString("modulepath"))
-	if err != nil {
-		displayError(err, 1)
-	}
-
-	t := task.New(katalog)
-	t.Environment = c.String("environment")
+	t := task.New(main, c.String("environment"))
 
 	client := newEtcdMinionClientFromFlags(c)
 
@@ -100,6 +95,6 @@ func execPushCommand(c *cli.Context) {
 	table.MaxColWidth = 80
 	table.Wrap = true
 	table.AddRow("TASK", "SUBMITTED", "FAILED", "TOTAL")
-	table.AddRow(t.TaskID, numMinions-failed, failed, numMinions)
+	table.AddRow(t.ID, numMinions-failed, failed, numMinions)
 	fmt.Println(table)
 }

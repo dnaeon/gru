@@ -38,8 +38,8 @@ func execResultCommand(c *cli.Context) {
 	}
 
 	arg := c.Args()[0]
-	taskID := uuid.Parse(arg)
-	if taskID == nil {
+	id := uuid.Parse(arg)
+	if id == nil {
 		displayError(errInvalidUUID, 64)
 	}
 
@@ -56,7 +56,7 @@ func execResultCommand(c *cli.Context) {
 	if mFlag == "" {
 		// No minion was specified, get all minions
 		// with the given task uuid
-		m, err := client.MinionWithTaskResult(taskID)
+		m, err := client.MinionWithTaskResult(id)
 		if err != nil {
 			displayError(err, 1)
 		}
@@ -89,14 +89,14 @@ func execResultCommand(c *cli.Context) {
 	}
 
 	for _, minionID := range minionWithTask {
-		t, err := client.MinionTaskResult(minionID, taskID)
+		t, err := client.MinionTaskResult(minionID, id)
 		if err != nil {
 			displayError(err, 1)
 		}
 
 		if c.Bool("details") {
 			table.AddRow("Minion:", minionID)
-			table.AddRow("Task ID:", t.TaskID)
+			table.AddRow("Task ID:", t.ID)
 			table.AddRow("State:", t.State)
 			table.AddRow("Received:", time.Unix(t.TimeReceived, 0))
 			table.AddRow("Processed:", time.Unix(t.TimeProcessed, 0))
