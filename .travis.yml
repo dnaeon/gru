@@ -1,6 +1,6 @@
 language: go
 
-env: LD_LIBRARY_PATH=./libgit2/_install/lib
+env: PKG_CONFIG_PATH=./libgit2/_install/pkgconfig
 
 go:
   - tip
