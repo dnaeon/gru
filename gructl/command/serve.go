@@ -23,9 +23,10 @@ func NewServeCommand() cli.Command {
 				Value: "",
 			},
 			cli.StringFlag{
-				Name:  "gitrepo",
-				Usage: "sync module and data files from the provided repo",
-				Value: "",
+				Name:   "gitrepo",
+				Usage:  "sync module and data files from the provided repo",
+				Value:  "",
+				EnvVar: "GRU_GITREPO",
 			},
 		},
 	}
