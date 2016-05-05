@@ -1,6 +1,6 @@
 language: go
 
-env: LD_LIBRARY_PATH=./libgit2/build
+env: LD_LIBRARY_PATH=./libgit2/_install/lib
 
 go:
   - tip
