@@ -1,3 +1,6 @@
+sudo: required
+dist: trusty
+
 language: go
 
 go:
@@ -5,7 +8,7 @@ go:
 
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y libgit2
+  - sudo apt-get install -y libgit2-dev
 
 install:
   - make get
