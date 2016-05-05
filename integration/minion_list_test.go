@@ -33,8 +33,16 @@ func TestMinionList(t *testing.T) {
 
 	// Register our minions in etcd
 	for _, name := range minionNames {
-		m := minion.NewEtcdMinion(name, tc.config)
-		err := m.SetName(name)
+		cfg := &minion.EtcdMinionConfig{
+			Name:       name,
+			EtcdConfig: tc.config,
+		}
+		m, err := minion.NewEtcdMinion(cfg)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		err = m.SetName(name)
 		if err != nil {
 			t.Error(err)
 		}

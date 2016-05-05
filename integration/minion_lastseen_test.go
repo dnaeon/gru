@@ -10,11 +10,19 @@ func TestMinionLastseen(t *testing.T) {
 	tc := mustNewTestClient("fixtures/minion-lastseen")
 	defer tc.recorder.Stop()
 
-	m := minion.NewEtcdMinion("Kevin", tc.config)
+	cfg := &minion.EtcdMinionConfig{
+		Name:       "Kevin",
+		EtcdConfig: tc.config,
+	}
+	m, err := minion.NewEtcdMinion(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	id := m.ID()
 	var want int64 = 1450357761
 
-	err := m.SetLastseen(want)
+	err = m.SetLastseen(want)
 	if err != nil {
 		t.Fatal(err)
 	}

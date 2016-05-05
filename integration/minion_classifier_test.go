@@ -26,7 +26,15 @@ func TestMinionClassifiers(t *testing.T) {
 		},
 	}
 
-	m := minion.NewEtcdMinion("Kevin", tc.config)
+	cfg := &minion.EtcdMinionConfig{
+		Name:       "Kevin",
+		EtcdConfig: tc.config,
+	}
+	m, err := minion.NewEtcdMinion(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	minionID := m.ID()
 
 	// Set minion classifiers

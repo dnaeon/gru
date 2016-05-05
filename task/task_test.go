@@ -3,7 +3,7 @@ package task
 import "testing"
 
 func TestTaskState(t *testing.T) {
-	dummyTask := New(nil)
+	dummyTask := New("foo", "bar")
 	got := dummyTask.State
 	want := TaskStateUnknown
 	if want != got {
@@ -12,7 +12,7 @@ func TestTaskState(t *testing.T) {
 }
 
 func TestTaskTimeReceivedProcessed(t *testing.T) {
-	dummyTask := New(nil)
+	dummyTask := New("foo", "bar")
 
 	// Task time received and processed should be 0 when initially created
 	var want int64
@@ -29,21 +29,11 @@ func TestTaskTimeReceivedProcessed(t *testing.T) {
 }
 
 func TestTaskResult(t *testing.T) {
-	dummyTask := New(nil)
+	dummyTask := New("foo", "bar")
 	got := dummyTask.Result
 	want := ""
 
 	if want != got {
 		t.Errorf("Incorrect task result: want %q, got %q", want, got)
-	}
-}
-
-func TestTaskIsConcurrent(t *testing.T) {
-	dummyTask := New(nil)
-	got := dummyTask.IsConcurrent
-	want := false
-
-	if want != got {
-		t.Errorf("Incorrect task concurrency: want %t, got %t", want, got)
 	}
 }

@@ -11,9 +11,17 @@ func TestMinionName(t *testing.T) {
 	defer tc.recorder.Stop()
 
 	wantName := "Kevin"
-	m := minion.NewEtcdMinion(wantName, tc.config)
+	cfg := &minion.EtcdMinionConfig{
+		Name:       wantName,
+		EtcdConfig: tc.config,
+	}
+	m, err := minion.NewEtcdMinion(cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	minionID := m.ID()
-	err := m.SetName(wantName)
+	err = m.SetName(wantName)
 	if err != nil {
 		t.Fatal(err)
 	}
