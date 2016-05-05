@@ -1,8 +1,8 @@
 package command
 
 import (
-	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/codegangsta/cli"
 	"github.com/dnaeon/gru/catalog"
@@ -15,6 +15,14 @@ func NewApplyCommand() cli.Command {
 		Name:   "apply",
 		Usage:  "apply configuration on the local system",
 		Action: execApplyCommand,
+		Flags: []cli.Flag{
+			cli.StringFlag{
+				Name:   "sitedir",
+				Value:  "",
+				Usage:  "specify path to the site directory",
+				EnvVar: "GRU_SITEDIR",
+			},
+		},
 	}
 
 	return cmd
@@ -27,12 +35,12 @@ func execApplyCommand(c *cli.Context) {
 	}
 
 	main := c.Args()[0]
-	katalog, err := catalog.Load(main, c.GlobalString("modulepath"))
+	modulePath := filepath.Join(c.String("sitedir"), "modules")
+	katalog, err := catalog.Load(main, modulePath)
 	if err != nil {
 		displayError(err, 1)
 	}
 
-	fmt.Printf("Loaded %d resource(s) in catalog\n", katalog.Len())
 	err = katalog.Run(os.Stdout)
 	if err != nil {
 		displayError(err, 1)

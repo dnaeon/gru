@@ -209,7 +209,7 @@ func (c *Catalog) Validate() []error {
 	// Check for unknown keys
 	for _, m := range c.modules {
 		for _, key := range m.UnknownKeys {
-			foundErrors = append(foundErrors, fmt.Errorf("Unknown key '%s' in module %s", key, m.Name))
+			foundErrors = append(foundErrors, fmt.Errorf("Unknown key '%s' in module %s\n", key, m.Name))
 		}
 	}
 
