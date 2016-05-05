@@ -20,13 +20,13 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Sat, 19 Mar 2016 13:25:22 GMT
+      - Thu, 05 May 2016 11:16:00 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
       - "7"
       X-Raft-Index:
-      - "49"
+      - "34"
       X-Raft-Term:
       - "2"
     status: 201 Created
@@ -50,13 +50,13 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Sat, 19 Mar 2016 13:25:22 GMT
+      - Thu, 05 May 2016 11:16:00 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
       - "8"
       X-Raft-Index:
-      - "51"
+      - "35"
       X-Raft-Term:
       - "2"
     status: 201 Created
@@ -80,13 +80,13 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Sat, 19 Mar 2016 13:25:22 GMT
+      - Thu, 05 May 2016 11:16:00 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
       - "9"
       X-Raft-Index:
-      - "52"
+      - "36"
       X-Raft-Term:
       - "2"
     status: 201 Created
@@ -106,13 +106,13 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Sat, 19 Mar 2016 13:25:22 GMT
+      - Thu, 05 May 2016 11:16:00 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
       - "9"
       X-Raft-Index:
-      - "52"
+      - "36"
       X-Raft-Term:
       - "2"
     status: 200 OK
