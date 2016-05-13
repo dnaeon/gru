@@ -19,7 +19,7 @@ type Graph struct {
 }
 
 // NewGraph creates a new DAG graph
-func NewGraph() *Graph {
+func New() *Graph {
 	g := &Graph{
 		nodes: make(map[string]*Node),
 	}
