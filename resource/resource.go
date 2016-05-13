@@ -48,9 +48,6 @@ type Resource interface {
 	// ResourceTitle returns the title of the resource
 	ResourceTitle() string
 
-	// Validate ensures that the resource is valid
-	Validate() error
-
 	// Returns the resources before which this resource shoud be processed
 	WantBefore() []string
 
@@ -103,15 +100,6 @@ func (b *BaseResource) ResourceType() string {
 // ResourceTitle returns the resource title
 func (b *BaseResource) ResourceTitle() string {
 	return b.Title
-}
-
-// Validate checks if the resource contains valid information
-func (b *BaseResource) Validate() error {
-	if b.Title == "" {
-		return fmt.Errorf("Missing title for resource %s", b.ResourceID())
-	}
-
-	return nil
 }
 
 // WantBefore returns the resources before which this resource
