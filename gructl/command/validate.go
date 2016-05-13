@@ -6,6 +6,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/dnaeon/gru/catalog"
+	"github.com/dnaeon/gru/module"
 )
 
 // NewValidateCommand creates a new sub-command for
@@ -42,13 +43,21 @@ func execValidateCommand(c *cli.Context) {
 		displayError(err, 1)
 	}
 
-	// Validate() returns a slice of errors
-	foundErrors := katalog.Validate()
-	for _, err = range foundErrors {
-		fmt.Println(err)
+	collection, err := module.ResourceCollection(katalog.Modules)
+	if err != nil {
+		displayError(err, 1)
 	}
 
-	if len(foundErrors) > 0 {
-		return
+	fmt.Println("Loaded %d resources from %d modules\n", len(collection), len(katalog.Modules))
+	for _, m := range katalog.Modules {
+		for _, key := range m.UnknownKeys {
+			fmt.Println("Uknown key '%s' in module '%s'\n", key, m.Name)
+		}
+	}
+
+	for _, r := range collection {
+		if _, err := r.Evaluate(); err != nil {
+			fmt.Println("Resource %s: %s\n", r.ResourceID(), err)
+		}
 	}
 }
