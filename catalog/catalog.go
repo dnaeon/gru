@@ -32,46 +32,41 @@ func (c *Catalog) Run(w io.Writer) error {
 
 		state, err := r.Evaluate()
 		if err != nil {
-			fmt.Fprintf(w, "%s: %s\n", id, err)
+			fmt.Fprintf(w, "%s %s\n", id, err)
 			continue
 		}
 
-		if !resource.StateIsValid(state.Want) || !resource.StateIsValid(state.Current) {
-			fmt.Fprintf(w, "Invalid state(s) for resource %s: want %s, current %s\n", id, state.Want, state.Current)
-			continue
-		}
-
-		// If resource is in the desired state, but out of date
-		if state.Want == state.Current {
-			if state.Update {
-				fmt.Fprintf(w, "%s is out of date\n", r.ResourceID())
-				if err := r.Update(w); err != nil {
-					fmt.Fprintf(w, "%s error: %s\n", r.ResourceID(), err)
-				}
-			}
-			continue
-		}
-
-		fmt.Fprintf(w, "%s is %s, should be %s\n", id, state.Current, state.Want)
-		var action func(w io.Writer) error
-		if state.Want == resource.StatePresent || state.Want == resource.StateRunning {
+		var resourceErr error
+		switch {
+		case state.Want == state.Current:
+			// Resource is in the desired state
+			break
+		case state.Want == resource.StatePresent || state.Want == resource.StateRunning:
+			// Resource is absent, should be present
 			if state.Current == resource.StateAbsent || state.Current == resource.StateStopped {
-				action = r.Create
+				fmt.Fprintf(w, "%s is %s, should be %s\n", id, state.Current, state.Want)
+				resourceErr = r.Create(w)
 			}
-		} else {
+		case state.Want == resource.StateAbsent || state.Want == resource.StateStopped:
+			// Resource is present, should be absent
 			if state.Current == resource.StatePresent || state.Current == resource.StateRunning {
-				action = r.Delete
+				fmt.Fprintf(w, "%s is %s, should be %s\n", id, state.Current, state.Want)
+				resourceErr = r.Delete(w)
 			}
+		default:
+			fmt.Fprintf(w, "%s unknown state(s): want %s, current %s\n", id, state.Want, state.Current)
+			continue
 		}
 
-		// Perform the operation
-		if err := action(w); err != nil {
-			fmt.Fprintf(w, "%s error: %s", r.ResourceID(), err)
+		if resourceErr != nil {
+			fmt.Fprintf(w, "%s %s\n", id, resourceErr)
 		}
 
-		if state.Update {
+		// Update resource if needed
+		if state.Update == true {
+			fmt.Fprintf(w, "%s is out of date\n", id)
 			if err := r.Update(w); err != nil {
-				fmt.Fprintf(w, "%s error %s\n", r.ResourceID(), err)
+				fmt.Fprintf(w, "%s %s\n", id, err)
 			}
 		}
 	}
