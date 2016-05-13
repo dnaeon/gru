@@ -25,12 +25,12 @@ func New() *Catalog {
 }
 
 // Run processes the catalog
-func (c *Catalog) Run(w io.Writer) error {
+func (c *Catalog) Run(w io.Writer, opts *resource.Options) error {
 	fmt.Fprintf(w, "Loaded %d resources from %d modules\n", len(c.Resources), len(c.Modules))
 	for _, r := range c.Resources {
 		id := r.ResourceID()
 
-		state, err := r.Evaluate()
+		state, err := r.Evaluate(w, opts)
 		if err != nil {
 			fmt.Fprintf(w, "%s %s\n", id, err)
 			continue
@@ -45,13 +45,13 @@ func (c *Catalog) Run(w io.Writer) error {
 			// Resource is absent, should be present
 			if state.Current == resource.StateAbsent || state.Current == resource.StateStopped {
 				fmt.Fprintf(w, "%s is %s, should be %s\n", id, state.Current, state.Want)
-				resourceErr = r.Create(w)
+				resourceErr = r.Create(w, opts)
 			}
 		case state.Want == resource.StateAbsent || state.Want == resource.StateStopped:
 			// Resource is present, should be absent
 			if state.Current == resource.StatePresent || state.Current == resource.StateRunning {
 				fmt.Fprintf(w, "%s is %s, should be %s\n", id, state.Current, state.Want)
-				resourceErr = r.Delete(w)
+				resourceErr = r.Delete(w, opts)
 			}
 		default:
 			fmt.Fprintf(w, "%s unknown state(s): want %s, current %s\n", id, state.Want, state.Current)
@@ -65,7 +65,7 @@ func (c *Catalog) Run(w io.Writer) error {
 		// Update resource if needed
 		if state.Update == true {
 			fmt.Fprintf(w, "%s is out of date\n", id)
-			if err := r.Update(w); err != nil {
+			if err := r.Update(w, opts); err != nil {
 				fmt.Fprintf(w, "%s %s\n", id, err)
 			}
 		}
