@@ -6,7 +6,7 @@ import (
 )
 
 func TestWorkingGraph(t *testing.T) {
-	g := NewGraph()
+	g := New()
 
 	// Graph node names
 	nodeNames := []string{
@@ -65,7 +65,7 @@ func TestWorkingGraph(t *testing.T) {
 }
 
 func TestCircularGraph(t *testing.T) {
-	g := NewGraph()
+	g := New()
 
 	// Node names
 	nodeNames := []string{
