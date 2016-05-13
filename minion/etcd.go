@@ -16,6 +16,7 @@ import (
 	"github.com/dnaeon/backoff"
 	"github.com/dnaeon/gru/catalog"
 	"github.com/dnaeon/gru/classifier"
+	"github.com/dnaeon/gru/resource"
 	"github.com/dnaeon/gru/task"
 	"github.com/dnaeon/gru/utils"
 	"github.com/libgit2/git2go"
@@ -219,7 +220,12 @@ func (m *etcdMinion) processTask(t *task.Task) error {
 		return err
 	}
 
-	err = katalog.Run(&buf)
+	opts := &resource.Options{
+		SiteDir: m.siteDir,
+		DryRun:  t.DryRun,
+	}
+
+	err = katalog.Run(&buf, opts)
 	t.Result = buf.String()
 
 	if err != nil {
