@@ -55,16 +55,25 @@ type Resource interface {
 	WantAfter() []string
 
 	// Evaluates the resource
-	Evaluate() (State, error)
+	Evaluate(w io.Writer, opts *Options) (State, error)
 
 	// Creates the resource
-	Create(w io.Writer) error
+	Create(w io.Writer, opts *Options) error
 
 	// Deletes the resource
-	Delete(w io.Writer) error
+	Delete(w io.Writer, opts *Options) error
 
 	// Updates the resource
-	Update(w io.Writer) error
+	Update(w io.Writer, opts *Options) error
+}
+
+// Options sent to resources during processing
+type Options struct {
+	// The site directory which contains module and data files
+	SiteDir string
+
+	// Do not take any action, just report what would be done
+	DryRun bool
 }
 
 // BaseResource is the base resource type for all resources
