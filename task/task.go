@@ -31,7 +31,7 @@ const (
 // Task type represents a task that is processed by minions
 type Task struct {
 	// Environment to use for this task
-	Environment string
+	Environment string `json:"environment"`
 
 	// Command to be processed
 	Command string `json:"command"`
