@@ -67,8 +67,12 @@ func execGraphCommand(c *cli.Context) {
 			displayError(err, 1)
 		}
 
-		err = katalog.ResourcesAsDot(os.Stdout)
+		collection, err := module.ResourceCollection(katalog.Modules)
 		if err != nil {
+			displayError(err, 1)
+		}
+
+		if err := collection.DependencyGraphAsDot(os.Stdout); err != nil {
 			displayError(err, 1)
 		}
 	}
