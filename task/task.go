@@ -30,6 +30,9 @@ const (
 
 // Task type represents a task that is processed by minions
 type Task struct {
+	// Do not take any actions, just report what would be done
+	DryRun bool `json:"dryRun"`
+
 	// Environment to use for this task
 	Environment string `json:"environment"`
 
