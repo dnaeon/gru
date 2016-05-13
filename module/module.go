@@ -11,8 +11,9 @@ import (
 	"github.com/hashicorp/hcl/hcl/ast"
 )
 
-// ValidKeys contains a map of valid keys that can be used in modules
-var ValidKeys = validKeys()
+// ResourceMap type is a map which keys are the
+// resource ids and their values are the actual resources
+type ResourceMap map[string]resource.Resource
 
 // Module type represents a collection of resources and module imports
 type Module struct {
@@ -40,15 +41,14 @@ type Import struct {
 
 // validKeys returns a map of valid keys which can be used in modules
 func validKeys() map[string]struct{} {
-	// All resource types found in resource.Registry are considered
-	// valid keys to be used in modules.
+	// All registered resources are considered valid keys
 	keys := make(map[string]struct{})
 
 	for name := range resource.Registry {
 		keys[name] = struct{}{}
 	}
 
-	// Others keys considered as valid
+	// Other keys considered as valid, such as "import"
 	keys["import"] = struct{}{}
 
 	return keys
@@ -103,9 +103,10 @@ func Load(name string, r io.Reader) (*Module, error) {
 	//
 	// For now the only valid keys are the resource types,
 	// which can be found in resource.Registry.
+	valid := validKeys()
 	for _, item := range root.Items {
 		key := item.Keys[0].Token.Value().(string)
-		if _, ok := ValidKeys[key]; !ok {
+		if _, ok := valid[key]; !ok {
 			m.UnknownKeys = append(m.UnknownKeys, key)
 		}
 	}
@@ -252,4 +253,64 @@ func ImportGraphAsDot(main, path string, w io.Writer) error {
 	}
 
 	return nil
+}
+
+// ResourceCollection creates a map of the unique resources
+// contained within the provided modules.
+func ResourceCollection(modules []*Module) (ResourceMap, error) {
+	moduleMap := make(map[string]string)
+	resourceMap := make(ResourceMap)
+
+	for _, m := range modules {
+		for _, r := range m.Resources {
+			id := r.ResourceID()
+			if _, ok := resourceMap[id]; ok {
+				return resourceMap, fmt.Errorf("Duplicate resource %s in %s, previous declaration was in %s", id, m.Name, moduleMap[id])
+			}
+			moduleMap[id] = m.Name
+			resourceMap[id] = r
+		}
+	}
+
+	return resourceMap, nil
+}
+
+// ResourceCollectionGraph builds a dependency graph for the
+// provided resources collection.
+func ResourceCollectionGraph(resources ResourceMap) (*graph.Graph, error) {
+	g := graph.New()
+
+	// A map containing the resource ids and their nodes in the graph
+	nodes := make(map[string]*graph.Node)
+	for name := range resources {
+		node := graph.NewNode(name)
+		nodes[name] = node
+		g.AddNode(node)
+	}
+
+	// Connect the nodes in the graph
+	for name, r := range resources {
+		before := r.WantBefore()
+		after := r.WantAfter()
+
+		// Connect current resource with the ones that happen after it
+		for _, dep := range after {
+			if _, ok := resources[dep]; !ok {
+				e := fmt.Errorf("Resource %s wants %s, which does not exist", name, dep)
+				return g, e
+			}
+			g.AddEdge(nodes[name], nodes[dep])
+		}
+
+		// Connect current resource with the ones that happen before it
+		for _, dep := range before {
+			if _, ok := resources[dep]; !ok {
+				e := fmt.Errorf("Resource %s wants %s, which does not exist", name, dep)
+				return g, e
+			}
+			g.AddEdge(nodes[dep], nodes[name])
+		}
+	}
+
+	return g, nil
 }
