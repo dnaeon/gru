@@ -6,6 +6,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/dnaeon/gru/catalog"
+	"github.com/dnaeon/gru/resource"
 )
 
 // NewApplyCommand creates a new sub-command for
@@ -21,6 +22,11 @@ func NewApplyCommand() cli.Command {
 				Value:  "",
 				Usage:  "specify path to the site directory",
 				EnvVar: "GRU_SITEDIR",
+			},
+			cli.BoolFlag{
+				Name:  "dry-run",
+				Value: false,
+				Usage: "just report what would be done, instead of doing it",
 			},
 		},
 	}
@@ -41,7 +47,12 @@ func execApplyCommand(c *cli.Context) {
 		displayError(err, 1)
 	}
 
-	err = katalog.Run(os.Stdout)
+	opts := &resource.Options{
+		SiteDir: c.String("sitedir"),
+		DryRun:  c.Bool("dry-run"),
+	}
+
+	err = katalog.Run(os.Stdout, opts)
 	if err != nil {
 		displayError(err, 1)
 	}
