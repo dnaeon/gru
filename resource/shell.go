@@ -83,7 +83,6 @@ func (s *ShellResource) Create(w io.Writer) error {
 	args := strings.Fields(s.Command)
 	cmd := exec.Command(args[0], args[1:]...)
 	out, err := cmd.CombinedOutput()
-
 	s.Printf(w, string(out))
 
 	return err

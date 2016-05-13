@@ -82,7 +82,8 @@ func (p *PacmanResource) Create(w io.Writer) error {
 	p.Printf(w, "installing package\n")
 
 	cmd := exec.Command(pacmanPath, "--sync", "--noconfirm", p.Name)
-	err := cmd.Run()
+	out, err := cmd.CombinedOutput()
+	p.Printf(w, string(out))
 
 	return err
 }
@@ -92,7 +93,8 @@ func (p *PacmanResource) Delete(w io.Writer) error {
 	p.Printf(w, "removing package\n")
 
 	cmd := exec.Command(pacmanPath, "--remove", "--noconfirm", p.Name)
-	err := cmd.Run()
+	out, err := cmd.CombinedOutput()
+	p.Printf(w, string(out))
 
 	return err
 }
