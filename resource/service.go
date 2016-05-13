@@ -153,7 +153,7 @@ func (s *ServiceResource) daemonReload() error {
 }
 
 // Evaluate evaluates the state of the resource
-func (s *ServiceResource) Evaluate() (State, error) {
+func (s *ServiceResource) Evaluate(w io.Writer, opts *Options) (State, error) {
 	resourceState := State{
 		Current: StateUnknown,
 		Want:    s.State,
@@ -191,7 +191,7 @@ func (s *ServiceResource) Evaluate() (State, error) {
 }
 
 // Create starts the service unit
-func (s *ServiceResource) Create(w io.Writer) error {
+func (s *ServiceResource) Create(w io.Writer, opts *Options) error {
 	conn, err := dbus.New()
 	if err != nil {
 		return err
@@ -213,7 +213,7 @@ func (s *ServiceResource) Create(w io.Writer) error {
 }
 
 // Delete stops the service unit
-func (s *ServiceResource) Delete(w io.Writer) error {
+func (s *ServiceResource) Delete(w io.Writer, opts *Options) error {
 	conn, err := dbus.New()
 	if err != nil {
 		return err
@@ -235,7 +235,7 @@ func (s *ServiceResource) Delete(w io.Writer) error {
 }
 
 // Update updates the service unit state
-func (s *ServiceResource) Update(w io.Writer) error {
+func (s *ServiceResource) Update(w io.Writer, opts *Options) error {
 	enabled, err := s.unitIsEnabled()
 	if err != nil {
 		return err

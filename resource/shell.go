@@ -49,7 +49,7 @@ func NewShellResource(title string, obj *ast.ObjectItem) (Resource, error) {
 }
 
 // Evaluate evaluates the state of the resource
-func (s *ShellResource) Evaluate() (State, error) {
+func (s *ShellResource) Evaluate(w io.Writer, opts *Options) (State, error) {
 	// Assumes that the command to be executed is idempotent
 	//
 	// Sets the current state to absent and wanted to be present,
@@ -77,7 +77,7 @@ func (s *ShellResource) Evaluate() (State, error) {
 }
 
 // Create executes the shell command
-func (s *ShellResource) Create(w io.Writer) error {
+func (s *ShellResource) Create(w io.Writer, opts *Options) error {
 	s.Printf(w, "executing command\n")
 
 	args := strings.Fields(s.Command)
@@ -89,12 +89,12 @@ func (s *ShellResource) Create(w io.Writer) error {
 }
 
 // Delete is a no-op
-func (s *ShellResource) Delete(w io.Writer) error {
+func (s *ShellResource) Delete(w io.Writer, opts *Options) error {
 	return nil
 }
 
 // Update is a no-op
-func (s *ShellResource) Update(w io.Writer) error {
+func (s *ShellResource) Update(w io.Writer, opts *Options) error {
 	return nil
 }
 

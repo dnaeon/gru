@@ -54,7 +54,7 @@ func NewPacmanResource(title string, obj *ast.ObjectItem) (Resource, error) {
 }
 
 // Evaluate evaluates the state of the resource
-func (p *PacmanResource) Evaluate() (State, error) {
+func (p *PacmanResource) Evaluate(w io.Writer, opts *Options) (State, error) {
 	s := State{
 		Current: StateUnknown,
 		Want:    p.State,
@@ -78,7 +78,7 @@ func (p *PacmanResource) Evaluate() (State, error) {
 }
 
 // Create creates the resource
-func (p *PacmanResource) Create(w io.Writer) error {
+func (p *PacmanResource) Create(w io.Writer, opts *Options) error {
 	p.Printf(w, "installing package\n")
 
 	cmd := exec.Command(pacmanPath, "--sync", "--noconfirm", p.Name)
@@ -89,7 +89,7 @@ func (p *PacmanResource) Create(w io.Writer) error {
 }
 
 // Delete deletes the resource
-func (p *PacmanResource) Delete(w io.Writer) error {
+func (p *PacmanResource) Delete(w io.Writer, opts *Options) error {
 	p.Printf(w, "removing package\n")
 
 	cmd := exec.Command(pacmanPath, "--remove", "--noconfirm", p.Name)
@@ -100,10 +100,10 @@ func (p *PacmanResource) Delete(w io.Writer) error {
 }
 
 // Update updates the resource
-func (p *PacmanResource) Update(w io.Writer) error {
+func (p *PacmanResource) Update(w io.Writer, opts *Options) error {
 	p.Printf(w, "updating package\n")
 
-	return p.Create(w)
+	return p.Create(w, opts)
 }
 
 func init() {

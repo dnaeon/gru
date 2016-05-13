@@ -76,7 +76,7 @@ func NewDirectoryResource(title string, obj *ast.ObjectItem) (Resource, error) {
 }
 
 // Evaluate evaluates the directory resource
-func (d *DirectoryResource) Evaluate() (State, error) {
+func (d *DirectoryResource) Evaluate(w io.Writer, opts *Options) (State, error) {
 	resourceState := State{
 		Current: StateUnknown,
 		Want:    d.State,
@@ -128,7 +128,7 @@ func (d *DirectoryResource) Evaluate() (State, error) {
 }
 
 // Create creates a directory
-func (d *DirectoryResource) Create(w io.Writer) error {
+func (d *DirectoryResource) Create(w io.Writer, opts *Options) error {
 	// TODO: Create parent directories if needed
 
 	d.Printf(w, "creating directory\n")
@@ -138,7 +138,7 @@ func (d *DirectoryResource) Create(w io.Writer) error {
 }
 
 // Delete deletes the directory
-func (d *DirectoryResource) Delete(w io.Writer) error {
+func (d *DirectoryResource) Delete(w io.Writer, opts *Options) error {
 	// TODO: Recursively remove directory if needed
 
 	d.Printf(w, "removing directory\n")
@@ -148,7 +148,7 @@ func (d *DirectoryResource) Delete(w io.Writer) error {
 }
 
 // Update updates the permission bits of the directory
-func (d *DirectoryResource) Update(w io.Writer) error {
+func (d *DirectoryResource) Update(w io.Writer, opts *Options) error {
 	fi, err := os.Stat(d.Name)
 	if err != nil {
 		return err

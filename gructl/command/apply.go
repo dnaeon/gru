@@ -25,7 +25,6 @@ func NewApplyCommand() cli.Command {
 			},
 			cli.BoolFlag{
 				Name:  "dry-run",
-				Value: false,
 				Usage: "just report what would be done, instead of doing it",
 			},
 		},

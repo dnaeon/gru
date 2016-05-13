@@ -2,11 +2,13 @@ package command
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/codegangsta/cli"
 	"github.com/dnaeon/gru/catalog"
 	"github.com/dnaeon/gru/module"
+	"github.com/dnaeon/gru/resource"
 )
 
 // NewValidateCommand creates a new sub-command for
@@ -48,6 +50,10 @@ func execValidateCommand(c *cli.Context) {
 		displayError(err, 1)
 	}
 
+	opts := &resource.Options{
+		SiteDir: c.String("sitedir"),
+	}
+
 	fmt.Printf("Loaded %d resources from %d modules\n", len(collection), len(katalog.Modules))
 	for _, m := range katalog.Modules {
 		for _, key := range m.UnknownKeys {
@@ -56,7 +62,7 @@ func execValidateCommand(c *cli.Context) {
 	}
 
 	for _, r := range collection {
-		if _, err := r.Evaluate(); err != nil {
+		if _, err := r.Evaluate(os.Stdout, opts); err != nil {
 			fmt.Printf("Resource %s: %s\n", r.ResourceID(), err)
 		}
 	}
