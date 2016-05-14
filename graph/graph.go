@@ -18,7 +18,7 @@ type Graph struct {
 	nodes map[string]*Node
 }
 
-// NewGraph creates a new DAG graph
+// New creates a new DAG graph
 func New() *Graph {
 	g := &Graph{
 		nodes: make(map[string]*Node),
