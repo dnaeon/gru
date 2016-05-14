@@ -87,6 +87,7 @@ func (d *DirectoryResource) Evaluate(w io.Writer, opts *Options) (State, error) 
 	fi, err := os.Stat(d.Name)
 	if os.IsNotExist(err) {
 		resourceState.Current = StateAbsent
+		resourceState.Update = true
 
 		return resourceState, nil
 	}
@@ -127,7 +128,7 @@ func (d *DirectoryResource) Evaluate(w io.Writer, opts *Options) (State, error) 
 	return resourceState, nil
 }
 
-// Create creates a directory
+// Create creates the directory
 func (d *DirectoryResource) Create(w io.Writer, opts *Options) error {
 	// TODO: Create parent directories if needed
 
