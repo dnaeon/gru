@@ -22,16 +22,19 @@ type DirectoryResource struct {
 	BaseResource `hcl:",squash"`
 
 	// Name of the directory
-	Name string `hcl:"name" json:"name"`
+	Name string `hcl:"name"`
 
 	// Permission bits to set on the directory
-	Mode int `hcl:"mode" json:"mode"`
+	Mode int `hcl:"mode"`
 
 	// Owner of the directory
-	Owner string `hcl:"owner" json:"owner"`
+	Owner string `hcl:"owner"`
 
 	// Group of the directory
-	Group string `hcl:"group" json:"group"`
+	Group string `hcl:"group"`
+
+	// Recursive create/delete/update the directory
+	Recursive bool `hcl:"recursive"`
 }
 
 // NewDirectoryResource creates a new resource for managing directories
@@ -57,10 +60,11 @@ func NewDirectoryResource(title string, obj *ast.ObjectItem) (Resource, error) {
 			Type:  dirResourceType,
 			State: StatePresent,
 		},
-		Name:  title,
-		Mode:  0755,
-		Owner: defaultOwner,
-		Group: defaultGroup,
+		Name:      title,
+		Mode:      0755,
+		Owner:     defaultOwner,
+		Group:     defaultGroup,
+		Recursive: false,
 	}
 
 	var d DirectoryResource
@@ -130,22 +134,24 @@ func (d *DirectoryResource) Evaluate(w io.Writer, opts *Options) (State, error) 
 
 // Create creates the directory
 func (d *DirectoryResource) Create(w io.Writer, opts *Options) error {
-	// TODO: Create parent directories if needed
-
 	d.Printf(w, "creating directory\n")
-	err := os.Mkdir(d.Name, os.FileMode(d.Mode))
 
-	return err
+	if d.Recursive {
+		return os.MkdirAll(d.Name, os.FileMode(d.Mode))
+	}
+
+	return os.Mkdir(d.Name, os.FileMode(d.Mode))
 }
 
 // Delete deletes the directory
 func (d *DirectoryResource) Delete(w io.Writer, opts *Options) error {
-	// TODO: Recursively remove directory if needed
-
 	d.Printf(w, "removing directory\n")
-	err := os.Remove(d.Name)
 
-	return err
+	if d.Recursive {
+		return os.RemoveAll(d.Name)
+	}
+
+	return os.Remove(d.Name)
 }
 
 // Update updates the permission bits of the directory
