@@ -16,10 +16,8 @@ import (
 
 // FileUtil type
 type FileUtil struct {
-	// Path to the file
-	path string
-
-	os.FileInfo
+	// Path to the file we manage
+	Path string
 }
 
 // FileOwner type provides details about the user and group that owns a file
@@ -29,28 +27,25 @@ type FileOwner struct {
 }
 
 // NewFileUtil creates a file utility from the given path
-func NewFileUtil(path string) (*FileUtil, error) {
-	info, err := os.Stat(path)
-	if err != nil {
-		return &FileUtil{}, err
-	}
+func NewFileUtil(path string) *FileUtil {
+	return &FileUtil{path}
+}
 
-	f := &FileUtil{
-		path,
-		info,
-	}
+// Exists returns a boolean indicating whether the file exists or not
+func (f *FileUtil) Exists() bool {
+	_, err := os.Stat(f.Path)
 
-	return f, nil
+	return os.IsExist(err)
 }
 
 // Abs returns the absolute path for the file
 func (f *FileUtil) Abs() (string, error) {
-	return filepath.Abs(f.path)
+	return filepath.Abs(f.Path)
 }
 
 // Md5 returns the md5 checksum of the file's contents
 func (f *FileUtil) Md5() (string, error) {
-	buf, err := ioutil.ReadFile(f.path)
+	buf, err := ioutil.ReadFile(f.Path)
 	if err != nil {
 		return "", err
 	}
@@ -60,7 +55,7 @@ func (f *FileUtil) Md5() (string, error) {
 
 // Sha1 returns the sha1 checksum of the file's contents
 func (f *FileUtil) Sha1() (string, error) {
-	buf, err := ioutil.ReadFile(f.path)
+	buf, err := ioutil.ReadFile(f.Path)
 	if err != nil {
 		return "", err
 	}
@@ -70,7 +65,7 @@ func (f *FileUtil) Sha1() (string, error) {
 
 // Sha256 returns the sha256 checksum of the file's contents
 func (f *FileUtil) Sha256() (string, error) {
-	buf, err := ioutil.ReadFile(f.path)
+	buf, err := ioutil.ReadFile(f.Path)
 	if err != nil {
 		return "", err
 	}
@@ -78,10 +73,35 @@ func (f *FileUtil) Sha256() (string, error) {
 	return fmt.Sprintf("%x", sha256.Sum256(buf)), nil
 }
 
+// Remove removes the file
+func (f *FileUtil) Remove() error {
+	return os.Remove(f.Path)
+}
+
+// Chmod changes the permissions of the file
+func (f *FileUtil) Chmod(perm os.FileMode) error {
+	return os.Chmod(f.Path, perm)
+}
+
+// Mode returns the file permission bits
+func (f *FileUtil) Mode() (os.FileMode, error) {
+	fi, err := os.Stat(f.Path)
+	if err != nil {
+		return 0, err
+	}
+
+	return fi.Mode(), nil
+}
+
 // Owner retrieves the owner and group for the file
 func (f *FileUtil) Owner() (*FileOwner, error) {
-	uid := f.Sys().(*syscall.Stat_t).Uid
-	gid := f.Sys().(*syscall.Stat_t).Gid
+	fi, err := os.Stat(f.Path)
+	if err != nil {
+		return &FileOwner{}, err
+	}
+
+	uid := fi.Sys().(*syscall.Stat_t).Uid
+	gid := fi.Sys().(*syscall.Stat_t).Gid
 
 	u, err := user.LookupId(strconv.FormatInt(int64(uid), 10))
 	if err != nil {
@@ -120,36 +140,46 @@ func (f *FileUtil) SetOwner(owner, group string) error {
 		return err
 	}
 
-	return os.Chown(f.path, uid, gid)
+	return os.Chown(f.Path, uid, gid)
 }
 
 // CopyFrom copies contents from another source to the current file
-func (f *FileUtil) CopyFrom(from *FileUtil) error {
-	if !f.Mode().IsRegular() {
-		return fmt.Errorf("%s is not a regular file", f.path)
+func (f *FileUtil) CopyFrom(srcPath string) error {
+	srcInfo, err := os.Stat(srcPath)
+	if err != nil {
+		return err
 	}
 
-	if !from.Mode().IsRegular() {
-		return fmt.Errorf("%s is not a regular file", from.path)
+	if !srcInfo.Mode().IsRegular() {
+		return fmt.Errorf("%s is not a regular file", srcPath)
 	}
 
-	if os.SameFile(f, from) {
+	dstInfo, err := os.Stat(f.Path)
+	if err != nil {
+		return err
+	}
+
+	if !dstInfo.Mode().IsRegular() {
+		return fmt.Errorf("%s is not a regular file", f.Path)
+	}
+
+	if os.SameFile(srcInfo, dstInfo) {
 		return nil
 	}
 
-	src, err := os.Open(from.path)
+	srcFile, err := os.Open(srcPath)
 	if err != nil {
 		return err
 	}
-	defer src.Close()
+	defer srcFile.Close()
 
-	dst, err := os.Create(f.path)
+	dstFile, err := os.Create(f.Path)
 	if err != nil {
 		return err
 	}
-	defer dst.Close()
+	defer dstFile.Close()
 
-	_, err = io.Copy(dst, src)
+	_, err = io.Copy(dstFile, srcFile)
 
 	return err
 }
