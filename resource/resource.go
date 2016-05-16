@@ -10,8 +10,8 @@ import (
 // Registry contains all known resources
 var Registry = make(map[string]RegistryItem)
 
-// provider is used to create new resources from an HCL AST object item
-type provider func(title string, item *ast.ObjectItem) (Resource, error)
+// Provider type creates new resources from an HCL AST object item
+type Provider func(title string, item *ast.ObjectItem) (Resource, error)
 
 // RegistryItem type represents an item from the registry
 type RegistryItem struct {
@@ -22,7 +22,7 @@ type RegistryItem struct {
 	Description string
 
 	// Resource provider
-	Provider provider
+	Provider Provider
 }
 
 // Register adds a resource type to the registry
