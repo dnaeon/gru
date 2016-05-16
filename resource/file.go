@@ -5,7 +5,9 @@ import (
 	"io"
 	"os"
 	"os/user"
+	"path/filepath"
 
+	"github.com/dnaeon/gru/utils"
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/ast"
 	"github.com/imdario/mergo"
@@ -15,10 +17,8 @@ import (
 const fileResourceType = "file"
 const fileResourceDesc = "manages files"
 
-// FileResource is a resource which manages files
-type FileResource struct {
-	BaseResource `hcl:",squash"`
-
+// BaseFileResource is the base resource for managing files
+type BaseFileResource struct {
 	// Path to the file
 	Path string `hcl:"path"`
 
@@ -120,10 +120,12 @@ func NewFileResource(title string, obj *ast.ObjectItem) (Resource, error) {
 			Type:  fileResourceType,
 			State: StatePresent,
 		},
-		Path:  title,
-		Mode:  0644,
-		Owner: defaultOwner,
-		Group: defaultGroup,
+		BaseFileResource: BaseFileResource{
+			Path:  title,
+			Mode:  0644,
+			Owner: defaultOwner,
+			Group: defaultGroup,
+		},
 	}
 
 	var fr FileResource
@@ -135,12 +137,15 @@ func NewFileResource(title string, obj *ast.ObjectItem) (Resource, error) {
 	// Merge the decoded object with the resource defaults
 	err = mergo.Merge(&fr, defaults)
 
+	// Set the file utility for this file
+	fr.dstFile = utils.NewFileUtil(fr.Path)
+
 	return &fr, err
 }
 
 // Evaluate evaluates the file resource
 func (fr *FileResource) Evaluate(w io.Writer, opts *Options) (State, error) {
-	resourceState := State{
+	rs := State{
 		Current: StateUnknown,
 		Want:    fr.State,
 		Update:  false,
@@ -149,81 +154,136 @@ func (fr *FileResource) Evaluate(w io.Writer, opts *Options) (State, error) {
 	// File does not exist
 	fi, err := os.Stat(fr.Path)
 	if os.IsNotExist(err) {
-		resourceState.Current = StateAbsent
-
-		return resourceState, nil
+		rs.Current = StateAbsent
+		return rs, nil
 	}
 
-	// File exists, ensure that it is not a directory
-	resourceState.Current = StatePresent
-	if fi.IsDir() {
-		return resourceState, fmt.Errorf("%s exists, but is not a file", fr.Path)
+	// Ensure that the file we manage is a regular file
+	rs.Current = StatePresent
+	if !fi.Mode().IsRegular() {
+		return rs, fmt.Errorf("%s is not a regular file", fr.Path)
 	}
 
-	// Check permissions
-	if fi.Mode().Perm() != os.FileMode(fr.Mode) {
-		resourceState.Update = true
+	// Check file content
+	changed, err := fr.contentChanged(opts.SiteDir)
+	if err != nil {
+		return rs, err
+	}
+
+	if changed {
+		fr.Printf(w, "content is out of date\n")
+		rs.Update = true
+	}
+
+	// Check file permissions
+	changed, err = fr.permissionsChanged()
+	if err != nil {
+		return rs, err
+	}
+
+	if changed {
+		fr.Printf(w, "permissions are out of date\n")
+		rs.Update = true
 	}
 
 	// Check ownership
-	owner, err := fileOwner(fi)
+	changed, err = fr.ownerChanged()
 	if err != nil {
-		return resourceState, err
+		return rs, err
 	}
 
-	if fr.Owner != owner.User || fr.Group != owner.Group {
-		resourceState.Update = true
+	if changed {
+		fr.Printf(w, "owner is out of date\n")
+		rs.Update = true
 	}
 
-	return resourceState, nil
+	return rs, nil
 }
 
 // Create creates the file
 func (fr *FileResource) Create(w io.Writer, opts *Options) error {
 	fr.Printf(w, "creating file\n")
 
-	if _, err := os.Create(fr.Path); err != nil {
+	// Set file content
+	switch {
+	case fr.Source == "" && fr.dstFile.Exists():
+		// Do nothing
+		break
+	case fr.Source == "" && !fr.dstFile.Exists():
+		// Create an empty file
+		if _, err := os.Create(fr.Path); err != nil {
+			return err
+		}
+	case fr.Source != "" && fr.dstFile.Exists():
+		// File exists and we have a source file
+		srcPath := filepath.Join(opts.SiteDir, "data", fr.Source)
+		if err := fr.dstFile.CopyFrom(srcPath); err != nil {
+			return err
+		}
+	}
+
+	// Set file owner
+	if err := fr.dstFile.SetOwner(fr.Owner, fr.Group); err != nil {
 		return err
 	}
 
-	if err := setFileOwner(fr.Path, fr.Owner, fr.Group); err != nil {
-		return err
-	}
-
-	return os.Chmod(fr.Path, os.FileMode(fr.Mode))
+	// Set file permissions
+	return fr.dstFile.Chmod(os.FileMode(fr.Mode))
 }
 
 // Delete deletes the file
 func (fr *FileResource) Delete(w io.Writer, opts *Options) error {
 	fr.Printf(w, "removing file\n")
 
-	return os.Remove(fr.Path)
+	return fr.dstFile.Remove()
 }
 
-// Update updates the file
+// Update updates the file managed by the resource
 func (fr *FileResource) Update(w io.Writer, opts *Options) error {
-	fi, err := os.Stat(fr.Path)
+	// Update file content if needed
+	changed, err := fr.contentChanged(opts.SiteDir)
 	if err != nil {
 		return err
 	}
 
-	// Fix permissions if needed
-	if fi.Mode().Perm() != os.FileMode(fr.Mode) {
-		fr.Printf(w, "setting permissions to %#o\n", fr.Mode)
-		if err = os.Chmod(fr.Path, os.FileMode(fr.Mode)); err != nil {
+	if changed {
+		srcFile := utils.NewFileUtil(filepath.Join(opts.SiteDir, "data", fr.Source))
+		srcMd5, err := srcFile.Md5()
+		if err != nil {
+			return err
+		}
+
+		fr.Printf(w, "updating content to md5:%s\n", srcMd5)
+		if err := fr.dstFile.CopyFrom(srcFile.Path); err != nil {
 			return err
 		}
 	}
 
-	// Fix ownership if needed
-	owner, err := fileOwner(fi)
+	// Fix permissions if needed
+	changed, err = fr.permissionsChanged()
 	if err != nil {
 		return err
 	}
 
-	if fr.Owner != owner.User || fr.Group != owner.Group {
-		fr.Printf(w, "setting owner %s:%s\n", fr.Owner, fr.Group)
-		if err := setFileOwner(fr.Path, fr.Owner, fr.Group); err != nil {
+	if changed {
+		fr.Printf(w, "setting permissions to %#o\n", fr.Mode)
+		fr.dstFile.Chmod(os.FileMode(fr.Mode))
+	}
+
+	// Fix ownership if needed
+	changed, err = fr.ownerChanged()
+	if err != nil {
+		return err
+	}
+
+	if changed {
+		owner, err := fr.dstFile.Owner()
+		if err != nil {
+			return err
+		}
+
+		fr.Printf(w, "setting owner to %s:%s\n", owner.User.Username, owner.Group.Name)
+		if err := fr.dstFile.SetOwner(fr.Owner, fr.Group); err != nil {
 			return err
 		}
 	}
