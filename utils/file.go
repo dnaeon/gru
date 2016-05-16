@@ -183,3 +183,20 @@ func (fu *FileUtil) CopyFrom(srcPath string) error {
 
 	return err
 }
+
+// SameContentWith returns a boolean indicating whether the
+// content of the current file is the same as the destination
+func (fu *FileUtil) SameContentWith(dst string) (bool, error) {
+	srcMd5, err := fu.Md5()
+	if err != nil {
+		return false, err
+	}
+
+	dstFile := NewFileUtil(dst)
+	dstMd5, err := dstFile.Md5()
+	if err != nil {
+		return false, err
+	}
+
+	return srcMd5 == dstMd5, nil
+}
