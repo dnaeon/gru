@@ -63,8 +63,8 @@ func (c *Catalog) Run(w io.Writer, opts *resource.Options) error {
 		}
 
 		// Update resource if needed
-		if state.Update == true {
-			fmt.Fprintf(w, "%s is out of date\n", id)
+		if state.Update {
+			fmt.Fprintf(w, "%s resource is out of date, will be updated\n", id)
 			if err := r.Update(w, opts); err != nil {
 				fmt.Fprintf(w, "%s %s\n", id, err)
 			}
