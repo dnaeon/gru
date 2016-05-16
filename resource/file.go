@@ -33,59 +33,6 @@ type BaseFileResource struct {
 
 	// Source file to use when creating/updating the file
 	Source string `hcl:"source"`
-
-	// The destination file we manage
-	dstFile *utils.FileUtil
-}
-
-// permissionsChanged returns a boolean indicating whether the
-// permissions of the file managed by the resource is different than the
-// permissions defined by the resource
-func (bfr *BaseFileResource) permissionsChanged() (bool, error) {
-	m, err := bfr.dstFile.Mode()
-	if err != nil {
-		return false, err
-	}
-
-	return m.Perm() != os.FileMode(bfr.Mode), nil
-}
-
-// ownerChanged returns a boolean indicating whether the
-// owner/group of the file managed by the resource is different than the
-// owner/group defined by the resource
-func (bfr *BaseFileResource) ownerChanged() (bool, error) {
-	owner, err := bfr.dstFile.Owner()
-	if err != nil {
-		return false, err
-	}
-
-	if bfr.Owner != owner.User.Username || bfr.Group != owner.Group.Name {
-		return true, nil
-	}
-
-	return false, nil
-}
-
-// contentChanged returns a boolean indicating whether the
-// content of the file managed by the resource is different than the
-// content of the source file defined by the resource
-func (bfr *BaseFileResource) contentChanged(srcPath string) (bool, error) {
-	if bfr.Source == "" {
-		return false, nil
-	}
-
-	srcFile := utils.NewFileUtil(srcPath)
-	srcMd5, err := srcFile.Md5()
-	if err != nil {
-		return false, err
-	}
-
-	dstMd5, err := bfr.dstFile.Md5()
-	if err != nil {
-		return false, err
-	}
-
-	return srcMd5 != dstMd5, nil
 }
 
 // FileResource is a resource which manages files
@@ -134,9 +81,6 @@ func NewFileResource(title string, obj *ast.ObjectItem) (Resource, error) {
 	// Merge the decoded object with the resource defaults
 	err = mergo.Merge(&fr, defaults)
 
-	// The destination file we manage
-	fr.dstFile = utils.NewFileUtil(fr.Path)
-
 	return &fr, err
 }
 
@@ -148,49 +92,54 @@ func (fr *FileResource) Evaluate(w io.Writer, opts *Options) (State, error) {
 		Update:  false,
 	}
 
+	// The file we manage
+	dst := utils.NewFileUtil(fr.Path)
+
 	// File does not exist
 	fi, err := os.Stat(fr.Path)
 	if os.IsNotExist(err) {
 		rs.Current = StateAbsent
 		return rs, nil
+	} else {
+		rs.Current = StatePresent
 	}
 
 	// Ensure that the file we manage is a regular file
-	rs.Current = StatePresent
 	if !fi.Mode().IsRegular() {
 		return rs, fmt.Errorf("%s is not a regular file", fr.Path)
 	}
 
 	// Check file content
-	srcPath := filepath.Join(opts.SiteDir, "data", fr.Source)
-	changed, err := fr.contentChanged(srcPath)
-	if err != nil {
-		return rs, err
-	}
-
-	if changed {
-		fr.Printf(w, "content is out of date\n")
-		rs.Update = true
+	if fr.Source != "" {
+		srcPath := filepath.Join(opts.SiteDir, "data", fr.Source)
+		same, err := dst.SameContentWith(srcPath)
+		if err != nil {
+			return rs, err
+		}
+		if !same {
+			fr.Printf(w, "content is out of date\n")
+			rs.Update = true
+		}
 	}
 
 	// Check file permissions
-	changed, err = fr.permissionsChanged()
+	mode, err := dst.Mode()
 	if err != nil {
 		return rs, err
 	}
 
-	if changed {
+	if mode.Perm() != os.FileMode(fr.Mode) {
 		fr.Printf(w, "permissions are out of date\n")
 		rs.Update = true
 	}
 
 	// Check ownership
-	changed, err = fr.ownerChanged()
+	owner, err := dst.Owner()
 	if err != nil {
 		return rs, err
 	}
 
-	if changed {
+	if fr.Owner != owner.User.Username || fr.Group != owner.Group.Name {
 		fr.Printf(w, "owner is out of date\n")
 		rs.Update = true
 	}
@@ -198,86 +147,92 @@ func (fr *FileResource) Evaluate(w io.Writer, opts *Options) (State, error) {
 	return rs, nil
 }
 
-// Create creates the file
+// Create creates the file managed by the resource
 func (fr *FileResource) Create(w io.Writer, opts *Options) error {
+	dst := utils.NewFileUtil(fr.Path)
 	fr.Printf(w, "creating file\n")
 
 	// Set file content
 	switch {
-	case fr.Source == "" && fr.dstFile.Exists():
+	case fr.Source == "" && dst.Exists():
 		// Do nothing
 		break
-	case fr.Source == "" && !fr.dstFile.Exists():
+	case fr.Source == "" && !dst.Exists():
 		// Create an empty file
 		if _, err := os.Create(fr.Path); err != nil {
 			return err
 		}
-	case fr.Source != "" && fr.dstFile.Exists():
+	case fr.Source != "" && dst.Exists():
 		// File exists and we have a source file
 		srcPath := filepath.Join(opts.SiteDir, "data", fr.Source)
-		if err := fr.dstFile.CopyFrom(srcPath); err != nil {
+		if err := dst.CopyFrom(srcPath); err != nil {
 			return err
 		}
 	}
 
 	// Set file owner
-	if err := fr.dstFile.SetOwner(fr.Owner, fr.Group); err != nil {
+	if err := dst.SetOwner(fr.Owner, fr.Group); err != nil {
 		return err
 	}
 
 	// Set file permissions
-	return fr.dstFile.Chmod(os.FileMode(fr.Mode))
+	return dst.Chmod(os.FileMode(fr.Mode))
 }
 
 // Delete deletes the file
 func (fr *FileResource) Delete(w io.Writer, opts *Options) error {
 	fr.Printf(w, "removing file\n")
+	dst := utils.NewFileUtil(fr.Path)
 
-	return fr.dstFile.Remove()
+	return dst.Remove()
 }
 
 // Update updates the file managed by the resource
 func (fr *FileResource) Update(w io.Writer, opts *Options) error {
-	// Update file content if needed
-	srcPath := filepath.Join(opts.SiteDir, "data", fr.Source)
-	changed, err := fr.contentChanged(srcPath)
-	if err != nil {
-		return err
-	}
+	dst := utils.NewFileUtil(fr.Path)
 
-	if changed {
-		srcFile := utils.NewFileUtil(srcPath)
-		srcMd5, err := srcFile.Md5()
+	// Update file content if needed
+	if fr.Source != "" {
+		srcPath := filepath.Join(opts.SiteDir, "data", fr.Source)
+		same, err := dst.SameContentWith(srcPath)
 		if err != nil {
 			return err
 		}
 
-		fr.Printf(w, "updating content to md5:%s\n", srcMd5)
-		if err := fr.dstFile.CopyFrom(srcFile.Path); err != nil {
-			return err
+		if !same {
+			srcFile := utils.NewFileUtil(srcPath)
+			srcMd5, err := srcFile.Md5()
+			if err != nil {
+				return err
+			}
+
+			fr.Printf(w, "updating content to md5:%s\n", srcMd5)
+			if err := dst.CopyFrom(srcPath); err != nil {
+				return err
+			}
 		}
 	}
 
 	// Fix permissions if needed
-	changed, err = fr.permissionsChanged()
+	mode, err := dst.Mode()
 	if err != nil {
 		return err
 	}
 
-	if changed {
+	if mode.Perm() != os.FileMode(fr.Mode) {
 		fr.Printf(w, "setting permissions to %#o\n", fr.Mode)
-		fr.dstFile.Chmod(os.FileMode(fr.Mode))
+		dst.Chmod(os.FileMode(fr.Mode))
 	}
 
 	// Fix ownership if needed
-	changed, err = fr.ownerChanged()
+	owner, err := dst.Owner()
 	if err != nil {
 		return err
 	}
 
-	if changed {
+	if fr.Owner != owner.User.Username || fr.Group != owner.Group.Name {
 		fr.Printf(w, "setting owner to %s:%s\n", fr.Owner, fr.Group)
-		if err := fr.dstFile.SetOwner(fr.Owner, fr.Group); err != nil {
+		if err := dst.SetOwner(fr.Owner, fr.Group); err != nil {
 			return err
 		}
 	}
