@@ -19,9 +19,9 @@ const shellResourceDesc = "executes shell commands"
 type ShellResource struct {
 	BaseResource `hcl:",squash"`
 
-	Command string `hcl:"command" json:"command"`
+	Command string `hcl:"command"`
 
-	Creates string `hcl:"creates" json:"creates"`
+	Creates string `hcl:"creates"`
 }
 
 // NewShellResource creates a new resource for executing shell commands

@@ -24,13 +24,13 @@ type ServiceResource struct {
 	BaseResource `hcl:",squash"`
 
 	// Name of the service
-	Name string `hcl:"name" json:"name"`
+	Name string `hcl:"name"`
 
 	// If true then enable service during boot-time
-	Enable bool `hcl:"enable" json:"enable"`
+	Enable bool `hcl:"enable"`
 
 	// Systemd unit name
-	UnitName string `hcl:"-" json:"-"`
+	UnitName string `hcl:"-"`
 }
 
 // NewServiceResource creates a new resource for managing services

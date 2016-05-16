@@ -24,7 +24,7 @@ type PacmanResource struct {
 	BaseResource `hcl:",squash"`
 
 	// Name of the package
-	Name string `hcl:"name" json:"name"`
+	Name string `hcl:"name"`
 }
 
 // NewPacmanResource creates a new resource for managing packages
@@ -77,7 +77,7 @@ func (p *PacmanResource) Evaluate(w io.Writer, opts *Options) (State, error) {
 	return s, nil
 }
 
-// Create creates the resource
+// Create installs packages
 func (p *PacmanResource) Create(w io.Writer, opts *Options) error {
 	p.Printf(w, "installing package\n")
 
@@ -88,7 +88,7 @@ func (p *PacmanResource) Create(w io.Writer, opts *Options) error {
 	return err
 }
 
-// Delete deletes the resource
+// Delete deletes packages
 func (p *PacmanResource) Delete(w io.Writer, opts *Options) error {
 	p.Printf(w, "removing package\n")
 
@@ -99,7 +99,7 @@ func (p *PacmanResource) Delete(w io.Writer, opts *Options) error {
 	return err
 }
 
-// Update updates the resource
+// Update updates packages
 func (p *PacmanResource) Update(w io.Writer, opts *Options) error {
 	p.Printf(w, "updating package\n")
 
