@@ -30,6 +30,71 @@ type FileResource struct {
 
 	// Group of the file
 	Group string `hcl:"group"`
+
+	// Source file to use when creating/updating the file
+	Source string `hcl:"source"`
+
+	// The destination file we manage
+	dstFile *utils.FileUtil
+}
+
+// permissionsChanged returns a boolean indicating whether the
+// permissions of the file managed by the resource is different than the
+// permissions defined by the resource
+func (bfr *BaseFileResource) permissionsChanged() (bool, error) {
+	m, err := bfr.dstFile.Mode()
+	if err != nil {
+		return false, err
+	}
+
+	return m.Perm() != os.FileMode(bfr.Mode), nil
+}
+
+// ownerChanged returns a boolean indicating whether the
+// owner/group of the file managed by the resource is different than the
+// owner/group defined by the resource
+func (bfr *BaseFileResource) ownerChanged() (bool, error) {
+	owner, err := bfr.dstFile.Owner()
+	if err != nil {
+		return false, err
+	}
+
+	if bfr.Owner != owner.User.Username || bfr.Group != owner.Group.Name {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+// contentChanged returns a boolean indicating whether the
+// content of the file managed by the resource is different than the
+// content of the source file defined by the resource
+func (bfr *BaseFileResource) contentChanged(siteDir string) (bool, error) {
+	if bfr.Source == "" {
+		return false, nil
+	}
+
+	// Source file is expected to be found in the site directory
+	srcPath := filepath.Join(siteDir, "data", bfr.Source)
+	srcFile := utils.NewFileUtil(srcPath)
+
+	srcMd5, err := srcFile.Md5()
+	if err != nil {
+		return false, err
+	}
+
+	dstMd5, err := bfr.dstFile.Md5()
+	if err != nil {
+		return false, err
+	}
+
+	return srcMd5 != dstMd5, nil
+}
+
+// FileResource is a resource which manages files
+type FileResource struct {
+	BaseResource     `hcl:",squash"`
+	BaseFileResource `hcl:",squash"`
 }
 
 // NewFileResource creates a new resource for managing files
