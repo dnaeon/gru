@@ -5,6 +5,7 @@ import (
 	"crypto/sha1"
 	"crypto/sha256"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/user"
@@ -18,7 +19,7 @@ type FileUtil struct {
 	// Path to the file
 	path string
 
-	info os.FileInfo
+	os.FileInfo
 }
 
 // FileOwner type provides details about the user and group that owns a file
@@ -35,8 +36,8 @@ func NewFileUtil(path string) (*FileUtil, error) {
 	}
 
 	f := &FileUtil{
-		path: path,
-		info: info,
+		path,
+		info,
 	}
 
 	return f, nil
@@ -79,8 +80,8 @@ func (f *FileUtil) Sha256() (string, error) {
 
 // Owner retrieves the owner and group for the file
 func (f *FileUtil) Owner() (*FileOwner, error) {
-	uid := f.info.Sys().(*syscall.Stat_t).Uid
-	gid := f.info.Sys().(*syscall.Stat_t).Gid
+	uid := f.Sys().(*syscall.Stat_t).Uid
+	gid := f.Sys().(*syscall.Stat_t).Gid
 
 	u, err := user.LookupId(strconv.FormatInt(int64(uid), 10))
 	if err != nil {
@@ -120,4 +121,35 @@ func (f *FileUtil) SetOwner(owner, group string) error {
 	}
 
 	return os.Chown(f.path, uid, gid)
+}
+
+// CopyFrom copies contents from another source to the current file
+func (f *FileUtil) CopyFrom(from *FileUtil) error {
+	if !f.Mode().IsRegular() {
+		return fmt.Errorf("%s is not a regular file", f.path)
+	}
+
+	if !from.Mode().IsRegular() {
+		return fmt.Errorf("%s is not a regular file", from.path)
+	}
+
+	if os.SameFile(f, from) {
+		return nil
+	}
+
+	src, err := os.Open(from.path)
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	dst, err := os.Create(f.path)
+	if err != nil {
+		return err
+	}
+	defer dst.Close()
+
+	_, err = io.Copy(dst, src)
+
+	return err
 }
