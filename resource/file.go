@@ -69,15 +69,12 @@ func (bfr *BaseFileResource) ownerChanged() (bool, error) {
 // contentChanged returns a boolean indicating whether the
 // content of the file managed by the resource is different than the
 // content of the source file defined by the resource
-func (bfr *BaseFileResource) contentChanged(siteDir string) (bool, error) {
+func (bfr *BaseFileResource) contentChanged(srcPath string) (bool, error) {
 	if bfr.Source == "" {
 		return false, nil
 	}
 
-	// Source file is expected to be found in the site directory
-	srcPath := filepath.Join(siteDir, "data", bfr.Source)
 	srcFile := utils.NewFileUtil(srcPath)
-
 	srcMd5, err := srcFile.Md5()
 	if err != nil {
 		return false, err
@@ -137,7 +134,7 @@ func NewFileResource(title string, obj *ast.ObjectItem) (Resource, error) {
 	// Merge the decoded object with the resource defaults
 	err = mergo.Merge(&fr, defaults)
 
-	// Set the file utility for this file
+	// The destination file we manage
 	fr.dstFile = utils.NewFileUtil(fr.Path)
 
 	return &fr, err
@@ -165,7 +162,8 @@ func (fr *FileResource) Evaluate(w io.Writer, opts *Options) (State, error) {
 	}
 
 	// Check file content
-	changed, err := fr.contentChanged(opts.SiteDir)
+	srcPath := filepath.Join(opts.SiteDir, "data", fr.Source)
+	changed, err := fr.contentChanged(srcPath)
 	if err != nil {
 		return rs, err
 	}
@@ -241,13 +239,14 @@ func (fr *FileResource) Delete(w io.Writer, opts *Options) error {
 // Update updates the file managed by the resource
 func (fr *FileResource) Update(w io.Writer, opts *Options) error {
 	// Update file content if needed
-	changed, err := fr.contentChanged(opts.SiteDir)
+	srcPath := filepath.Join(opts.SiteDir, "data", fr.Source)
+	changed, err := fr.contentChanged(srcPath)
 	if err != nil {
 		return err
 	}
 
 	if changed {
-		srcFile := utils.NewFileUtil(filepath.Join(opts.SiteDir, "data", fr.Source))
+		srcFile := utils.NewFileUtil(srcPath)
 		srcMd5, err := srcFile.Md5()
 		if err != nil {
 			return err
@@ -277,12 +276,7 @@ func (fr *FileResource) Update(w io.Writer, opts *Options) error {
 	}
 
 	if changed {
-		owner, err := fr.dstFile.Owner()
-		if err != nil {
-			return err
-		}
-
-		fr.Printf(w, "setting owner to %s:%s\n", owner.User.Username, owner.Group.Name)
+		fr.Printf(w, "setting owner to %s:%s\n", fr.Owner, fr.Group)
 		if err := fr.dstFile.SetOwner(fr.Owner, fr.Group); err != nil {
 			return err
 		}
