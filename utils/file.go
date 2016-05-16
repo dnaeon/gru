@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/user"
+	"path/filepath"
 	"strconv"
 	"syscall"
 )
@@ -39,6 +40,11 @@ func NewFileUtil(path string) (*FileUtil, error) {
 	}
 
 	return f, nil
+}
+
+// Abs returns the absolute path for the file
+func (f *FileUtil) Abs() (string, error) {
+	return filepath.Abs(f.path)
 }
 
 // Md5 returns the md5 checksum of the file's contents
