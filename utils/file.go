@@ -90,3 +90,28 @@ func (f *FileUtil) Owner() (*FileOwner, error) {
 
 	return owner, nil
 }
+
+// SetOwner sets the ownership for the file
+func (f *FileUtil) SetOwner(owner, group string) error {
+	o, err := user.Lookup(owner)
+	if err != nil {
+		return err
+	}
+
+	g, err := user.LookupGroup(group)
+	if err != nil {
+		return err
+	}
+
+	uid, err := strconv.Atoi(o.Uid)
+	if err != nil {
+		return err
+	}
+
+	gid, err := strconv.Atoi(g.Gid)
+	if err != nil {
+		return err
+	}
+
+	return os.Chown(f.path, uid, gid)
+}
