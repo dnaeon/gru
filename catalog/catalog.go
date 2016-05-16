@@ -36,6 +36,10 @@ func (c *Catalog) Run(w io.Writer, opts *resource.Options) error {
 			continue
 		}
 
+		if opts.DryRun {
+			continue
+		}
+
 		var resourceErr error
 		switch {
 		case state.Want == state.Current:
