@@ -17,6 +17,10 @@ import (
 const fileResourceType = "file"
 const fileResourceDesc = "manages files"
 
+// File types
+const fileTypeRegular = "file"
+const fileTypeDirectory = "directory"
+
 // BaseFileResource is the base resource for managing files
 type BaseFileResource struct {
 	// Path to the file
@@ -33,6 +37,9 @@ type BaseFileResource struct {
 
 	// Source file to use when creating/updating the file
 	Source string `hcl:"source"`
+
+	// The file type we manage
+	FileType string `hcl:"type"`
 }
 
 // FileResource is a resource which manages files
@@ -65,10 +72,11 @@ func NewFileResource(title string, obj *ast.ObjectItem) (Resource, error) {
 			State: StatePresent,
 		},
 		BaseFileResource: BaseFileResource{
-			Path:  title,
-			Mode:  0644,
-			Owner: defaultOwner,
-			Group: defaultGroup,
+			Path:     title,
+			Mode:     0644,
+			Owner:    defaultOwner,
+			Group:    defaultGroup,
+			FileType: fileTypeRegular,
 		},
 	}
 
@@ -80,8 +88,15 @@ func NewFileResource(title string, obj *ast.ObjectItem) (Resource, error) {
 
 	// Merge the decoded object with the resource defaults
 	err = mergo.Merge(&fr, defaults)
+	if err != nil {
+		return nil, err
+	}
 
-	return &fr, err
+	if fr.FileType != fileTypeRegular || fr.FileType != fileTypeDirectory {
+		return nil, fmt.Errorf("Unknown file type '%s'", fr.FileType)
+	}
+
+	return &fr, nil
 }
 
 // Evaluate evaluates the file resource
@@ -96,17 +111,28 @@ func (fr *FileResource) Evaluate(w io.Writer, opts *Options) (State, error) {
 	dst := utils.NewFileUtil(fr.Path)
 
 	// File does not exist
-	fi, err := os.Stat(fr.Path)
-	if os.IsNotExist(err) {
+	if !dst.Exists() {
 		rs.Current = StateAbsent
 		return rs, nil
 	} else {
 		rs.Current = StatePresent
 	}
 
-	// Ensure that the file we manage is a regular file
-	if !fi.Mode().IsRegular() {
-		return rs, fmt.Errorf("%s is not a regular file", fr.Path)
+	fi, err := os.Stat(fr.Path)
+	if err != nil {
+		return rs, err
+	}
+
+	// Check the target file we manage
+	switch fr.FileType {
+	case fileTypeRegular:
+		if !fi.Mode().IsRegular() {
+			return rs, fmt.Errorf("%s exists, but is not a regular file", fr.Path)
+		}
+	case fileTypeDirectory:
+		if !fi.IsDir() {
+			return rs, fmt.Errorf("%s exists, but is not a directory", fr.Path)
+		}
 	}
 
 	// Check file content
@@ -147,15 +173,13 @@ func (fr *FileResource) Evaluate(w io.Writer, opts *Options) (State, error) {
 	return rs, nil
 }
 
-// Create creates the file managed by the resource
-func (fr *FileResource) Create(w io.Writer, opts *Options) error {
+// createRegularFile creates the file and content managed by the resource
+func (fr *FileResource) createRegularFile(opts *Options) error {
 	dst := utils.NewFileUtil(fr.Path)
-	fr.Printf(w, "creating file\n")
 
-	// Set file content
 	switch {
 	case fr.Source == "" && dst.Exists():
-		// Do nothing
+		// We have no source, do nothing
 		break
 	case fr.Source == "" && !dst.Exists():
 		// Create an empty file
@@ -166,6 +190,35 @@ func (fr *FileResource) Create(w io.Writer, opts *Options) error {
 		// File exists and we have a source file
 		srcPath := filepath.Join(opts.SiteDir, "data", fr.Source)
 		if err := dst.CopyFrom(srcPath); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// createDirectory creates the directory and content managed by the resource
+func (fr *FileResource) createDirectory(opts *Options) error {
+	if err := os.Mkdir(fr.Path, os.FileMode(fr.Mode)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Create creates the file managed by the resource
+func (fr *FileResource) Create(w io.Writer, opts *Options) error {
+	dst := utils.NewFileUtil(fr.Path)
+	fr.Printf(w, "creating resource\n")
+
+	// Set content
+	switch fr.FileType {
+	case fileTypeRegular:
+		if err := fr.createRegularFile(opts); err != nil {
+			return err
+		}
+	case fileTypeDirectory:
+		if err := fr.createDirectory(opts); err != nil {
 			return err
 		}
 	}
