@@ -35,7 +35,7 @@ func NewFileUtil(path string) *FileUtil {
 func (fu *FileUtil) Exists() bool {
 	_, err := os.Stat(fu.Path)
 
-	return os.IsExist(err)
+	return !os.IsNotExist(err)
 }
 
 // Abs returns the absolute path for the file
@@ -154,17 +154,9 @@ func (fu *FileUtil) CopyFrom(srcPath string) error {
 		return fmt.Errorf("%s is not a regular file", srcPath)
 	}
 
-	dstInfo, err := os.Stat(fu.Path)
-	if err != nil {
-		return err
-	}
-
-	if !dstInfo.Mode().IsRegular() {
-		return fmt.Errorf("%s is not a regular file", fu.Path)
-	}
-
-	if os.SameFile(srcInfo, dstInfo) {
-		return nil
+	_, err = os.Stat(fu.Path)
+	if !os.IsNotExist(err) {
+		return fmt.Errorf("%s already exists", fu.Path)
 	}
 
 	srcFile, err := os.Open(srcPath)
@@ -179,9 +171,11 @@ func (fu *FileUtil) CopyFrom(srcPath string) error {
 	}
 	defer dstFile.Close()
 
-	_, err = io.Copy(dstFile, srcFile)
+	if _, err := io.Copy(dstFile, srcFile); err != nil {
+		return err
+	}
 
-	return err
+	return os.Chmod(fu.Path, srcInfo.Mode())
 }
 
 // SameContentWith returns a boolean indicating whether the
@@ -199,4 +193,92 @@ func (fu *FileUtil) SameContentWith(dst string) (bool, error) {
 	}
 
 	return srcMd5 == dstMd5, nil
+}
+
+// SameContent returns a boolean indicating whether two
+// files have the same content
+func SameContent(src, dst string) (bool, error) {
+	srcFile := NewFileUtil(src)
+
+	return srcFile.SameContentWith(dst)
+}
+
+// WalkPath walks a path and returns a slice of file names
+// that were found during path traversing
+func WalkPath(root string, skip []string) ([]string, error) {
+	var files []string
+
+	walker := func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Skip specific directories if provided
+		if info.IsDir() {
+			for _, name := range skip {
+				if name == info.Name() {
+					return filepath.SkipDir
+				}
+			}
+		}
+		files = append(files, path)
+
+		return nil
+	}
+
+	return files, filepath.Walk(root, walker)
+}
+
+// CopyDir recursively copies files from one directory to another
+func CopyDir(srcPath, dstPath string) error {
+	srcInfo, err := os.Stat(srcPath)
+	if err != nil {
+		return err
+	}
+
+	// Ensure the source is an actual directory
+	if !srcInfo.IsDir() {
+		return fmt.Errorf("%s is not a directory", srcPath)
+	}
+
+	// Ensure the destination does not yet exist
+	_, err = os.Open(dstPath)
+	if !os.IsNotExist(err) {
+		return fmt.Errorf("%s already exists", dstPath)
+	}
+
+	if err := os.MkdirAll(dstPath, srcInfo.Mode()); err != nil {
+		return err
+	}
+
+	// Read in the source files
+	srcDir, err := os.Open(srcPath)
+	if err != nil {
+		return err
+	}
+
+	srcFiles, err := srcDir.Readdir(-1)
+	if err != nil {
+		return err
+	}
+
+	for _, fi := range srcFiles {
+		srcName := filepath.Join(srcPath, fi.Name())
+		dstName := filepath.Join(dstPath, fi.Name())
+
+		// Copy sub directories
+		if fi.IsDir() {
+			if err := CopyDir(srcName, dstName); err != nil {
+				return err
+			}
+		} else {
+			// Copy file
+			dstFile := NewFileUtil(dstName)
+			if err := dstFile.CopyFrom(srcName); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
