@@ -44,13 +44,15 @@ type BaseFileResource struct {
 
 	// Recursively manage the directory
 	Recursive bool `hcl:"recursive"`
+
+	// Purge extra files if found
+	Purge bool `hcl:"purge"`
 }
 
 // Flags used to indicate what has changed on a file
 const flagOutdatedContent = 0x01
 const flagOutdatedPermissions = 0x02
-const flagOutdatedOwner = 0x03
-const flagExtraFile = 0x04
+const flagOutdatedOwner = 0x04
 
 // outdatedFile type is used to describe a file which
 // has been identified as being out of date
@@ -72,6 +74,9 @@ type FileResource struct {
 
 	// Files identified as being out of date
 	outdated []*outdatedFile
+
+	// Extra files found in the managed directory
+	extra map[string]struct{}
 }
 
 // NewFileResource creates a new resource for managing files
@@ -101,6 +106,7 @@ func NewFileResource(title string, obj *ast.ObjectItem) (Resource, error) {
 			Group:     currentGroup.Name,
 			FileType:  fileTypeRegular,
 			Recursive: false,
+			Purge:     false,
 		},
 	}
 
@@ -120,6 +126,9 @@ func NewFileResource(title string, obj *ast.ObjectItem) (Resource, error) {
 	if fr.FileType != fileTypeRegular && fr.FileType != fileTypeDirectory {
 		return nil, fmt.Errorf("Unknown file type '%s'", fr.FileType)
 	}
+
+	// Extra files not found in source, but present in destination
+	fr.extra = make(map[string]struct{})
 
 	return &fr, nil
 }
@@ -190,9 +199,14 @@ func (fr *FileResource) Evaluate(w io.Writer, opts *Options) (State, error) {
 	}
 
 	// Report on what has been identified as being out of date
-	for _, item := range fr.outdated {
-		// TODO: Report extra files
+	if fr.Purge {
+		for name := range fr.extra {
+			fr.Printf(w, "%s exists, but is not part of source\n", name)
+			rs.Update = true
+		}
+	}
 
+	for _, item := range fr.outdated {
 		if item.flags&flagOutdatedContent != 0 {
 			fr.Printf(w, "content of %s is out of date\n", item.dst)
 		}
@@ -259,12 +273,22 @@ func (fr *FileResource) Delete(w io.Writer, opts *Options) error {
 	return os.Remove(fr.Path)
 }
 
-// Update updates the file managed by the resource
+// Update updates the files managed by the resource
 func (fr *FileResource) Update(w io.Writer, opts *Options) error {
+	// Purge extra files
+	if fr.Purge {
+		for name := range fr.extra {
+			dstFile := utils.NewFileUtil(name)
+			fr.Printf(w, "purging %s\n", name)
+			if err := dstFile.Remove(); err != nil {
+				return err
+			}
+		}
+	}
+
+	// Fix outdated files
 	for _, item := range fr.outdated {
 		dstFile := utils.NewFileUtil(item.dst)
-
-		// TODO: Purge extra files
 
 		// Update file content if needed
 		if item.flags&flagOutdatedContent != 0 {
@@ -457,13 +481,8 @@ func (fr *FileResource) isDirectoryContentOutdated(opts *Options) (bool, error) 
 
 		// Check for extra files in the managed directory
 		for name := range dstRegistry {
-			item := &outdatedFile{
-				dst: dstRegistry[name],
-			}
-			item.flags |= flagExtraFile
 			if _, ok := srcRegistry[name]; !ok {
-				fr.outdated = append(fr.outdated, item)
-				isOutdated = true
+				fr.extra[dstRegistry[name]] = struct{}{}
 			}
 		}
 	}
@@ -485,6 +504,11 @@ func (fr *FileResource) isPermissionsOutdated() (bool, error) {
 
 	isOutdated := false
 	for name := range dstRegistry {
+		// Skip extra files
+		if _, ok := fr.extra[dstRegistry[name]]; ok {
+			continue
+		}
+
 		item := &outdatedFile{
 			dst: dstRegistry[name],
 		}
@@ -519,6 +543,11 @@ func (fr *FileResource) isOwnerOutdated() (bool, error) {
 
 	isOutdated := false
 	for name := range dstRegistry {
+		// Skip extra files
+		if _, ok := fr.extra[dstRegistry[name]]; ok {
+			continue
+		}
+
 		item := &outdatedFile{
 			dst: dstRegistry[name],
 		}
