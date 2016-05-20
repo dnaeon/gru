@@ -46,6 +46,12 @@ type BaseFileResource struct {
 	Recursive bool `hcl:"recursive"`
 }
 
+// Flags used to indicate what has changed on a file
+const flagOutdatedContent = 0x01
+const flagOutdatedPermissions = 0x02
+const flagOutdatedOwner = 0x03
+const flagExtraFile = 0x04
+
 // outdatedFile type is used to describe a file which
 // has been identified as being out of date
 type outdatedFile struct {
@@ -55,17 +61,8 @@ type outdatedFile struct {
 	// The destination file which is identified as being out of date
 	dst string
 
-	// Flag to indicate that the content is out of date
-	isContentOutdated bool
-
-	// Flag to indicate that the permissions are out of date
-	isPermissionsOutdated bool
-
-	// Flag to indicate that the owner is out of date
-	isOwnerOutdated bool
-
-	// Flag to indicate that file exists in destination, but not in source
-	isExtra bool
+	// Flags used to indicate what has changed on the file
+	flags int
 }
 
 // FileResource is a resource which manages files and directories
@@ -196,13 +193,13 @@ func (fr *FileResource) Evaluate(w io.Writer, opts *Options) (State, error) {
 	for _, item := range fr.outdated {
 		// TODO: Report extra files
 
-		if item.isContentOutdated && !item.isExtra {
+		if item.flags&flagOutdatedContent != 0 {
 			fr.Printf(w, "content of %s is out of date\n", item.dst)
 		}
-		if item.isPermissionsOutdated {
+		if item.flags&flagOutdatedPermissions != 0 {
 			fr.Printf(w, "permissions of %s are out of date\n", item.dst)
 		}
-		if item.isOwnerOutdated {
+		if item.flags&flagOutdatedOwner != 0 {
 			fr.Printf(w, "owner of %s is out of date\n", item.dst)
 		}
 	}
@@ -231,6 +228,7 @@ func (fr *FileResource) Create(w io.Writer, opts *Options) error {
 		if err := fr.createDirectory(opts); err != nil {
 			return err
 		}
+
 		dstRegistry, err := directoryFileRegistry(fr.Path, []string{})
 		if err != nil {
 			return err
@@ -269,7 +267,7 @@ func (fr *FileResource) Update(w io.Writer, opts *Options) error {
 		// TODO: Purge extra files
 
 		// Update file content if needed
-		if item.isContentOutdated {
+		if item.flags&flagOutdatedContent != 0 {
 			// Create parent directory for file if missing
 			dstDir := filepath.Dir(item.dst)
 			_, err := os.Stat(dstDir)
@@ -292,7 +290,7 @@ func (fr *FileResource) Update(w io.Writer, opts *Options) error {
 		}
 
 		// Update permissions if needed
-		if item.isPermissionsOutdated {
+		if item.flags&flagOutdatedPermissions != 0 {
 			fr.Printf(w, "setting permissions of %s to %#o\n", item.dst, fr.Mode)
 			if err := dstFile.Chmod(os.FileMode(fr.Mode)); err != nil {
 				return err
@@ -300,7 +298,7 @@ func (fr *FileResource) Update(w io.Writer, opts *Options) error {
 		}
 
 		// Update ownership if needed
-		if item.isOwnerOutdated {
+		if item.flags&flagOutdatedOwner != 0 {
 			fr.Printf(w, "setting owner of %s to %s:%s\n", item.dst, fr.Owner, fr.Group)
 			if err := dstFile.SetOwner(fr.Owner, fr.Group); err != nil {
 				return err
@@ -394,10 +392,10 @@ func (fr *FileResource) isRegularFileContentOutdated(opts *Options) (bool, error
 
 		if !same {
 			item := &outdatedFile{
-				src:               srcPath,
-				dst:               fr.Path,
-				isContentOutdated: true,
+				src: srcPath,
+				dst: fr.Path,
 			}
+			item.flags |= flagOutdatedContent
 			fr.outdated = append(fr.outdated, item)
 			return true, nil
 		}
@@ -432,10 +430,10 @@ func (fr *FileResource) isDirectoryContentOutdated(opts *Options) (bool, error) 
 		// Check source and destination files' content
 		for name := range srcRegistry {
 			item := &outdatedFile{
-				src:               srcRegistry[name],
-				dst:               dstRegistry[name],
-				isContentOutdated: true,
+				src: srcRegistry[name],
+				dst: dstRegistry[name],
 			}
+			item.flags |= flagOutdatedContent
 
 			// File is missing
 			if _, ok := dstRegistry[name]; !ok {
@@ -460,9 +458,9 @@ func (fr *FileResource) isDirectoryContentOutdated(opts *Options) (bool, error) 
 		// Check for extra files in the managed directory
 		for name := range dstRegistry {
 			item := &outdatedFile{
-				dst:     dstRegistry[name],
-				isExtra: true,
+				dst: dstRegistry[name],
 			}
+			item.flags |= flagExtraFile
 			if _, ok := srcRegistry[name]; !ok {
 				fr.outdated = append(fr.outdated, item)
 				isOutdated = true
@@ -489,8 +487,8 @@ func (fr *FileResource) isPermissionsOutdated() (bool, error) {
 	for name := range dstRegistry {
 		item := &outdatedFile{
 			dst: dstRegistry[name],
-			isPermissionsOutdated: true,
 		}
+		item.flags |= flagOutdatedPermissions
 
 		dst := utils.NewFileUtil(dstRegistry[name])
 		mode, err := dst.Mode()
@@ -522,10 +520,9 @@ func (fr *FileResource) isOwnerOutdated() (bool, error) {
 	isOutdated := false
 	for name := range dstRegistry {
 		item := &outdatedFile{
-			dst:             dstRegistry[name],
-			isOwnerOutdated: true,
+			dst: dstRegistry[name],
 		}
-
+		item.flags |= flagOutdatedOwner
 		dst := utils.NewFileUtil(dstRegistry[name])
 		owner, err := dst.Owner()
 		if err != nil {
