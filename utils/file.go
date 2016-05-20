@@ -144,7 +144,7 @@ func (fu *FileUtil) SetOwner(owner, group string) error {
 }
 
 // CopyFrom copies contents from another source to the current file
-func (fu *FileUtil) CopyFrom(srcPath string) error {
+func (fu *FileUtil) CopyFrom(srcPath string, overwrite bool) error {
 	srcInfo, err := os.Stat(srcPath)
 	if err != nil {
 		return err
@@ -154,9 +154,14 @@ func (fu *FileUtil) CopyFrom(srcPath string) error {
 		return fmt.Errorf("%s is not a regular file", srcPath)
 	}
 
-	_, err = os.Stat(fu.Path)
+	mode := srcInfo.Mode()
+	dstInfo, err := os.Stat(fu.Path)
 	if !os.IsNotExist(err) {
-		return fmt.Errorf("%s already exists", fu.Path)
+		if !overwrite {
+			return fmt.Errorf("%s already exists", fu.Path)
+		} else {
+			mode = dstInfo.Mode()
+		}
 	}
 
 	srcFile, err := os.Open(srcPath)
@@ -175,7 +180,7 @@ func (fu *FileUtil) CopyFrom(srcPath string) error {
 		return err
 	}
 
-	return os.Chmod(fu.Path, srcInfo.Mode())
+	return os.Chmod(fu.Path, mode)
 }
 
 // SameContentWith returns a boolean indicating whether the
@@ -274,7 +279,7 @@ func CopyDir(srcPath, dstPath string) error {
 		} else {
 			// Copy file
 			dstFile := NewFileUtil(dstName)
-			if err := dstFile.CopyFrom(srcName); err != nil {
+			if err := dstFile.CopyFrom(srcName, false); err != nil {
 				return err
 			}
 		}
