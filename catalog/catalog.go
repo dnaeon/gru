@@ -10,18 +10,30 @@ import (
 
 // Catalog type represents a collection of modules and resources
 type Catalog struct {
-	Modules   []*module.Module
+	// Loaded modules after topological sorting
+	Modules []*module.Module
+
+	// Instantiated resources from the loaded modules
 	Resources []resource.Resource
+
+	// Catalog configuration
+	Config *Config
 }
 
-// New creates a new empty catalog
-func New() *Catalog {
-	c := &Catalog{
-		Modules:   make([]*module.Module, 0),
-		Resources: make([]resource.Resource, 0),
-	}
+// Config type represents a set of settings to use when
+// creating and processing the catalog
+type Config struct {
+	// Main module name to load
+	Main string
 
-	return c
+	// Module path to use
+	Path string
+
+	// Do not take any actions, just report what would be done
+	DryRun bool
+
+	// Options for resources
+	ResourceOpts *resource.Options
 }
 
 // Run processes the catalog
@@ -78,21 +90,23 @@ func (c *Catalog) Run(w io.Writer, opts *resource.Options) error {
 	return nil
 }
 
-// Load creates a catalog from the provided module.
-// The module is expected to be found in the module path
-// provided by the path argument.
-func Load(main, path string) (*Catalog, error) {
-	c := New()
+// Load creates a new catalog from the provided configuration
+func Load(config *Config) (*Catalog, error) {
+	c := &Catalog{
+		Modules:   make([]*module.Module, 0),
+		Resources: make([]resource.Resource, 0),
+		Config:    config,
+	}
 
 	// Discover and load the modules from the provided
 	// module path, sort the import graph and
 	// finally add the sorted modules to the catalog
-	modules, err := module.DiscoverAndLoad(path)
+	modules, err := module.DiscoverAndLoad(config.Path)
 	if err != nil {
 		return c, err
 	}
 
-	modulesGraph, err := module.ImportGraph(main, path)
+	modulesGraph, err := module.ImportGraph(config.Main, config.Path)
 	if err != nil {
 		return c, err
 	}
