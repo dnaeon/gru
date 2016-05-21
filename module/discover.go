@@ -6,8 +6,8 @@ import (
 	"strings"
 )
 
-// Valid module files must have one of these extension
-var moduleExtension = []string{".hcl", ".json"}
+// Extension is the extension used by module files
+const Extension = ".hcl"
 
 // DiscoveredRegistry type contains discovered modules as returned by the
 // Discover() function.
@@ -37,15 +37,7 @@ func Discover(root string) (DiscoveredRegistry, error) {
 
 		// Skip files which don't appear to be valid module files
 		fileExt := filepath.Ext(info.Name())
-		validExt := false
-		for _, ext := range moduleExtension {
-			if fileExt == ext {
-				validExt = true
-				break
-			}
-		}
-
-		if !validExt {
+		if fileExt != Extension {
 			return nil
 		}
 
@@ -64,12 +56,7 @@ func Discover(root string) (DiscoveredRegistry, error) {
 		return nil
 	}
 
-	err := filepath.Walk(root, walker)
-	if err != nil {
-		return registry, err
-	}
-
-	return registry, nil
+	return registry, filepath.Walk(root, walker)
 }
 
 // DiscoverAndLoad discovers valid modules from a given
