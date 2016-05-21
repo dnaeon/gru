@@ -159,9 +159,8 @@ func (fu *FileUtil) CopyFrom(srcPath string, overwrite bool) error {
 	if !os.IsNotExist(err) {
 		if !overwrite {
 			return fmt.Errorf("%s already exists", fu.Path)
-		} else {
-			mode = dstInfo.Mode()
 		}
+		mode = dstInfo.Mode()
 	}
 
 	srcFile, err := os.Open(srcPath)

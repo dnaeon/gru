@@ -146,9 +146,9 @@ func (fr *FileResource) Evaluate() (State, error) {
 	if os.IsNotExist(err) {
 		rs.Current = StateAbsent
 		return rs, nil
-	} else {
-		rs.Current = StatePresent
 	}
+
+	rs.Current = StatePresent
 
 	// Check the file(s) content, permissions and ownership
 	switch fr.FileType {
