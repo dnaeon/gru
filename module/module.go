@@ -21,8 +21,20 @@ type Module struct {
 	// Module imports
 	Imports []Import
 
+	// Configuration settings for the module
+	Config *Config
+
 	// Unknown keys found in the module
 	UnknownKeys []string
+}
+
+// Config type contains configuration options for the module
+type Config struct {
+	// Module path
+	Path string
+
+	// Configuration settings for the resources
+	ResourceConfig *resource.Config
 }
 
 // Import type represents an import declaration
@@ -49,20 +61,15 @@ func validKeys() map[string]struct{} {
 	return keys
 }
 
-// New creates a new empty module
-func New(name string) *Module {
-	m := &Module{
-		Name:      name,
-		Resources: make([]resource.Resource, 0),
-		Imports:   make([]Import, 0),
-	}
-
-	return m
-}
-
 // Load loads a module from the given HCL or JSON input
-func Load(name string, r io.Reader) (*Module, error) {
-	m := New(name)
+func Load(name string, config *Config, r io.Reader) (*Module, error) {
+	m := &Module{
+		Name:        name,
+		Resources:   make([]resource.Resource, 0),
+		Imports:     make([]Import, 0),
+		UnknownKeys: make([]string, 0),
+		Config:      config,
+	}
 
 	input, err := ioutil.ReadAll(r)
 	if err != nil {
@@ -81,15 +88,15 @@ func Load(name string, r io.Reader) (*Module, error) {
 		return m, fmt.Errorf("Missing root node in %s", name)
 	}
 
+	// Load the module imports
 	err = m.hclLoadImport(root)
 	if err != nil {
 		return m, err
 	}
 
 	// Load all known resource types from the given input
-	for name := range resource.Registry {
-		err = m.hclLoadResources(name, root)
-		if err != nil {
+	for r := range resource.Registry {
+		if err := m.hclLoadResources(r, root); err != nil {
 			return m, err
 		}
 	}
@@ -124,15 +131,15 @@ func (m *Module) hclLoadResources(resourceType string, root *ast.ObjectList) err
 		}
 
 		// Get the resource from registry and create the actual resource
-		resourceName := item.Keys[0].Token.Value().(string)
-		registryItem, ok := resource.Registry[resourceType]
+		title := item.Keys[0].Token.Value().(string)
+		resourceItem, ok := resource.Registry[resourceType]
 		if !ok {
 			e := fmt.Errorf("Unknown resource type '%s' found in %s:%s", resourceType, m.Name, position)
 			return e
 		}
 
 		// Create the actual resource by calling it's provider
-		r, err := registryItem.Provider(resourceName, item)
+		r, err := resourceItem.Provider(title, item, m.Config.ResourceConfig)
 		if err != nil {
 			return err
 		}

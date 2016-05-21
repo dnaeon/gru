@@ -74,10 +74,10 @@ func Discover(root string) (DiscoveredRegistry, error) {
 
 // DiscoverAndLoad discovers valid modules from a given
 // module path and attemps to load each valid module file.
-func DiscoverAndLoad(path string) (LoadedRegistry, error) {
+func DiscoverAndLoad(config *Config) (LoadedRegistry, error) {
 	registry := make(LoadedRegistry)
 
-	discovered, err := Discover(path)
+	discovered, err := Discover(config.Path)
 	if err != nil {
 		return registry, err
 	}
@@ -88,7 +88,7 @@ func DiscoverAndLoad(path string) (LoadedRegistry, error) {
 			return registry, err
 		}
 
-		m, err := Load(n, f)
+		m, err := Load(n, config, f)
 		if err != nil {
 			return registry, err
 		}
