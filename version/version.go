@@ -1,4 +1,4 @@
 package version
 
-// Version of Gru package
-const Version = "0.1.0"
+// Version of Gru
+const Version = "0.2.0"
