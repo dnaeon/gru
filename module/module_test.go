@@ -24,7 +24,7 @@ pacman "tmux" {
   state = "present"
 }
 `
-	hclModule, err := Load("main", bytes.NewBufferString(hclInput))
+	hclModule, err := Load("main", &Config{}, bytes.NewBufferString(hclInput))
 	if err != nil {
 		t.Fatal(err)
 	}
