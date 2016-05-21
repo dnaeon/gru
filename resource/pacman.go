@@ -4,6 +4,7 @@ package resource
 
 import (
 	"os/exec"
+	"strings"
 
 	"github.com/hashicorp/hcl"
 	"github.com/hashicorp/hcl/hcl/ast"
@@ -83,7 +84,10 @@ func (pr *PacmanResource) Create() error {
 
 	cmd := exec.Command(pacmanPath, "--sync", "--noconfirm", pr.Name)
 	out, err := cmd.CombinedOutput()
-	pr.Printf(string(out))
+
+	for _, line := range strings.Split(string(out), "\n") {
+		pr.Printf("%s\n", line)
+	}
 
 	return err
 }
@@ -94,7 +98,10 @@ func (pr *PacmanResource) Delete() error {
 
 	cmd := exec.Command(pacmanPath, "--remove", "--noconfirm", pr.Name)
 	out, err := cmd.CombinedOutput()
-	pr.Printf(string(out))
+
+	for _, line := range strings.Split(string(out), "\n") {
+		pr.Printf("%s\n", line)
+	}
 
 	return err
 }

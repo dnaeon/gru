@@ -83,7 +83,10 @@ func (sr *ShellResource) Create() error {
 	args := strings.Fields(sr.Command)
 	cmd := exec.Command(args[0], args[1:]...)
 	out, err := cmd.CombinedOutput()
-	sr.Printf(string(out))
+
+	for _, line := range strings.Split(string(out), "\n") {
+		sr.Printf("%s\n", line)
+	}
 
 	return err
 }
