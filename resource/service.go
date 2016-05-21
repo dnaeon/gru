@@ -47,37 +47,37 @@ func NewServiceResource(title string, obj *ast.ObjectItem, config *Config) (Reso
 		Enable: false,
 	}
 
-	var s ServiceResource
-	err := hcl.DecodeObject(&s, obj)
+	var sr ServiceResource
+	err := hcl.DecodeObject(&sr, obj)
 	if err != nil {
 		return nil, err
 	}
 
 	// Merge the decoded object with the resource defaults
-	err = mergo.Merge(&s, defaults)
+	err = mergo.Merge(&sr, defaults)
 
 	// Set the unit name for the service we manage
-	s.UnitName = fmt.Sprintf("%s.service", s.Name)
+	sr.UnitName = fmt.Sprintf("%s.service", sr.Name)
 
-	return &s, err
+	return &sr, err
 }
 
 // unitProperty retrieves the requested property for the service unit
-func (s *ServiceResource) unitProperty(propertyName string) (*dbus.Property, error) {
+func (sr *ServiceResource) unitProperty(propertyName string) (*dbus.Property, error) {
 	conn, err := dbus.New()
 	if err != nil {
 		return nil, err
 	}
 	defer conn.Close()
 
-	property, err := conn.GetUnitProperty(s.UnitName, propertyName)
+	property, err := conn.GetUnitProperty(sr.UnitName, propertyName)
 
 	return property, err
 }
 
 // unitIsEnabled checks if the unit is enabled or disabled
-func (s *ServiceResource) unitIsEnabled() (bool, error) {
-	unitState, err := s.unitProperty("UnitFileState")
+func (sr *ServiceResource) unitIsEnabled() (bool, error) {
+	unitState, err := sr.unitProperty("UnitFileState")
 	if err != nil {
 		return false, err
 	}
@@ -96,53 +96,53 @@ func (s *ServiceResource) unitIsEnabled() (bool, error) {
 }
 
 // enableUnit enables the service unit during boot-time
-func (s *ServiceResource) enableUnit() error {
+func (sr *ServiceResource) enableUnit() error {
 	conn, err := dbus.New()
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
-	s.Printf("enabling service\n")
+	sr.Printf("enabling service\n")
 
-	units := []string{s.UnitName}
+	units := []string{sr.UnitName}
 	_, changes, err := conn.EnableUnitFiles(units, false, false)
 	if err != nil {
 		return err
 	}
 
 	for _, change := range changes {
-		s.Printf("%s %s -> %s\n", change.Type, change.Filename, change.Destination)
+		sr.Printf("%s %s -> %s\n", change.Type, change.Filename, change.Destination)
 	}
 
 	return nil
 }
 
 // disableUnit disables the service unit during boot-time
-func (s *ServiceResource) disableUnit() error {
+func (sr *ServiceResource) disableUnit() error {
 	conn, err := dbus.New()
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
-	s.Printf("disabling service\n")
+	sr.Printf("disabling service\n")
 
-	units := []string{s.UnitName}
+	units := []string{sr.UnitName}
 	changes, err := conn.DisableUnitFiles(units, false)
 	if err != nil {
 		return err
 	}
 
 	for _, change := range changes {
-		s.Printf("%s %s\n", change.Type, change.Filename)
+		sr.Printf("%s %s\n", change.Type, change.Filename)
 	}
 
 	return nil
 }
 
 // daemonReload instructs systemd to scan for and reload unit files
-func (s *ServiceResource) daemonReload() error {
+func (sr *ServiceResource) daemonReload() error {
 	conn, err := dbus.New()
 	if err != nil {
 		return err
@@ -153,17 +153,17 @@ func (s *ServiceResource) daemonReload() error {
 }
 
 // Evaluate evaluates the state of the resource
-func (s *ServiceResource) Evaluate() (State, error) {
-	resourceState := State{
+func (sr *ServiceResource) Evaluate() (State, error) {
+	rs := State{
 		Current: StateUnknown,
-		Want:    s.State,
+		Want:    sr.State,
 		Update:  false,
 	}
 
 	// Check if the unit is started/stopped
-	activeState, err := s.unitProperty("ActiveState")
+	activeState, err := sr.unitProperty("ActiveState")
 	if err != nil {
-		return resourceState, err
+		return rs, err
 	}
 
 	// TODO: Handle cases where the unit is not found
@@ -171,83 +171,83 @@ func (s *ServiceResource) Evaluate() (State, error) {
 	value := activeState.Value.Value().(string)
 	switch value {
 	case "active", "reloading", "activating":
-		resourceState.Current = StateRunning
+		rs.Current = StateRunning
 	case "inactive", "failed", "deactivating":
-		resourceState.Current = StateStopped
+		rs.Current = StateStopped
 	}
 
 	// Check if the unit is enabled/disabled
-	enabled, err := s.unitIsEnabled()
+	enabled, err := sr.unitIsEnabled()
 	if err != nil {
-		return resourceState, err
+		return rs, err
 	}
 
 	// Check if the resource needs to be updated
-	if s.Enable != enabled {
-		resourceState.Update = true
+	if sr.Enable != enabled {
+		rs.Update = true
 	}
 
-	return resourceState, nil
+	return rs, nil
 }
 
 // Create starts the service unit
-func (s *ServiceResource) Create() error {
+func (sr *ServiceResource) Create() error {
 	conn, err := dbus.New()
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
-	s.Printf("starting service\n")
+	sr.Printf("starting service\n")
 
 	ch := make(chan string)
-	jobID, err := conn.StartUnit(s.UnitName, "replace", ch)
+	jobID, err := conn.StartUnit(sr.UnitName, "replace", ch)
 	if err != nil {
 		return err
 	}
 
 	result := <-ch
-	s.Printf("systemd job id %d result: %s\n", jobID, result)
+	sr.Printf("systemd job id %d result: %s\n", jobID, result)
 
 	return nil
 }
 
 // Delete stops the service unit
-func (s *ServiceResource) Delete() error {
+func (sr *ServiceResource) Delete() error {
 	conn, err := dbus.New()
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
-	s.Printf("stopping service\n")
+	sr.Printf("stopping service\n")
 
 	ch := make(chan string)
-	jobID, err := conn.StopUnit(s.UnitName, "replace", ch)
+	jobID, err := conn.StopUnit(sr.UnitName, "replace", ch)
 	if err != nil {
 		return err
 	}
 
 	result := <-ch
-	s.Printf("systemd job id %d result: %s\n", jobID, result)
+	sr.Printf("systemd job id %d result: %s\n", jobID, result)
 
 	return nil
 }
 
 // Update updates the service unit state
-func (s *ServiceResource) Update() error {
-	enabled, err := s.unitIsEnabled()
+func (sr *ServiceResource) Update() error {
+	enabled, err := sr.unitIsEnabled()
 	if err != nil {
 		return err
 	}
 
-	if s.Enable && !enabled {
-		s.enableUnit()
+	if sr.Enable && !enabled {
+		sr.enableUnit()
 	} else {
-		s.disableUnit()
+		sr.disableUnit()
 	}
 
-	return s.daemonReload()
+	return sr.daemonReload()
 }
 
 func init() {

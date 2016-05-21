@@ -36,20 +36,20 @@ func NewShellResource(title string, obj *ast.ObjectItem, config *Config) (Resour
 		Command: title,
 	}
 
-	var s ShellResource
-	err := hcl.DecodeObject(&s, obj)
+	var sr ShellResource
+	err := hcl.DecodeObject(&sr, obj)
 	if err != nil {
 		return nil, err
 	}
 
 	// Merge the decoded object with the resource defaults
-	err = mergo.Merge(&s, defaults)
+	err = mergo.Merge(&sr, defaults)
 
-	return &s, err
+	return &sr, err
 }
 
 // Evaluate evaluates the state of the resource
-func (s *ShellResource) Evaluate() (State, error) {
+func (sr *ShellResource) Evaluate() (State, error) {
 	// Assumes that the command to be executed is idempotent
 	//
 	// Sets the current state to absent and wanted to be present,
@@ -58,43 +58,43 @@ func (s *ShellResource) Evaluate() (State, error) {
 	// If the command to be executed is not idempotent on it's own,
 	// in order to ensure idempotency we should specify a file,
 	// that can be checked for existence.
-	resourceState := State{
+	rs := State{
 		Current: StateAbsent,
-		Want:    s.State,
+		Want:    sr.State,
 		Update:  false,
 	}
 
-	if s.Creates != "" {
-		_, err := os.Stat(s.Creates)
+	if sr.Creates != "" {
+		_, err := os.Stat(sr.Creates)
 		if os.IsNotExist(err) {
-			resourceState.Current = StateAbsent
+			rs.Current = StateAbsent
 		} else {
-			resourceState.Current = StatePresent
+			rs.Current = StatePresent
 		}
 	}
 
-	return resourceState, nil
+	return rs, nil
 }
 
 // Create executes the shell command
-func (s *ShellResource) Create() error {
-	s.Printf("executing command\n")
+func (sr *ShellResource) Create() error {
+	sr.Printf("executing command\n")
 
-	args := strings.Fields(s.Command)
+	args := strings.Fields(sr.Command)
 	cmd := exec.Command(args[0], args[1:]...)
 	out, err := cmd.CombinedOutput()
-	s.Printf(string(out))
+	sr.Printf(string(out))
 
 	return err
 }
 
 // Delete is a no-op
-func (s *ShellResource) Delete() error {
+func (sr *ShellResource) Delete() error {
 	return nil
 }
 
 // Update is a no-op
-func (s *ShellResource) Update() error {
+func (sr *ShellResource) Update() error {
 	return nil
 }
 

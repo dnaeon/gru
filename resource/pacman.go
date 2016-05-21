@@ -54,10 +54,10 @@ func NewPacmanResource(title string, obj *ast.ObjectItem, config *Config) (Resou
 }
 
 // Evaluate evaluates the state of the resource
-func (p *PacmanResource) Evaluate() (State, error) {
+func (pr *PacmanResource) Evaluate() (State, error) {
 	s := State{
 		Current: StateUnknown,
-		Want:    p.State,
+		Want:    pr.State,
 	}
 
 	_, err := exec.LookPath(pacmanPath)
@@ -65,7 +65,7 @@ func (p *PacmanResource) Evaluate() (State, error) {
 		return s, err
 	}
 
-	cmd := exec.Command(pacmanPath, "--query", p.Name)
+	cmd := exec.Command(pacmanPath, "--query", pr.Name)
 	err = cmd.Run()
 
 	if err != nil {
@@ -78,32 +78,32 @@ func (p *PacmanResource) Evaluate() (State, error) {
 }
 
 // Create installs packages
-func (p *PacmanResource) Create() error {
-	p.Printf("installing package\n")
+func (pr *PacmanResource) Create() error {
+	pr.Printf("installing package\n")
 
-	cmd := exec.Command(pacmanPath, "--sync", "--noconfirm", p.Name)
+	cmd := exec.Command(pacmanPath, "--sync", "--noconfirm", pr.Name)
 	out, err := cmd.CombinedOutput()
-	p.Printf(string(out))
+	pr.Printf(string(out))
 
 	return err
 }
 
 // Delete deletes packages
-func (p *PacmanResource) Delete() error {
-	p.Printf("removing package\n")
+func (pr *PacmanResource) Delete() error {
+	pr.Printf("removing package\n")
 
-	cmd := exec.Command(pacmanPath, "--remove", "--noconfirm", p.Name)
+	cmd := exec.Command(pacmanPath, "--remove", "--noconfirm", pr.Name)
 	out, err := cmd.CombinedOutput()
-	p.Printf(string(out))
+	pr.Printf(string(out))
 
 	return err
 }
 
 // Update updates packages
-func (p *PacmanResource) Update() error {
-	p.Printf("updating package\n")
+func (pr *PacmanResource) Update() error {
+	pr.Printf("updating package\n")
 
-	return p.Create()
+	return pr.Create()
 }
 
 func init() {
