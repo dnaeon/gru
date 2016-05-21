@@ -11,7 +11,7 @@ import (
 var Registry = make(map[string]RegistryItem)
 
 // Provider type creates new resources from an HCL AST object item
-type Provider func(title string, item *ast.ObjectItem) (Resource, error)
+type Provider func(title string, item *ast.ObjectItem, config *Config) (Resource, error)
 
 // RegistryItem type represents an item from the registry
 type RegistryItem struct {
@@ -42,12 +42,6 @@ type Resource interface {
 	// ResourceID returns the unique identifier of a resource
 	ResourceID() string
 
-	// ResourceType returns the type of the resource
-	ResourceType() string
-
-	// ResourceTitle returns the title of the resource
-	ResourceTitle() string
-
 	// Returns the resources before which this resource shoud be processed
 	WantBefore() []string
 
@@ -55,25 +49,25 @@ type Resource interface {
 	WantAfter() []string
 
 	// Evaluates the resource
-	Evaluate(w io.Writer, opts *Options) (State, error)
+	Evaluate() (State, error)
 
 	// Creates the resource
-	Create(w io.Writer, opts *Options) error
+	Create() error
 
 	// Deletes the resource
-	Delete(w io.Writer, opts *Options) error
+	Delete() error
 
 	// Updates the resource
-	Update(w io.Writer, opts *Options) error
+	Update() error
 }
 
-// Options sent to resources during processing
-type Options struct {
+// Config type contains various settings used by the resources
+type Config struct {
 	// The site directory which contains module and data files
 	SiteDir string
 
-	// Do not take any action, just report what would be done
-	DryRun bool
+	// Writer used by the resources
+	Writer io.Writer
 }
 
 // BaseResource is the base resource type for all resources
@@ -81,53 +75,46 @@ type Options struct {
 // Partially implements the Resource interface
 type BaseResource struct {
 	// Type of the resource
-	Type string `json:"-"`
+	Type string `hcl:"-"`
 
 	// Title of the resource
-	Title string `json:"-"`
+	Title string `hcl:"-"`
+
+	// Resource configuration settings
+	Config *Config `hcl:"-"`
 
 	// Desired state of the resource
-	State string `hcl:"state" json:"state"`
+	State string `hcl:"state"`
 
 	// Resources before which this resource should be processed
-	Before []string `hcl:"before" json:"before,omitempty"`
+	Before []string `hcl:"before"`
 
 	// Resources after which this resource should be processed
-	After []string `hcl:"after" json:"after,omitempty"`
+	After []string `hcl:"after"`
 }
 
 // ResourceID returns the unique resource id
-func (b *BaseResource) ResourceID() string {
-	return fmt.Sprintf("%s[%s]", b.Type, b.Title)
-}
-
-// ResourceType returns the resource type
-func (b *BaseResource) ResourceType() string {
-	return b.Type
-}
-
-// ResourceTitle returns the resource title
-func (b *BaseResource) ResourceTitle() string {
-	return b.Title
+func (br *BaseResource) ResourceID() string {
+	return fmt.Sprintf("%s[%s]", br.Type, br.Title)
 }
 
 // WantBefore returns the resources before which this resource
 // should be processed
-func (b *BaseResource) WantBefore() []string {
-	return b.Before
+func (br *BaseResource) WantBefore() []string {
+	return br.Before
 }
 
 // WantAfter returns the resources after which this resource
 // should be processed
-func (b *BaseResource) WantAfter() []string {
-	return b.After
+func (br *BaseResource) WantAfter() []string {
+	return br.After
 }
 
 // Printf works just like fmt.Printf except that it writes to the
 // given resource writer object and prepends the
 // resource id to the output
-func (b *BaseResource) Printf(w io.Writer, format string, a ...interface{}) (int, error) {
-	fmt.Fprintf(w, "%s ", b.ResourceID())
+func (br *BaseResource) Printf(format string, a ...interface{}) (int, error) {
+	fmt.Fprintf(br.Config.Writer, "%s ", br.ResourceID())
 
-	return fmt.Fprintf(w, format, a...)
+	return fmt.Fprintf(br.Config.Writer, format, a...)
 }
