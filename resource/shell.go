@@ -1,7 +1,6 @@
 package resource
 
 import (
-	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -25,13 +24,14 @@ type ShellResource struct {
 }
 
 // NewShellResource creates a new resource for executing shell commands
-func NewShellResource(title string, obj *ast.ObjectItem) (Resource, error) {
+func NewShellResource(title string, obj *ast.ObjectItem, config *Config) (Resource, error) {
 	// Resource defaults
 	defaults := &ShellResource{
 		BaseResource: BaseResource{
-			Title: title,
-			Type:  shellResourceType,
-			State: StatePresent,
+			Title:  title,
+			Type:   shellResourceType,
+			State:  StatePresent,
+			Config: config,
 		},
 		Command: title,
 	}
@@ -49,7 +49,7 @@ func NewShellResource(title string, obj *ast.ObjectItem) (Resource, error) {
 }
 
 // Evaluate evaluates the state of the resource
-func (s *ShellResource) Evaluate(w io.Writer, opts *Options) (State, error) {
+func (s *ShellResource) Evaluate() (State, error) {
 	// Assumes that the command to be executed is idempotent
 	//
 	// Sets the current state to absent and wanted to be present,
@@ -77,24 +77,24 @@ func (s *ShellResource) Evaluate(w io.Writer, opts *Options) (State, error) {
 }
 
 // Create executes the shell command
-func (s *ShellResource) Create(w io.Writer, opts *Options) error {
-	s.Printf(w, "executing command\n")
+func (s *ShellResource) Create() error {
+	s.Printf("executing command\n")
 
 	args := strings.Fields(s.Command)
 	cmd := exec.Command(args[0], args[1:]...)
 	out, err := cmd.CombinedOutput()
-	s.Printf(w, string(out))
+	s.Printf(string(out))
 
 	return err
 }
 
 // Delete is a no-op
-func (s *ShellResource) Delete(w io.Writer, opts *Options) error {
+func (s *ShellResource) Delete() error {
 	return nil
 }
 
 // Update is a no-op
-func (s *ShellResource) Update(w io.Writer, opts *Options) error {
+func (s *ShellResource) Update() error {
 	return nil
 }
 

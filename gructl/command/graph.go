@@ -8,6 +8,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/dnaeon/gru/catalog"
 	"github.com/dnaeon/gru/module"
+	"github.com/dnaeon/gru/resource"
 )
 
 // NewGraphCommand creates a new sub-command for
@@ -61,8 +62,20 @@ func execGraphCommand(c *cli.Context) {
 			displayError(err, 1)
 		}
 	} else if c.Bool("resources") {
-		// Create DOT representation for resources
-		katalog, err := catalog.Load(main, modulePath)
+		// Create DOT representation for resources from catalog
+		config := &catalog.Config{
+			Main:   main,
+			DryRun: true,
+			ModuleConfig: &module.Config{
+				Path: modulePath,
+				ResourceConfig: &resource.Config{
+					SiteDir: c.String("sitedir"),
+					Writer:  os.Stdout,
+				},
+			},
+		}
+
+		katalog, err := catalog.Load(config)
 		if err != nil {
 			displayError(err, 1)
 		}

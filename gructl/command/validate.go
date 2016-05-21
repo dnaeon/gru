@@ -37,10 +37,19 @@ func execValidateCommand(c *cli.Context) {
 		displayError(errNoModuleName, 64)
 	}
 
-	main := c.Args()[0]
-	modulePath := filepath.Join(c.String("sitedir"), "modules")
+	config := &catalog.Config{
+		Main:   c.Args()[0],
+		DryRun: true,
+		ModuleConfig: &module.Config{
+			Path: filepath.Join(c.String("sitedir"), "modules"),
+			ResourceConfig: &resource.Config{
+				SiteDir: c.String("sitedir"),
+				Writer:  os.Stdout,
+			},
+		},
+	}
 
-	katalog, err := catalog.Load(main, modulePath)
+	katalog, err := catalog.Load(config)
 	if err != nil {
 		displayError(err, 1)
 	}
@@ -50,20 +59,10 @@ func execValidateCommand(c *cli.Context) {
 		displayError(err, 1)
 	}
 
-	opts := &resource.Options{
-		SiteDir: c.String("sitedir"),
-	}
-
 	fmt.Printf("Loaded %d resources from %d modules\n", len(collection), len(katalog.Modules))
 	for _, m := range katalog.Modules {
 		for _, key := range m.UnknownKeys {
 			fmt.Printf("Uknown key '%s' in module '%s'\n", key, m.Name)
-		}
-	}
-
-	for _, r := range collection {
-		if _, err := r.Evaluate(os.Stdout, opts); err != nil {
-			fmt.Printf("Resource %s: %s\n", r.ResourceID(), err)
 		}
 	}
 }

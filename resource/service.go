@@ -5,7 +5,6 @@ package resource
 import (
 	"errors"
 	"fmt"
-	"io"
 
 	"github.com/coreos/go-systemd/dbus"
 	"github.com/coreos/go-systemd/util"
@@ -35,13 +34,14 @@ type ServiceResource struct {
 
 // NewServiceResource creates a new resource for managing services
 // using systemd on a GNU/Linux system
-func NewServiceResource(title string, obj *ast.ObjectItem) (Resource, error) {
+func NewServiceResource(title string, obj *ast.ObjectItem, config *Config) (Resource, error) {
 	// Resource defaults
 	defaults := &ServiceResource{
 		BaseResource: BaseResource{
-			Title: title,
-			Type:  serviceResourceType,
-			State: StateRunning,
+			Title:  title,
+			Type:   serviceResourceType,
+			State:  StateRunning,
+			Config: config,
 		},
 		Name:   title,
 		Enable: false,
@@ -96,14 +96,14 @@ func (s *ServiceResource) unitIsEnabled() (bool, error) {
 }
 
 // enableUnit enables the service unit during boot-time
-func (s *ServiceResource) enableUnit(w io.Writer) error {
+func (s *ServiceResource) enableUnit() error {
 	conn, err := dbus.New()
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
-	s.Printf(w, "enabling service\n")
+	s.Printf("enabling service\n")
 
 	units := []string{s.UnitName}
 	_, changes, err := conn.EnableUnitFiles(units, false, false)
@@ -112,21 +112,21 @@ func (s *ServiceResource) enableUnit(w io.Writer) error {
 	}
 
 	for _, change := range changes {
-		s.Printf(w, "%s %s -> %s\n", change.Type, change.Filename, change.Destination)
+		s.Printf("%s %s -> %s\n", change.Type, change.Filename, change.Destination)
 	}
 
 	return nil
 }
 
 // disableUnit disables the service unit during boot-time
-func (s *ServiceResource) disableUnit(w io.Writer) error {
+func (s *ServiceResource) disableUnit() error {
 	conn, err := dbus.New()
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
-	s.Printf(w, "disabling service\n")
+	s.Printf("disabling service\n")
 
 	units := []string{s.UnitName}
 	changes, err := conn.DisableUnitFiles(units, false)
@@ -135,7 +135,7 @@ func (s *ServiceResource) disableUnit(w io.Writer) error {
 	}
 
 	for _, change := range changes {
-		s.Printf(w, "%s %s\n", change.Type, change.Filename)
+		s.Printf("%s %s\n", change.Type, change.Filename)
 	}
 
 	return nil
@@ -153,7 +153,7 @@ func (s *ServiceResource) daemonReload() error {
 }
 
 // Evaluate evaluates the state of the resource
-func (s *ServiceResource) Evaluate(w io.Writer, opts *Options) (State, error) {
+func (s *ServiceResource) Evaluate() (State, error) {
 	resourceState := State{
 		Current: StateUnknown,
 		Want:    s.State,
@@ -191,14 +191,14 @@ func (s *ServiceResource) Evaluate(w io.Writer, opts *Options) (State, error) {
 }
 
 // Create starts the service unit
-func (s *ServiceResource) Create(w io.Writer, opts *Options) error {
+func (s *ServiceResource) Create() error {
 	conn, err := dbus.New()
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
-	s.Printf(w, "starting service\n")
+	s.Printf("starting service\n")
 
 	ch := make(chan string)
 	jobID, err := conn.StartUnit(s.UnitName, "replace", ch)
@@ -207,20 +207,20 @@ func (s *ServiceResource) Create(w io.Writer, opts *Options) error {
 	}
 
 	result := <-ch
-	s.Printf(w, "systemd job id %d result: %s\n", jobID, result)
+	s.Printf("systemd job id %d result: %s\n", jobID, result)
 
 	return nil
 }
 
 // Delete stops the service unit
-func (s *ServiceResource) Delete(w io.Writer, opts *Options) error {
+func (s *ServiceResource) Delete() error {
 	conn, err := dbus.New()
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
-	s.Printf(w, "stopping service\n")
+	s.Printf("stopping service\n")
 
 	ch := make(chan string)
 	jobID, err := conn.StopUnit(s.UnitName, "replace", ch)
@@ -229,22 +229,22 @@ func (s *ServiceResource) Delete(w io.Writer, opts *Options) error {
 	}
 
 	result := <-ch
-	s.Printf(w, "systemd job id %d result: %s\n", jobID, result)
+	s.Printf("systemd job id %d result: %s\n", jobID, result)
 
 	return nil
 }
 
 // Update updates the service unit state
-func (s *ServiceResource) Update(w io.Writer, opts *Options) error {
+func (s *ServiceResource) Update() error {
 	enabled, err := s.unitIsEnabled()
 	if err != nil {
 		return err
 	}
 
 	if s.Enable && !enabled {
-		s.enableUnit(w)
+		s.enableUnit()
 	} else {
-		s.disableUnit(w)
+		s.disableUnit()
 	}
 
 	return s.daemonReload()

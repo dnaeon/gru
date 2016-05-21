@@ -3,7 +3,6 @@
 package resource
 
 import (
-	"io"
 	"os/exec"
 
 	"github.com/hashicorp/hcl"
@@ -29,13 +28,14 @@ type PacmanResource struct {
 
 // NewPacmanResource creates a new resource for managing packages
 // using the pacman package manager on an Arch Linux system
-func NewPacmanResource(title string, obj *ast.ObjectItem) (Resource, error) {
+func NewPacmanResource(title string, obj *ast.ObjectItem, config *Config) (Resource, error) {
 	// Resource defaults
 	defaults := &PacmanResource{
 		BaseResource: BaseResource{
-			Title: title,
-			Type:  pacmanResourceType,
-			State: StatePresent,
+			Title:  title,
+			Type:   pacmanResourceType,
+			State:  StatePresent,
+			Config: config,
 		},
 		Name: title,
 	}
@@ -54,7 +54,7 @@ func NewPacmanResource(title string, obj *ast.ObjectItem) (Resource, error) {
 }
 
 // Evaluate evaluates the state of the resource
-func (p *PacmanResource) Evaluate(w io.Writer, opts *Options) (State, error) {
+func (p *PacmanResource) Evaluate() (State, error) {
 	s := State{
 		Current: StateUnknown,
 		Want:    p.State,
@@ -78,32 +78,32 @@ func (p *PacmanResource) Evaluate(w io.Writer, opts *Options) (State, error) {
 }
 
 // Create installs packages
-func (p *PacmanResource) Create(w io.Writer, opts *Options) error {
-	p.Printf(w, "installing package\n")
+func (p *PacmanResource) Create() error {
+	p.Printf("installing package\n")
 
 	cmd := exec.Command(pacmanPath, "--sync", "--noconfirm", p.Name)
 	out, err := cmd.CombinedOutput()
-	p.Printf(w, string(out))
+	p.Printf(string(out))
 
 	return err
 }
 
 // Delete deletes packages
-func (p *PacmanResource) Delete(w io.Writer, opts *Options) error {
-	p.Printf(w, "removing package\n")
+func (p *PacmanResource) Delete() error {
+	p.Printf("removing package\n")
 
 	cmd := exec.Command(pacmanPath, "--remove", "--noconfirm", p.Name)
 	out, err := cmd.CombinedOutput()
-	p.Printf(w, string(out))
+	p.Printf(string(out))
 
 	return err
 }
 
 // Update updates packages
-func (p *PacmanResource) Update(w io.Writer, opts *Options) error {
-	p.Printf(w, "updating package\n")
+func (p *PacmanResource) Update() error {
+	p.Printf("updating package\n")
 
-	return p.Create(w, opts)
+	return p.Create()
 }
 
 func init() {

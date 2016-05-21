@@ -15,7 +15,10 @@ import (
 func ImportGraph(main, path string) (*graph.Graph, error) {
 	g := graph.New()
 
-	modules, err := DiscoverAndLoad(path)
+	config := &Config{
+		Path: path,
+	}
+	modules, err := DiscoverAndLoad(config)
 	if err != nil {
 		return g, err
 	}

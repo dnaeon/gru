@@ -6,6 +6,7 @@ import (
 
 	"github.com/codegangsta/cli"
 	"github.com/dnaeon/gru/catalog"
+	"github.com/dnaeon/gru/module"
 	"github.com/dnaeon/gru/resource"
 )
 
@@ -39,19 +40,23 @@ func execApplyCommand(c *cli.Context) {
 		displayError(errNoModuleName, 64)
 	}
 
-	main := c.Args()[0]
-	modulePath := filepath.Join(c.String("sitedir"), "modules")
-	katalog, err := catalog.Load(main, modulePath)
+	config := &catalog.Config{
+		Main:   c.Args()[0],
+		DryRun: c.Bool("dry-run"),
+		ModuleConfig: &module.Config{
+			Path: filepath.Join(c.String("sitedir"), "modules"),
+			ResourceConfig: &resource.Config{
+				SiteDir: c.String("sitedir"),
+				Writer:  os.Stdout,
+			},
+		},
+	}
+	katalog, err := catalog.Load(config)
 	if err != nil {
 		displayError(err, 1)
 	}
 
-	opts := &resource.Options{
-		SiteDir: c.String("sitedir"),
-		DryRun:  c.Bool("dry-run"),
-	}
-
-	err = katalog.Run(os.Stdout, opts)
+	err = katalog.Run()
 	if err != nil {
 		displayError(err, 1)
 	}

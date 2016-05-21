@@ -2,7 +2,6 @@ package resource
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -80,7 +79,7 @@ type FileResource struct {
 }
 
 // NewFileResource creates a new resource for managing files
-func NewFileResource(title string, obj *ast.ObjectItem) (Resource, error) {
+func NewFileResource(title string, obj *ast.ObjectItem, config *Config) (Resource, error) {
 	// Defaults for owner and group
 	currentUser, err := user.Current()
 	if err != nil {
@@ -95,9 +94,10 @@ func NewFileResource(title string, obj *ast.ObjectItem) (Resource, error) {
 	// Resource defaults
 	defaults := FileResource{
 		BaseResource: BaseResource{
-			Title: title,
-			Type:  fileResourceType,
-			State: StatePresent,
+			Title:  title,
+			Type:   fileResourceType,
+			State:  StatePresent,
+			Config: config,
 		},
 		BaseFileResource: BaseFileResource{
 			Path:      title,
@@ -134,7 +134,7 @@ func NewFileResource(title string, obj *ast.ObjectItem) (Resource, error) {
 }
 
 // Evaluate evaluates the file resource
-func (fr *FileResource) Evaluate(w io.Writer, opts *Options) (State, error) {
+func (fr *FileResource) Evaluate() (State, error) {
 	rs := State{
 		Current: StateUnknown,
 		Want:    fr.State,
@@ -157,7 +157,7 @@ func (fr *FileResource) Evaluate(w io.Writer, opts *Options) (State, error) {
 			return rs, fmt.Errorf("%s exists, but is not a regular file", fr.Path)
 		}
 
-		outdated, err := fr.isRegularFileContentOutdated(opts)
+		outdated, err := fr.isRegularFileContentOutdated()
 		if err != nil {
 			return rs, err
 		}
@@ -170,7 +170,7 @@ func (fr *FileResource) Evaluate(w io.Writer, opts *Options) (State, error) {
 			return rs, fmt.Errorf("%s exists, but is not a directory", fr.Path)
 		}
 
-		outdated, err := fr.isDirectoryContentOutdated(opts)
+		outdated, err := fr.isDirectoryContentOutdated()
 		if err != nil {
 			return rs, err
 		}
@@ -201,20 +201,20 @@ func (fr *FileResource) Evaluate(w io.Writer, opts *Options) (State, error) {
 	// Report on what has been identified as being out of date
 	if fr.Purge {
 		for name := range fr.extra {
-			fr.Printf(w, "%s exists, but is not part of source\n", name)
+			fr.Printf("%s exists, but is not part of source\n", name)
 			rs.Update = true
 		}
 	}
 
 	for _, item := range fr.outdated {
 		if item.flags&flagOutdatedContent != 0 {
-			fr.Printf(w, "content of %s is out of date\n", item.dst)
+			fr.Printf("content of %s is out of date\n", item.dst)
 		}
 		if item.flags&flagOutdatedPermissions != 0 {
-			fr.Printf(w, "permissions of %s are out of date\n", item.dst)
+			fr.Printf("permissions of %s are out of date\n", item.dst)
 		}
 		if item.flags&flagOutdatedOwner != 0 {
-			fr.Printf(w, "owner of %s is out of date\n", item.dst)
+			fr.Printf("owner of %s is out of date\n", item.dst)
 		}
 	}
 
@@ -222,12 +222,12 @@ func (fr *FileResource) Evaluate(w io.Writer, opts *Options) (State, error) {
 }
 
 // Create creates the file managed by the resource
-func (fr *FileResource) Create(w io.Writer, opts *Options) error {
-	fr.Printf(w, "creating resource\n")
+func (fr *FileResource) Create() error {
+	fr.Printf("creating resource\n")
 
 	switch fr.FileType {
 	case fileTypeRegular:
-		if err := fr.createRegularFile(opts); err != nil {
+		if err := fr.createRegularFile(); err != nil {
 			return err
 		}
 
@@ -239,7 +239,7 @@ func (fr *FileResource) Create(w io.Writer, opts *Options) error {
 			return err
 		}
 	case fileTypeDirectory:
-		if err := fr.createDirectory(opts); err != nil {
+		if err := fr.createDirectory(); err != nil {
 			return err
 		}
 
@@ -263,8 +263,8 @@ func (fr *FileResource) Create(w io.Writer, opts *Options) error {
 }
 
 // Delete deletes the file managed by the resource
-func (fr *FileResource) Delete(w io.Writer, opts *Options) error {
-	fr.Printf(w, "removing resource\n")
+func (fr *FileResource) Delete() error {
+	fr.Printf("removing resource\n")
 
 	if fr.Recursive {
 		return os.RemoveAll(fr.Path)
@@ -274,12 +274,12 @@ func (fr *FileResource) Delete(w io.Writer, opts *Options) error {
 }
 
 // Update updates the files managed by the resource
-func (fr *FileResource) Update(w io.Writer, opts *Options) error {
+func (fr *FileResource) Update() error {
 	// Purge extra files
 	if fr.Purge {
 		for name := range fr.extra {
 			dstFile := utils.NewFileUtil(name)
-			fr.Printf(w, "purging %s\n", name)
+			fr.Printf("purging %s\n", name)
 			if err := dstFile.Remove(); err != nil {
 				return err
 			}
@@ -307,7 +307,7 @@ func (fr *FileResource) Update(w io.Writer, opts *Options) error {
 				return err
 			}
 
-			fr.Printf(w, "setting content of %s to md5:%s\n", item.dst, srcMd5)
+			fr.Printf("setting content of %s to md5:%s\n", item.dst, srcMd5)
 			if err := dstFile.CopyFrom(item.src, true); err != nil {
 				return err
 			}
@@ -315,7 +315,7 @@ func (fr *FileResource) Update(w io.Writer, opts *Options) error {
 
 		// Update permissions if needed
 		if item.flags&flagOutdatedPermissions != 0 {
-			fr.Printf(w, "setting permissions of %s to %#o\n", item.dst, fr.Mode)
+			fr.Printf("setting permissions of %s to %#o\n", item.dst, fr.Mode)
 			if err := dstFile.Chmod(os.FileMode(fr.Mode)); err != nil {
 				return err
 			}
@@ -323,7 +323,7 @@ func (fr *FileResource) Update(w io.Writer, opts *Options) error {
 
 		// Update ownership if needed
 		if item.flags&flagOutdatedOwner != 0 {
-			fr.Printf(w, "setting owner of %s to %s:%s\n", item.dst, fr.Owner, fr.Group)
+			fr.Printf("setting owner of %s to %s:%s\n", item.dst, fr.Owner, fr.Group)
 			if err := dstFile.SetOwner(fr.Owner, fr.Group); err != nil {
 				return err
 			}
@@ -361,7 +361,7 @@ func directoryFileRegistry(path string, skip []string) (map[string]string, error
 }
 
 // createRegularFile creates the file and content managed by the resource
-func (fr *FileResource) createRegularFile(opts *Options) error {
+func (fr *FileResource) createRegularFile() error {
 	dst := utils.NewFileUtil(fr.Path)
 
 	switch {
@@ -375,7 +375,7 @@ func (fr *FileResource) createRegularFile(opts *Options) error {
 		}
 	case fr.Source != "" && dst.Exists():
 		// File exists and we have a source file
-		srcPath := filepath.Join(opts.SiteDir, fr.Source)
+		srcPath := filepath.Join(fr.Config.SiteDir, fr.Source)
 		if err := dst.CopyFrom(srcPath, false); err != nil {
 			return err
 		}
@@ -385,12 +385,12 @@ func (fr *FileResource) createRegularFile(opts *Options) error {
 }
 
 // createDirectory creates the directory and content managed by the resource
-func (fr *FileResource) createDirectory(opts *Options) error {
+func (fr *FileResource) createDirectory() error {
 	switch {
 	case !fr.Recursive:
 		return os.Mkdir(fr.Path, 0755)
 	case fr.Recursive && fr.Source != "":
-		srcPath := filepath.Join(opts.SiteDir, fr.Source)
+		srcPath := filepath.Join(fr.Config.SiteDir, fr.Source)
 		return utils.CopyDir(srcPath, fr.Path)
 	case fr.Recursive && fr.Source == "":
 		return os.MkdirAll(fr.Path, 0755)
@@ -406,9 +406,9 @@ func (fr *FileResource) createDirectory(opts *Options) error {
 // If the file is identified as being out of date it will be appended to the
 // list of outdated files for the resource, so it can be further
 // processed if needed.
-func (fr *FileResource) isRegularFileContentOutdated(opts *Options) (bool, error) {
+func (fr *FileResource) isRegularFileContentOutdated() (bool, error) {
 	if fr.Source != "" {
-		srcPath := filepath.Join(opts.SiteDir, fr.Source)
+		srcPath := filepath.Join(fr.Config.SiteDir, fr.Source)
 		same, err := utils.SameContent(srcPath, fr.Path)
 		if err != nil {
 			return false, err
@@ -434,10 +434,10 @@ func (fr *FileResource) isRegularFileContentOutdated(opts *Options) (bool, error
 // The files identified as being out of date will be appended to the
 // list of outdated files for the resource, so they can be further
 // processed if needed.
-func (fr *FileResource) isDirectoryContentOutdated(opts *Options) (bool, error) {
+func (fr *FileResource) isDirectoryContentOutdated() (bool, error) {
 	isOutdated := false
 	if fr.Source != "" && fr.Recursive {
-		srcPath := filepath.Join(opts.SiteDir, fr.Source)
+		srcPath := filepath.Join(fr.Config.SiteDir, fr.Source)
 
 		// Exclude the ".git" repo directory from the source path,
 		// since our source files reside in a git repo

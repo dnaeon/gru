@@ -16,6 +16,7 @@ import (
 	"github.com/dnaeon/backoff"
 	"github.com/dnaeon/gru/catalog"
 	"github.com/dnaeon/gru/classifier"
+	"github.com/dnaeon/gru/module"
 	"github.com/dnaeon/gru/resource"
 	"github.com/dnaeon/gru/task"
 	"github.com/dnaeon/gru/utils"
@@ -210,22 +211,27 @@ func (m *etcdMinion) processTask(t *task.Task) error {
 	m.SaveTaskResult(t)
 
 	// Create the catalog and process it
-	// Load the module from the minion's site directory
 	var buf bytes.Buffer
-	modulePath := filepath.Join(m.siteDir, "modules")
-	katalog, err := catalog.Load(t.Command, modulePath)
+	config := &catalog.Config{
+		Main:   t.Command,
+		DryRun: t.DryRun,
+		ModuleConfig: &module.Config{
+			Path: filepath.Join(m.siteDir, "modules"),
+			ResourceConfig: &resource.Config{
+				SiteDir: m.siteDir,
+				Writer:  &buf,
+			},
+		},
+	}
+
+	katalog, err := catalog.Load(config)
 	if err != nil {
 		t.State = task.TaskStateUnknown
 		t.Result = err.Error()
 		return err
 	}
 
-	opts := &resource.Options{
-		SiteDir: m.siteDir,
-		DryRun:  t.DryRun,
-	}
-
-	err = katalog.Run(&buf, opts)
+	err = katalog.Run()
 	t.Result = buf.String()
 
 	if err != nil {
@@ -451,7 +457,7 @@ func (m *etcdMinion) setEnvironment(name string) error {
 		return err
 	}
 
-	log.Printf("Environment %s is at %s\n", name, remoteBranch.Target())
+	log.Printf("Environment set to %s@%s\n", name, remoteBranch.Target())
 
 	return nil
 }
