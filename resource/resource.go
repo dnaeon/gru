@@ -94,7 +94,13 @@ type BaseResource struct {
 	Before []string `hcl:"before"`
 
 	// Resources after which this resource should be processed
-	After []string `hcl:"after" hcl:"require"`
+	After []string `hcl:"require"`
+}
+
+// SetType sets the type for the resource.
+// This method is primarily being used by meta resources.
+func (br *BaseResource) SetType(t string) {
+	br.Type = t
 }
 
 // ResourceID returns the unique resource id
