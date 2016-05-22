@@ -39,6 +39,10 @@ func Register(item RegistryItem) error {
 
 // Resource is the interface type for resources
 type Resource interface {
+	// SetType sets the type for the resource
+	// Primary usage of this method is by meta resources
+	SetType(string)
+
 	// ResourceID returns the unique identifier of a resource
 	ResourceID() string
 
