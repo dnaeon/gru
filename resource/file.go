@@ -365,18 +365,18 @@ func (fr *FileResource) createRegularFile() error {
 	dst := utils.NewFileUtil(fr.Path)
 
 	switch {
+	case fr.Source != "":
+		// We have a source file, use it
+		srcPath := filepath.Join(fr.Config.SiteDir, fr.Source)
+		if err := dst.CopyFrom(srcPath, false); err != nil {
+			return err
+		}
 	case fr.Source == "" && dst.Exists():
 		// We have no source, do nothing
 		break
 	case fr.Source == "" && !dst.Exists():
 		// Create an empty file
 		if _, err := os.Create(fr.Path); err != nil {
-			return err
-		}
-	case fr.Source != "" && dst.Exists():
-		// File exists and we have a source file
-		srcPath := filepath.Join(fr.Config.SiteDir, fr.Source)
-		if err := dst.CopyFrom(srcPath, false); err != nil {
 			return err
 		}
 	}

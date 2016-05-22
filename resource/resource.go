@@ -90,7 +90,7 @@ type BaseResource struct {
 	Before []string `hcl:"before"`
 
 	// Resources after which this resource should be processed
-	After []string `hcl:"after"`
+	After []string `hcl:"after" hcl:"require"`
 }
 
 // ResourceID returns the unique resource id
