@@ -150,6 +150,14 @@ func (fr *FileResource) Evaluate() (State, error) {
 
 	rs.Current = StatePresent
 
+	// If we have a source, ensure that it exists
+	if fr.Source != "" {
+		dst := utils.NewFileUtil(fr.Source)
+		if !dst.Exists() {
+			return nil, fmt.Errorf("source %s does not exist", fr.Source)
+		}
+	}
+
 	// Check the file(s) content, permissions and ownership
 	switch fr.FileType {
 	case fileTypeRegular:
