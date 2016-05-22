@@ -21,10 +21,7 @@ const pacmanResourceDesc = "manages packages using the pacman package manager"
 // PacmanResource type represents the resource for
 // package management on Arch Linux systems
 type PacmanResource struct {
-	BaseResource `hcl:",squash"`
-
-	// Name of the package
-	Name string `hcl:"name"`
+	BasePackageResource `hcl:",squash"`
 }
 
 // NewPacmanResource creates a new resource for managing packages
@@ -32,26 +29,28 @@ type PacmanResource struct {
 func NewPacmanResource(title string, obj *ast.ObjectItem, config *Config) (Resource, error) {
 	// Resource defaults
 	defaults := &PacmanResource{
-		BaseResource: BaseResource{
-			Title:  title,
-			Type:   pacmanResourceType,
-			State:  StatePresent,
-			Config: config,
+		BasePackageResource: BasePackageResource{
+			BaseResource: BaseResource{
+				Title:  title,
+				Type:   pacmanResourceType,
+				State:  StatePresent,
+				Config: config,
+			},
+			Name: title,
 		},
-		Name: title,
 	}
 
 	// Decode the object from HCL
-	var p PacmanResource
-	err := hcl.DecodeObject(&p, obj)
+	var pr PacmanResource
+	err := hcl.DecodeObject(&pr, obj)
 	if err != nil {
 		return nil, err
 	}
 
 	// Merge in the decoded object with the resource defaults
-	err = mergo.Merge(&p, defaults)
+	err = mergo.Merge(&pr, defaults)
 
-	return &p, err
+	return &pr, err
 }
 
 // Evaluate evaluates the state of the resource
