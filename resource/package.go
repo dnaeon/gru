@@ -18,8 +18,6 @@ const packageResourceDesc = "meta resource for package management"
 // BasePackageResource is the base resource type for package management
 // It's purpose is to be embeded into other package resource providers.
 type BasePackageResource struct {
-	BaseResource `hcl:",squash"`
-
 	// Name of the package
 	Name string `hcl:"name"`
 
