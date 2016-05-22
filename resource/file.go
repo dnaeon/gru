@@ -141,7 +141,7 @@ func (fr *FileResource) Evaluate() (State, error) {
 		Update:  false,
 	}
 
-	// Check for file presence first
+	// Check for file presence
 	fi, err := os.Stat(fr.Path)
 	if os.IsNotExist(err) {
 		rs.Current = StateAbsent
