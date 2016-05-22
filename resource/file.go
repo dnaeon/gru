@@ -154,7 +154,7 @@ func (fr *FileResource) Evaluate() (State, error) {
 	if fr.Source != "" {
 		dst := utils.NewFileUtil(fr.Source)
 		if !dst.Exists() {
-			return nil, fmt.Errorf("source %s does not exist", fr.Source)
+			return rs, fmt.Errorf("source %s does not exist", fr.Source)
 		}
 	}
 
