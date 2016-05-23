@@ -190,8 +190,9 @@ The `require` parameter is used for creating resource dependencies.
 
 Before the resources are being processed by the `catalog`, Gru is
 building a [DAG graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph)
-of all resources and attempts to perform a [topological sorting] on them,
-in order to determine the proper ordering of resource execution.
+of all resources and attempts to perform a
+[topological sort](https://en.wikipedia.org/wiki/Topological_sorting)
+on them, in order to determine the proper ordering of resource execution.
 
 Considering the example memcached module we have created in the
 previous chapter, let's see what it's DAG graph looks like.
