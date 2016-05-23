@@ -48,7 +48,7 @@ this document.
 ## Writing the module
 
 Modules in Gru are expressed in
-[HCL](https://github.com/hashicorp/hcl) and should reside in the
+[HCL](https://github.com/hashicorp/hcl) and reside in the
 `modules` directory of the site repo as already mentioned above.
 
 In the beginning of this document we have mentioned that we will be
@@ -89,7 +89,7 @@ file "/etc/systemd/system/memcached.service.d" {
 
 Now, let's install the actual drop-in unit file.
 
-```
+```hcl
 file "/etc/systemd/system/memcached.service.d/override.conf" {
   state = "present"
   mode = 0644
@@ -107,7 +107,7 @@ You may have also noticed the `source` parameter that we use in our
 resource - that parameter tells Gru where in the site directory is the
 actual source file located.
 
-And this is how the actual drop-in unit file looks like, which
+And this is what the actual drop-in unit file looks like, which
 will be used as the source for our resource.
 
 ```ini
@@ -158,7 +158,7 @@ We can also see our new module being successfully discovered
 using the `gructl module` command.
 
 ```bash
-$ sudo bin/gructl module memcached
+$ gructl module memcached
 MODULE          PATH
 memcached       .../gru/site/modules/memcached.hcl
 ```
@@ -198,7 +198,7 @@ previous chapter, let's see what it's DAG graph looks like.
 
 In order to do that we will use the `gructl graph` command.
 
-```bash
+```dot
 digraph resources {
         nodesep=1.0
         node [shape=box]
@@ -219,7 +219,7 @@ If we pipe the above result to `dot(1)` we can generate a visual
 representation of our graph, e.g.:
 
 ```bash
-$ bin/gructl graph --resources memcached | dot -O -Tpng
+$ gructl graph --resources memcached | dot -O -Tpng
 ```
 
 And this is how our dependency graph looks like.
