@@ -30,3 +30,15 @@ Path where modules can be discovered and loaded.
 Specifies the connection timeout per request
 
 Default: 1s
+
+### GRU_SITEREPO
+
+Specifies the path/url to the site repository
+
+Default: none
+
+### GRU_ENVIRONMENT
+
+Specifices the environment to be used by minions when processing a task
+
+Default: production
