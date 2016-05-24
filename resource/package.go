@@ -15,6 +15,9 @@ import (
 const packageResourceType = "package"
 const packageResourceDesc = "meta resource for package management"
 
+// ErrNoPackageProviderFound is returned when no suitable provider is found
+var ErrNoPackageProviderFound = errors.New("No suitable package provider found")
+
 // BasePackageResource is the base resource type for package management
 // It's purpose is to be embeded into other package resource providers.
 type BasePackageResource struct {
@@ -32,7 +35,7 @@ type BasePackageResource struct {
 func NewPackageResource(title string, obj *ast.ObjectItem, config *Config) (Resource, error) {
 	// The package providers that we know of
 	providers := map[string]Provider{
-		"pacman": NewPacmanResource,
+		pacmanResourceType: NewPacmanResource,
 	}
 
 	// Releases files used by the various GNU/Linux distros
@@ -79,7 +82,7 @@ func NewPackageResource(title string, obj *ast.ObjectItem, config *Config) (Reso
 		}
 	}
 
-	return nil, errors.New("Unable to find suitable package provider")
+	return nil, ErrNoPackageProviderFound
 }
 
 func init() {
