@@ -67,8 +67,8 @@ type Resource interface {
 
 // Config type contains various settings used by the resources
 type Config struct {
-	// The site directory which contains module and data files
-	SiteDir string
+	// The site repo which contains module and data files
+	SiteRepo string
 
 	// Writer used by the resources
 	Writer io.Writer

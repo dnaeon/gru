@@ -63,7 +63,7 @@ type etcdMinion struct {
 	gitRepo string
 
 	// Site directory contains the modules and data synced from Git
-	siteDir string
+	siteRepo string
 
 	// Channel used to signal for shutdown time
 	done chan struct{}
@@ -100,7 +100,7 @@ func NewEtcdMinion(config *EtcdMinionConfig) (Minion, error) {
 	queueDir := filepath.Join(rootDir, "queue")
 	classifierDir := filepath.Join(rootDir, "classifier")
 	logDir := filepath.Join(rootDir, "log")
-	siteDir := filepath.Join(cwd, "site")
+	siteRepo := filepath.Join(cwd, "site")
 	taskQueue := make(chan *task.Task)
 	done := make(chan struct{})
 
@@ -114,7 +114,7 @@ func NewEtcdMinion(config *EtcdMinionConfig) (Minion, error) {
 		kapi:          kapi,
 		taskQueue:     taskQueue,
 		gitRepo:       config.GitRepo,
-		siteDir:       siteDir,
+		siteRepo:      siteRepo,
 		done:          done,
 	}
 
@@ -216,10 +216,10 @@ func (m *etcdMinion) processTask(t *task.Task) error {
 		Main:   t.Command,
 		DryRun: t.DryRun,
 		ModuleConfig: &module.Config{
-			Path: filepath.Join(m.siteDir, "modules"),
+			Path: filepath.Join(m.siteRepo, "modules"),
 			ResourceConfig: &resource.Config{
-				SiteDir: m.siteDir,
-				Writer:  &buf,
+				SiteRepo: m.siteRepo,
+				Writer:   &buf,
 			},
 		},
 	}
@@ -432,7 +432,7 @@ func (m *etcdMinion) SaveTaskResult(t *task.Task) error {
 func (m *etcdMinion) setEnvironment(name string) error {
 	log.Printf("Setting environment to %s\n", name)
 
-	repo, err := git.OpenRepository(m.siteDir)
+	repo, err := git.OpenRepository(m.siteRepo)
 	if err != nil {
 		return err
 	}
@@ -470,22 +470,22 @@ func (m *etcdMinion) Sync() error {
 	}
 
 	// Site directory does not exist, clone the Git repository from upstream
-	fi, err := os.Stat(m.siteDir)
+	fi, err := os.Stat(m.siteRepo)
 	if os.IsNotExist(err) {
 		log.Printf("Site repo is missing, performing initial sync from %s\n", m.gitRepo)
 		opts := &git.CloneOptions{}
-		_, err := git.Clone(m.gitRepo, m.siteDir, opts)
+		_, err := git.Clone(m.gitRepo, m.siteRepo, opts)
 		return err
 	}
 
 	// File exists, ensure that it is a valid Git repository
 	if !fi.IsDir() {
-		return fmt.Errorf("%s exists, but is not a directory", m.siteDir)
+		return fmt.Errorf("%s exists, but is not a directory", m.siteRepo)
 	}
 
 	// Open the repository and fetch from the default remote
 	log.Println("Starting site repo sync")
-	repo, err := git.OpenRepository(m.siteDir)
+	repo, err := git.OpenRepository(m.siteRepo)
 	if err != nil {
 		return err
 	}

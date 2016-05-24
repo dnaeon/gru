@@ -375,7 +375,7 @@ func (fr *FileResource) createRegularFile() error {
 	switch {
 	case fr.Source != "":
 		// We have a source file, use it
-		srcPath := filepath.Join(fr.Config.SiteDir, fr.Source)
+		srcPath := filepath.Join(fr.Config.SiteRepo, fr.Source)
 		if err := dst.CopyFrom(srcPath, false); err != nil {
 			return err
 		}
@@ -398,7 +398,7 @@ func (fr *FileResource) createDirectory() error {
 	case !fr.Recursive:
 		return os.Mkdir(fr.Path, 0755)
 	case fr.Recursive && fr.Source != "":
-		srcPath := filepath.Join(fr.Config.SiteDir, fr.Source)
+		srcPath := filepath.Join(fr.Config.SiteRepo, fr.Source)
 		return utils.CopyDir(srcPath, fr.Path)
 	case fr.Recursive && fr.Source == "":
 		return os.MkdirAll(fr.Path, 0755)
@@ -416,7 +416,7 @@ func (fr *FileResource) createDirectory() error {
 // processed if needed.
 func (fr *FileResource) isRegularFileContentOutdated() (bool, error) {
 	if fr.Source != "" {
-		srcPath := filepath.Join(fr.Config.SiteDir, fr.Source)
+		srcPath := filepath.Join(fr.Config.SiteRepo, fr.Source)
 		same, err := utils.SameContent(srcPath, fr.Path)
 		if err != nil {
 			return false, err
@@ -445,7 +445,7 @@ func (fr *FileResource) isRegularFileContentOutdated() (bool, error) {
 func (fr *FileResource) isDirectoryContentOutdated() (bool, error) {
 	isOutdated := false
 	if fr.Source != "" && fr.Recursive {
-		srcPath := filepath.Join(fr.Config.SiteDir, fr.Source)
+		srcPath := filepath.Join(fr.Config.SiteRepo, fr.Source)
 
 		// Exclude the ".git" repo directory from the source path,
 		// since our source files reside in a git repo

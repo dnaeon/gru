@@ -28,10 +28,10 @@ func NewGraphCommand() cli.Command {
 				Usage: "create DOT for resources in catalog",
 			},
 			cli.StringFlag{
-				Name:   "sitedir",
+				Name:   "siterepo",
 				Value:  "",
-				Usage:  "specify path to the site directory",
-				EnvVar: "GRU_SITEDIR",
+				Usage:  "path/url to the site repo",
+				EnvVar: "GRU_SITEREPO",
 			},
 		},
 	}
@@ -54,7 +54,7 @@ func execGraphCommand(c *cli.Context) {
 	}
 
 	main := c.Args()[0]
-	modulePath := filepath.Join(c.String("sitedir"), "modules")
+	modulePath := filepath.Join(c.String("siterepo"), "modules")
 
 	// Create DOT representation for module imports
 	if c.Bool("modules") {
@@ -69,8 +69,8 @@ func execGraphCommand(c *cli.Context) {
 			ModuleConfig: &module.Config{
 				Path: modulePath,
 				ResourceConfig: &resource.Config{
-					SiteDir: c.String("sitedir"),
-					Writer:  os.Stdout,
+					SiteRepo: c.String("siterepo"),
+					Writer:   os.Stdout,
 				},
 			},
 		}

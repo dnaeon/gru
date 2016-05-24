@@ -18,10 +18,10 @@ func NewModuleCommand() cli.Command {
 		Action: execModuleCommand,
 		Flags: []cli.Flag{
 			cli.StringFlag{
-				Name:   "sitedir",
+				Name:   "siterepo",
 				Value:  "",
-				Usage:  "specify path to the site directory",
-				EnvVar: "GRU_SITEDIR",
+				Usage:  "path/url to the site repo",
+				EnvVar: "GRU_SITEREPO",
 			},
 		},
 	}
@@ -31,7 +31,7 @@ func NewModuleCommand() cli.Command {
 
 // Executes the "module" command
 func execModuleCommand(c *cli.Context) {
-	modulePath := filepath.Join(c.String("sitedir"), "modules")
+	modulePath := filepath.Join(c.String("siterepo"), "modules")
 	registry, err := module.Discover(modulePath)
 	if err != nil {
 		displayError(err, 1)

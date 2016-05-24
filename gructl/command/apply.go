@@ -19,10 +19,10 @@ func NewApplyCommand() cli.Command {
 		Action: execApplyCommand,
 		Flags: []cli.Flag{
 			cli.StringFlag{
-				Name:   "sitedir",
+				Name:   "siterepo",
 				Value:  "",
-				Usage:  "specify path to the site directory",
-				EnvVar: "GRU_SITEDIR",
+				Usage:  "path/url to the site repo",
+				EnvVar: "GRU_SITEREPO",
 			},
 			cli.BoolFlag{
 				Name:  "dry-run",
@@ -44,10 +44,10 @@ func execApplyCommand(c *cli.Context) {
 		Main:   c.Args()[0],
 		DryRun: c.Bool("dry-run"),
 		ModuleConfig: &module.Config{
-			Path: filepath.Join(c.String("sitedir"), "modules"),
+			Path: filepath.Join(c.String("siterepo"), "modules"),
 			ResourceConfig: &resource.Config{
-				SiteDir: c.String("sitedir"),
-				Writer:  os.Stdout,
+				SiteRepo: c.String("siterepo"),
+				Writer:   os.Stdout,
 			},
 		},
 	}
