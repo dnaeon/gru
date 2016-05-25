@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 
 	mapset "github.com/deckarep/golang-set"
 )
@@ -120,9 +121,15 @@ func (g *Graph) AsDot(name string, w io.Writer) {
 	w.Write([]byte("\tedge [style=dashed]\n"))
 
 	for _, node := range g.nodes {
-		w.Write([]byte(fmt.Sprintf("\t%q\n", node.Name)))
+		var edges []string
 		for _, edge := range node.edges {
-			w.Write([]byte(fmt.Sprintf("\t%q -> %q\n", node.Name, edge.Name)))
+			edges = append(edges, fmt.Sprintf("%q", edge.Name))
+		}
+
+		if len(edges) > 0 {
+			w.Write([]byte(fmt.Sprintf("\t%q -> {%s}\n", node.Name, strings.Join(edges, " "))))
+		} else {
+			w.Write([]byte(fmt.Sprintf("\t%q\n", node.Name)))
 		}
 	}
 
