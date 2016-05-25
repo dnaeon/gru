@@ -223,17 +223,95 @@ representation of our graph, e.g.:
 $ gructl graph --resources memcached | dot -O -Tpng
 ```
 
-And this is how our dependency graph looks like.
+And this is how the dependency graph for our memcached module looks like.
 
 ![memcached graph dependencies](images/memcached-dag.png)
 
 Using `gructl graph` we can see what the resource execution
-ordering would look like and it can also help us identifying
+ordering would look like and it can also help us identify
 circular dependencies in our resources and modules.
 
-## Apply configuration
+## Applying Configuration
 
-TODO: Add instructions how to apply configuration
+Applying configuration in Gru can be done in a couple of ways -
+standalone and orchestration mode.
+
+In standalone mode configuration is being applied on the local system,
+while in orchestration mode a task is being pushed to the remote
+minions for processing.
+
+### Standalone mode
+
+Let's see how we can apply the configuration from the module we've
+prepared so far on the local system using the standalone mode.
+
+The command we need to execute is `gructl apply`.
+
+```bash
+$ sudo gructl apply --siterepo site/ memcached
+```
+
+Executing the above command generates the following output from our
+resources.
+
+```bash
+$ sudo gructl apply --siterepo site/ memcached
+Loaded 5 resources from 1 modules
+package[memcached] is absent, should be present
+package[memcached] installing package
+package[memcached] resolving dependencies...
+package[memcached] looking for conflicting packages...
+package[memcached]
+package[memcached] Packages (1) memcached-1.4.25-1
+package[memcached]
+package[memcached] Total Installed Size:  0.14 MiB
+package[memcached]
+package[memcached] :: Proceed with installation? [Y/n]
+package[memcached] checking keyring...
+package[memcached] checking package integrity...
+package[memcached] loading package files...
+package[memcached] checking for file conflicts...
+package[memcached] checking available disk space...
+package[memcached] :: Processing package changes...
+package[memcached] installing memcached...
+package[memcached] Optional dependencies for memcached
+package[memcached]     perl: for memcached-tool usage [installed]
+package[memcached] :: Running post-transaction hooks...
+package[memcached] (1/1) Updating manpage index...
+package[memcached]
+file[/etc/systemd/system/memcached.service.d] is absent, should be present
+file[/etc/systemd/system/memcached.service.d] creating resource
+file[/etc/systemd/system/memcached.service.d/override.conf] is absent, should be present
+file[/etc/systemd/system/memcached.service.d/override.conf] creating resource
+shell[systemctl daemon-reload] is absent, should be present
+shell[systemctl daemon-reload] executing command
+service[memcached] is stopped, should be running
+service[memcached] starting service
+service[memcached] systemd job id 2013 result: done
+```
+
+From the output we can also see that the order of execution of our
+resources is correct as we've also seen from the DAG graph in the
+previous section.
+
+One last thing we need to do is check the status of the service.
+
+```bash
+$ sudo systemctl status memcached
+● memcached.service - Memcached Daemon
+   Loaded: loaded (/usr/lib/systemd/system/memcached.service; enabled; vendor preset: disabled)
+  Drop-In: /etc/systemd/system/memcached.service.d
+           └─override.conf
+   Active: active (running) since Wed 2016-05-25 17:57:04 EEST; 3min 11s ago
+ Main PID: 5613 (memcached)
+    Tasks: 6 (limit: 512)
+   CGroup: /system.slice/memcached.service
+           └─5613 /usr/bin/memcached
+
+May 25 17:57:04 mnikolov-laptop systemd[1]: Started Memcached Daemon.
+```
+
+Everything looks good and we can see our drop-in unit being used as well.
 
 ## Push configuration
 
