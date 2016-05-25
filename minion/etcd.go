@@ -59,11 +59,11 @@ type etcdMinion struct {
 	// Channel over which tasks are sent for processing
 	taskQueue chan *task.Task
 
-	// Git repo from which to sync modules and data
-	gitRepo string
+	// The upstream site repo url/path
+	upstreamSiteRepo string
 
-	// Site directory contains the modules and data synced from Git
-	siteRepo string
+	// Path to the local site repo cloned from Git
+	localSiteRepo string
 
 	// Channel used to signal for shutdown time
 	done chan struct{}
@@ -75,8 +75,8 @@ type EtcdMinionConfig struct {
 	// Name of the minion
 	Name string
 
-	// GitRepo provides the url from which to sync modules and data
-	GitRepo string
+	// SiteRepo specifies the path/url to the upstream repo
+	SiteRepo string
 
 	// EtcdConfig provides etcd-related configuration settings
 	EtcdConfig etcdclient.Config
@@ -94,28 +94,19 @@ func NewEtcdMinion(config *EtcdMinionConfig) (Minion, error) {
 		return nil, err
 	}
 
-	kapi := etcdclient.NewKeysAPI(c)
-	id := utils.GenerateUUID(config.Name)
 	rootDir := filepath.Join(EtcdMinionSpace, id.String())
-	queueDir := filepath.Join(rootDir, "queue")
-	classifierDir := filepath.Join(rootDir, "classifier")
-	logDir := filepath.Join(rootDir, "log")
-	siteRepo := filepath.Join(cwd, "site")
-	taskQueue := make(chan *task.Task)
-	done := make(chan struct{})
-
 	m := &etcdMinion{
-		name:          config.Name,
-		rootDir:       rootDir,
-		queueDir:      queueDir,
-		classifierDir: classifierDir,
-		logDir:        logDir,
-		id:            id,
-		kapi:          kapi,
-		taskQueue:     taskQueue,
-		gitRepo:       config.GitRepo,
-		siteRepo:      siteRepo,
-		done:          done,
+		name:             config.Name,
+		rootDir:          rootDir,
+		queueDir:         filepath.Join(rootDir, "queue"),
+		classifierDir:    filepath.Join(rootDir, "classifier"),
+		logDir:           filepath.Join(rootDir, "log"),
+		id:               utils.GenerateUUID(config.Name),
+		kapi:             etcdclient.NewKeysAPI(c),
+		taskQueue:        make(chan *task.Task),
+		upstreamSiteRepo: config.SiteRepo,
+		localSiteRepo:    filepath.Join(cwd, "site"),
+		done:             make(chan struct{}),
 	}
 
 	return m, nil
@@ -216,9 +207,9 @@ func (m *etcdMinion) processTask(t *task.Task) error {
 		Main:   t.Command,
 		DryRun: t.DryRun,
 		ModuleConfig: &module.Config{
-			Path: filepath.Join(m.siteRepo, "modules"),
+			Path: filepath.Join(m.localSiteRepo, "modules"),
 			ResourceConfig: &resource.Config{
-				SiteRepo: m.siteRepo,
+				SiteRepo: m.localSiteRepo,
 				Writer:   &buf,
 			},
 		},
@@ -432,7 +423,7 @@ func (m *etcdMinion) SaveTaskResult(t *task.Task) error {
 func (m *etcdMinion) setEnvironment(name string) error {
 	log.Printf("Setting environment to %s\n", name)
 
-	repo, err := git.OpenRepository(m.siteRepo)
+	repo, err := git.OpenRepository(m.localSiteRepo)
 	if err != nil {
 		return err
 	}
@@ -464,28 +455,28 @@ func (m *etcdMinion) setEnvironment(name string) error {
 
 // Sync syncs module and data files from the upstream Git repository
 func (m *etcdMinion) Sync() error {
-	if m.gitRepo == "" {
+	if m.upstreamSiteRepo == "" {
 		log.Printf("Site repo url is not set, skipping sync")
 		return ErrNoSiteRepo
 	}
 
 	// Site directory does not exist, clone the Git repository from upstream
-	fi, err := os.Stat(m.siteRepo)
+	fi, err := os.Stat(m.localSiteRepo)
 	if os.IsNotExist(err) {
-		log.Printf("Site repo is missing, performing initial sync from %s\n", m.gitRepo)
+		log.Printf("Site repo is missing, performing initial sync from %s\n", m.upstreamSiteRepo)
 		opts := &git.CloneOptions{}
-		_, err := git.Clone(m.gitRepo, m.siteRepo, opts)
+		_, err := git.Clone(m.upstreamSiteRepo, m.localSiteRepo, opts)
 		return err
 	}
 
 	// File exists, ensure that it is a valid Git repository
 	if !fi.IsDir() {
-		return fmt.Errorf("%s exists, but is not a directory", m.siteRepo)
+		return fmt.Errorf("%s exists, but is not a directory", m.localSiteRepo)
 	}
 
 	// Open the repository and fetch from the default remote
 	log.Println("Starting site repo sync")
-	repo, err := git.OpenRepository(m.siteRepo)
+	repo, err := git.OpenRepository(m.localSiteRepo)
 	if err != nil {
 		return err
 	}

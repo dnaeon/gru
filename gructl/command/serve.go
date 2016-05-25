@@ -23,10 +23,10 @@ func NewServeCommand() cli.Command {
 				Value: "",
 			},
 			cli.StringFlag{
-				Name:   "gitrepo",
-				Usage:  "sync module and data files from the provided repo",
+				Name:   "siterepo",
 				Value:  "",
-				EnvVar: "GRU_GITREPO",
+				Usage:  "path/url to the site repo",
+				EnvVar: "GRU_SITEREPO",
 			},
 		},
 	}
@@ -49,7 +49,7 @@ func execServeCommand(c *cli.Context) {
 	etcdCfg := etcdConfigFromFlags(c)
 	minionCfg := &minion.EtcdMinionConfig{
 		Name:       name,
-		GitRepo:    c.String("gitrepo"),
+		SiteRepo:   c.String("siterepo"),
 		EtcdConfig: etcdCfg,
 	}
 
