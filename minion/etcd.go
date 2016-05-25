@@ -101,7 +101,7 @@ func NewEtcdMinion(config *EtcdMinionConfig) (Minion, error) {
 		queueDir:         filepath.Join(rootDir, "queue"),
 		classifierDir:    filepath.Join(rootDir, "classifier"),
 		logDir:           filepath.Join(rootDir, "log"),
-		id:               utils.GenerateUUID(config.Name),
+		id:               id,
 		kapi:             etcdclient.NewKeysAPI(c),
 		taskQueue:        make(chan *task.Task),
 		upstreamSiteRepo: config.SiteRepo,
