@@ -41,6 +41,10 @@ func execServeCommand(c *cli.Context) {
 		displayError(err, 1)
 	}
 
+	if c.String("siterepo") == "" {
+		displayError(errNoSiteRepo, 64)
+	}
+
 	nameFlag := c.String("name")
 	if nameFlag != "" {
 		name = nameFlag
