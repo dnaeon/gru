@@ -114,13 +114,13 @@ func (g *Graph) Sort() ([]*Node, error) {
 // AsDot generates a DOT representation for the graph
 // https://en.wikipedia.org/wiki/DOT_(graph_description_language)
 func (g *Graph) AsDot(name string, w io.Writer) {
-
 	w.Write([]byte(fmt.Sprintf("digraph %s {\n", name)))
 	w.Write([]byte("\tnodesep=1.0\n"))
 	w.Write([]byte("\tnode [shape=box]\n"))
 	w.Write([]byte("\tedge [style=dashed]\n"))
 
 	for _, node := range g.nodes {
+		w.Write([]byte(fmt.Sprintf("\t%q\n", node.Name)))
 		for _, edge := range node.edges {
 			w.Write([]byte(fmt.Sprintf("\t%q -> %q\n", node.Name, edge.Name)))
 		}
