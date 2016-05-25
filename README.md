@@ -1,4 +1,4 @@
-## Gru - A Simple Orchestration Framework
+## Gru - Orchestration made easy with Go
 
 [![Build Status](https://travis-ci.org/dnaeon/gru.svg)](https://travis-ci.org/dnaeon/gru)
 [![GoDoc](https://godoc.org/github.com/dnaeon/gru?status.svg)](https://godoc.org/github.com/dnaeon/gru)
