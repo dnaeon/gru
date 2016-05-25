@@ -94,6 +94,7 @@ func NewEtcdMinion(config *EtcdMinionConfig) (Minion, error) {
 		return nil, err
 	}
 
+	id := utils.GenerateUUID(config.Name)
 	rootDir := filepath.Join(EtcdMinionSpace, id.String())
 	m := &etcdMinion{
 		name:             config.Name,
