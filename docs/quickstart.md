@@ -199,16 +199,39 @@ previous chapter, let's see what it's DAG graph looks like.
 
 In order to do that we will use the `gructl graph` command.
 
+```bash
+$ gructl graph --siterepo site/ memcached
+```
+
+Executing the above command generates the graph representation for
+our modules and resources.
+
 ```dot
+digraph memcached_imports {
+        label = "memcached_imports";
+        nodesep=1.0;
+        node [shape=box];
+        edge [style=filled];
+        "memcached";
+}
 digraph resources {
-        nodesep=1.0
-        node [shape=box]
-        edge [style=dashed]
-        "service[memcached]" -> "package[memcached]"
-        "service[memcached]" -> "file[/etc/systemd/system/memcached.service.d/override.conf]"
-        "shell[systemctl daemon-reload]" -> "file[/etc/systemd/system/memcached.service.d/override.conf]"
-        "file[/etc/systemd/system/memcached.service.d]" -> "package[memcached]"
-        "file[/etc/systemd/system/memcached.service.d/override.conf]" -> "file[/etc/systemd/system/memcached.service.d]"
+        label = "resources";
+        nodesep=1.0;
+        node [shape=box];
+        edge [style=filled];
+        subgraph cluster_memcached {
+                label = "memcached";
+                color = black;
+                "service[memcached]";
+                "shell[systemctl daemon-reload]";
+                "file[/etc/systemd/system/memcached.service.d]";
+                "file[/etc/systemd/system/memcached.service.d/override.conf]";
+                "package[memcached]";
+        }
+        "service[memcached]" -> {"package[memcached]" "file[/etc/systemd/system/memcached.service.d/override.conf]"};
+        "shell[systemctl daemon-reload]" -> {"file[/etc/systemd/system/memcached.service.d/override.conf]"};
+        "file[/etc/systemd/system/memcached.service.d]" -> {"package[memcached]"};
+        "file[/etc/systemd/system/memcached.service.d/override.conf]" -> {"file[/etc/systemd/system/memcached.service.d]"};
 }
 ```
 
@@ -240,7 +263,7 @@ In standalone mode configuration is being applied on the local system,
 while in orchestration mode a task is being pushed to the remote
 minions for processing.
 
-### Standalone mode
+## Standalone mode
 
 Let's see how we can apply the configuration from the module we've
 prepared so far on the local system using the standalone mode.
@@ -297,7 +320,7 @@ previous section.
 One last thing we need to do is check the status of the service.
 
 ```bash
-$ sudo systemctl status memcached
+$ systemctl status memcached
 ● memcached.service - Memcached Daemon
    Loaded: loaded (/usr/lib/systemd/system/memcached.service; enabled; vendor preset: disabled)
   Drop-In: /etc/systemd/system/memcached.service.d
@@ -313,8 +336,9 @@ May 25 17:57:04 mnikolov-laptop systemd[1]: Started Memcached Daemon.
 
 Everything looks good and we can see our drop-in unit being used as well.
 
-## Push configuration
+## Orchestration
 
+TODO: Add dot graph
 TODO: Add instructions how to start minions
 TODO: Add instructions how to push configuration
 
