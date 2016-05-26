@@ -6,14 +6,14 @@ type Node struct {
 	Name string
 
 	// Edges to other nodes in the graph
-	edges []*Node
+	Edges []*Node
 }
 
 // NewNode creates a new node with the given name
 func NewNode(name string) *Node {
 	n := &Node{
 		Name:  name,
-		edges: make([]*Node, 0),
+		Edges: make([]*Node, 0),
 	}
 
 	return n
