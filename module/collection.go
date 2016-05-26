@@ -2,7 +2,6 @@ package module
 
 import (
 	"fmt"
-	"io"
 
 	"github.com/dnaeon/gru/graph"
 	"github.com/dnaeon/gru/resource"
@@ -69,26 +68,4 @@ func (rm ResourceMap) DependencyGraph() (*graph.Graph, error) {
 	}
 
 	return g, nil
-}
-
-// DependencyGraphAsDot generates a DOT representation for the resources in catalog
-func (rm ResourceMap) DependencyGraphAsDot(w io.Writer) error {
-	g, err := rm.DependencyGraph()
-	if err != nil {
-		return err
-	}
-
-	g.AsDot("resources", w)
-
-	// Try a topological sort of the graph
-	// In case of circular dependencies in the graph
-	// generate a DOT file for the remaining nodes in the graph,
-	// which would give us the resources causing circular dependencies
-	if nodes, err := g.Sort(); err == graph.ErrCircularDependency {
-		circular := graph.New()
-		circular.AddNode(nodes...)
-		circular.AsDot("resources_circular", w)
-	}
-
-	return nil
 }
