@@ -7,6 +7,10 @@ command that is to be executed is not idempotent on it's own,
 in order to achieve idempotency of the resource you should set the
 `creates` parameter to a filename that can be checked for existence.
 
+## Embeds
+
+* [base](base.md)
+
 ## Parameters
 
 ### command
@@ -14,8 +18,8 @@ in order to achieve idempotency of the resource you should set the
 Command to be executed.
 
 * Type: string
-* Required: No
-* Default: Defaults to the resource title
+* Required: no
+* Default: defaults to the resource title
 
 ### creates
 
@@ -25,7 +29,8 @@ You should use `creates` parameter to achieve idempotency of your
 resource, if the command to be executed is not idempotent on it's own.
 
 * Type: string
-* Required: No
+* Required: no
+* Default: none
 
 ## Example usage
 
