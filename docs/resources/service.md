@@ -1,25 +1,21 @@
 ## service
 
-The `service` resource is used for managing services on a GNU/Linux
-system running systemd.
+The `service` resource is used for managing services on GNU/Linux
+systems, which run with systemd.
+
+## Embeds
+
+* [base](base.md)
 
 ## Parameters
 
 ### name
 
-Name of the service resource.
-
-* Type: string
-* Required: Yes
-* Default: Defaults to the resource title
-
-### state
-
-Desired state of the service.
+Name of the service to manage.
 
 * Type: string
 * Required: No
-* Default: running
+* Default: Defaults to the resource title
 
 ### enable
 
