@@ -36,11 +36,14 @@ func NewPackageResource(title string, obj *ast.ObjectItem, config *Config) (Reso
 	// The package providers that we know of
 	providers := map[string]Provider{
 		pacmanResourceType: NewPacmanResource,
+		yumResourceType:    NewYumResource,
 	}
 
 	// Releases files used by the various GNU/Linux distros
 	releases := map[string]Provider{
-		"/etc/arch-release": NewPacmanResource,
+		"/etc/arch-release":   NewPacmanResource,
+		"/etc/centos-release": NewYumResource,
+		"/etc/redhat-release": NewYumResource,
 	}
 
 	// Decode the object from HCL
