@@ -462,7 +462,7 @@ retrieve the actual task result we use the `gructl result` command and
 pass it the task id, e.g.
 
 ```bash
-$ bin/gructl result 76f0f2cb-220a-4529-8f85-c5e55865d68c
+$ gructl result 76f0f2cb-220a-4529-8f85-c5e55865d68c
 MINION                                  RESULT                                          STATE
 f827bffd-bd9e-5441-be36-a92a51d0b79e    Loaded 5 resources from 1 modules               success
                                         pac...
