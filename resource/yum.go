@@ -111,6 +111,8 @@ func (yr *YumResource) Update() error {
 	// This method is a no-op for now
 	//
 	// TODO: Be able to handle upgrades/downgrades
+
+	return nil
 }
 
 func init() {
