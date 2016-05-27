@@ -14,8 +14,8 @@ systems, which run with systemd.
 Name of the service to manage.
 
 * Type: string
-* Required: No
-* Default: Defaults to the resource title
+* Required: no
+* Default: defaults to the resource title
 
 ### enable
 
@@ -23,7 +23,7 @@ Boolean flag indicating whether to enable or disable the service
 during boot-time.
 
 * Type: bool
-* Required: No
+* Required: no
 * Default: true
 
 ## Example usage
