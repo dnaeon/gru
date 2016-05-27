@@ -1,7 +1,7 @@
-## pacman
+## yum
 
-The `pacman` resource is used for package management on Arch Linux
-systems.
+The `yum` resource is used for package management under
+RHEL/CentOS systems.
 
 ## Embeds
 
@@ -28,7 +28,7 @@ Version of the package.
 ## Example usage
 
 ```hcl
-pacman "tmux" {
+yum "tmux" {
   state = "present"
 }
 ```
