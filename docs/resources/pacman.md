@@ -3,6 +3,10 @@
 The `pacman` resource is used for package management on Arch Linux
 systems.
 
+## Embeds
+
+* [base](base.md)
+
 ## Parameters
 
 ### name
@@ -10,15 +14,15 @@ systems.
 Name of the package.
 
 * Type: string
-* Required: Yes
-* Default: Defaults to the resource title
+* Required: yes
+* Default: defaults to the resource title
 
 ### state
 
 Desired state of the package.
 
 * Type: string
-* Required: No
+* Required: no
 * Default: present
 
 ## Example usage
