@@ -35,7 +35,7 @@ Package provider to use for this resource.
 * Type: string
 * Required: no
 * Default: none
-* Values: `pacman`
+* Values: `pacman`, `yum`
 
 ## Example usage
 
