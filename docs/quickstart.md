@@ -8,9 +8,9 @@ take care of installing and configuring
 [memcached](https://memcached.org/) for us.
 
 The instructions here should be pretty simple for everyone to follow,
-and should serve as an example on creating modules for Gru.
+and should serve as an example on how to create modules for Gru.
 
-The instructions presented in this document have been tested on an
+The instructions provided in this document have been tested on an
 [Arch Linux](https://www.archlinux.org/) system, but they should also
 apply to other systems for which Gru has support.
 
@@ -54,8 +54,8 @@ Modules in Gru are expressed in
 In the beginning of this document we have mentioned that we will be
 installing and configuring [memcached](https://memcached.org/) on our
 systems. The steps we need to perform in order to do that can be
-summarized as installing the needed package, configuring the service
-and afterwards starting the service.
+summarized as follows - installing the needed package, configuring the
+service and afterwards starting the service.
 
 First, let's begin with installing the requred packages by creating
 our first resource.
@@ -160,7 +160,7 @@ using the `gructl module` command.
 ```bash
 $ gructl module memcached
 MODULE          PATH
-memcached       .../gru/site/modules/memcached.hcl
+memcached       .../site/modules/memcached.hcl
 ```
 
 And this is how our site repo looks like once we have everything in
@@ -188,11 +188,11 @@ have used these `require` parameters.
 
 The `require` parameter is used for creating resource dependencies.
 
-Before the resources are being processed by the `catalog`, Gru is
+Before the resources are being processed by the catalog, Gru is
 building a [DAG graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph)
 of all resources and attempts to perform a
 [topological sort](https://en.wikipedia.org/wiki/Topological_sorting)
-on them, in order to determine the proper ordering of resource execution.
+on them, in order to determine the proper order of resource execution.
 
 Considering the example memcached module we have created in the
 previous chapter, let's see what it's DAG graph looks like.
@@ -248,10 +248,10 @@ $ gructl graph --resources memcached | dot -O -Tpng
 
 And this is how the dependency graph for our memcached module looks like.
 
-![memcached graph dependencies](images/memcached-dag.png)
+![memcached dag](images/memcached-dag.png)
 
 Using `gructl graph` we can see what the resource execution
-ordering would look like and it can also help us identify
+order would look like and it can also help us identify
 circular dependencies in our resources and modules.
 
 ## Applying Configuration
@@ -338,10 +338,144 @@ Everything looks good and we can see our drop-in unit being used as well.
 
 ## Orchestration
 
-TODO: Add dot graph
-TODO: Add instructions how to start minions
-TODO: Add instructions how to push configuration
+Besides being able to apply configuration on the local system, Gru
+can also be used to orchestrate remote systems by pushing tasks
+for processing.
 
-## View results
+A task simply tells the remote systems (called *minions*) which
+module should be loaded and processed from the site repo using a
+given `environment`.
 
-TODO: Add instructions how to view results
+The `environment` is essentially a Git branch from our site repo,
+which is being fetched by the remote minions and used during
+catalog processing. The default `environment` which is sent to
+minions is called `production`, so make sure to create the
+`production` branch in your Git site repo before pushing
+new tasks to them.
+
+First, make sure that your site repo resides in Git and is available
+for the remote minions to fetch from it.
+
+Afterwards, we should start our minions.
+
+```bash
+$ sudo gructl serve --siterepo https://github.com/you/gru-site
+```
+
+Make sure to specify the correct URL to your site repo in the
+command above.
+
+Once you've got all your minions started, let's see some useful
+commands that we can use with our minions.
+
+Using the `gructl list` command we can see the currently registered
+minions.
+
+```bash
+$ gructl list
+MINION                                  NAME
+46ce0385-0e2b-5ede-8279-9cd98c268170    Kevin
+f827bffd-bd9e-5441-be36-a92a51d0b79e    Bob
+f87cf58e-1e19-57e1-bed3-9dff5064b86a    Stuart
+```
+
+If we want to get more info about a specific minion we can use the
+`gructl info` command, e.g.
+
+```bash
+$ gructl info f827bffd-bd9e-5441-be36-a92a51d0b79e
+Minion:         f827bffd-bd9e-5441-be36-a92a51d0b79e
+Name:           Bob
+Lastseen:       2016-05-27 14:59:53 +0300 EEST
+Queue:          0
+Log:            0
+Classifiers:    7
+```
+
+Each minion has a set of `classifiers`, which provide information
+about various characteristics for a minions. The classifiers can
+also be used to target specific minions, as we will see soon.
+
+Using the `gructl classifier` command we can list the classifiers
+that a minion has, e.g.
+
+```bash
+KEY             VALUE
+os              linux
+arch            amd64
+fqdn            Bob
+lsbdistid       Arch
+lsbdistdesc     Arch Linux
+lsbdistrelease  rolling
+lsbdistcodename n/a
+```
+
+Considering the example memcached module we have prepared in the
+beginning of this document, let's now see how we can push it to
+our remote minions, so we can install and configure memcached on them.
+
+Pushing tasks to minions is done using the `gructl push` command.
+
+In the example command below we also use the `--with-classifier` flag,
+so we can target specific minions to which the task will be pushed.
+If you want to push the task to all registered minions, then simply
+remove the `--with-classifier` flag from the command.
+
+```bash
+$ gructl push --with-classifier fqdn=Bob memcached
+Found 1 minion(s) for task processing
+
+Submitting task to minion(s) ...
+   0s [====================================================================] 100%
+
+TASK                                    SUBMITTED       FAILED  TOTAL
+76f0f2cb-220a-4529-8f85-c5e55865d68c    1               0       1
+```
+
+The `gructl push` command also returns the unique task id of our
+task, so later on we can use it to retrieve results.
+
+Looking at the log of our minion we can see that it has successfully
+received and processed the task as seen from the log snippet below.
+
+```bash
+2016/05/27 17:08:19 Received task 76f0f2cb-220a-4529-8f85-c5e55865d68c
+2016/05/27 17:08:19 Processing task 76f0f2cb-220a-4529-8f85-c5e55865d68c
+2016/05/27 17:08:19 Starting site repo sync
+2016/05/27 17:08:19 Site repo sync completed
+2016/05/27 17:08:19 Setting environment to production
+2016/05/27 17:08:19 Environment set to production@1668f509bc4c57862fcb695fcd4917448f0ca794
+2016/05/27 17:08:19 Finished processing task 76f0f2cb-220a-4529-8f85-c5e55865d68c
+```
+
+Using the `gructl log` command we can check the log of our minions,
+which contains the previously executed tasks and their results, e.g.
+
+```bash
+$ gructl log f827bffd-bd9e-5441-be36-a92a51d0b79e
+TASK                                    STATE   RECEIVED                        PROCESSED
+76f0f2cb-220a-4529-8f85-c5e55865d68c    success 2016-05-27 17:08:19 +0300 EEST  2016-05-27 17:08:19 +0300 EEST
+```
+
+The argument we pass to `gructl log` is the minion id. In order to
+retrieve the actual task result we use the `gructl result` command and
+pass it the task id, e.g.
+
+```bash
+$ bin/gructl result 76f0f2cb-220a-4529-8f85-c5e55865d68c
+MINION                                  RESULT                                          STATE
+f827bffd-bd9e-5441-be36-a92a51d0b79e    Loaded 5 resources from 1 modules               success
+                                        pac...
+```
+
+If you need to examine the task result in details you can use the
+`--details` command-line flag of `gructl result`.
+
+## Wrap up
+
+Hopefully this introduction gave you a good overview and
+understanding of how to do configuration management and
+orchestration using Gru.
+
+For more information about Gru, please make sure to check the
+[available documentation](../docs).
