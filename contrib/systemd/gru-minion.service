@@ -5,8 +5,10 @@ After=network.target
 
 [Service]
 Type=simple
-Environment=GRUCTL_ENDPOINT=http://127.0.0.1:2379,http://127.0.0.1:4001
+Environment=GRU_ENDPOINT=http://127.0.0.1:2379,http://127.0.0.1:4001
+Environment=GRU_SITEREPO=https://github.com/you/gru-site
 ExecStart=/usr/local/bin/gructl serve
+WorkingDirectory=/var/lib/gru
 KillMode=process
 KillSignal=SIGINT
 
