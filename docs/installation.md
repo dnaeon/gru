@@ -1,10 +1,8 @@
 ## Installation
 
-The easiest way to get Gru is to use one of the pre-built binaries
-from the [Gru releases page](https://github.com/dnaeon/gru/releases/).
+Gru is being built and tested against the Go tip version.
 
-For those wanting to try out the latest version of Gru you should
-follow these instructions instead:
+In order to build Gru, simply follow the steps below.
 
 ```bash
 $ git clone https://github.com/dnaeon/gru
@@ -23,7 +21,7 @@ please refer to the
 
 ## Tests
 
-You can also run the tests by executing the command below:
+You can run the tests by executing the command below:
 
 ```bash
 $ make test
