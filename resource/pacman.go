@@ -5,53 +5,34 @@ package resource
 import (
 	"os/exec"
 	"strings"
-
-	"github.com/hashicorp/hcl"
-	"github.com/hashicorp/hcl/hcl/ast"
-	"github.com/imdario/mergo"
 )
 
 // Path to the pacman package manager
 const pacmanPath = "/usr/bin/pacman"
 
-// Name and description of the resource
-const pacmanResourceType = "pacman"
-const pacmanResourceDesc = "manages packages using the pacman package manager"
-
-// PacmanResource type represents the resource for
-// package management on Arch Linux systems
+// PacmanResource type represents the resource for package
+// management on Arch Linux systems
 type PacmanResource struct {
-	BaseResource        `hcl:",squash"`
-	BasePackageResource `hcl:",squash"`
+	BaseResource
+	BasePackageResource
 }
 
 // NewPacmanResource creates a new resource for managing packages
 // using the pacman package manager on an Arch Linux system
-func NewPacmanResource(title string, obj *ast.ObjectItem, config *Config) (Resource, error) {
-	// Resource defaults
-	defaults := &PacmanResource{
+func NewPacmanResource(title string) Resource {
+	// Create resource with defaults
+	pr := &PacmanResource{
 		BaseResource: BaseResource{
-			Title:  title,
-			Type:   pacmanResourceType,
-			State:  StatePresent,
-			Config: config,
+			Title: title,
+			Type:  "pacman",
+			State: StatePresent,
 		},
 		BasePackageResource: BasePackageResource{
 			Name: title,
 		},
 	}
 
-	// Decode the object from HCL
-	var pr PacmanResource
-	err := hcl.DecodeObject(&pr, obj)
-	if err != nil {
-		return nil, err
-	}
-
-	// Merge in the decoded object with the resource defaults
-	err = mergo.Merge(&pr, defaults)
-
-	return &pr, err
+	return &pr
 }
 
 // Evaluate evaluates the state of the resource
@@ -114,11 +95,5 @@ func (pr *PacmanResource) Update() error {
 }
 
 func init() {
-	item := RegistryItem{
-		Name:        pacmanResourceType,
-		Description: pacmanResourceDesc,
-		Provider:    NewPacmanResource,
-	}
-
-	Register(item)
+	RegisterProvider("pacman", NewPacmanResource)
 }
