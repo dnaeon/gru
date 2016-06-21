@@ -10,18 +10,18 @@ import (
 // Path to the pacman package manager
 const pacmanPath = "/usr/bin/pacman"
 
-// PacmanResource type represents the resource for package
+// Pacman type represents the resource for package
 // management on Arch Linux systems
-type PacmanResource struct {
+type Pacman struct {
 	BaseResource
 	BasePackageResource
 }
 
-// NewPacmanResource creates a new resource for managing packages
+// NewPacman creates a new resource for managing packages
 // using the pacman package manager on an Arch Linux system
-func NewPacmanResource(title string) Resource {
+func NewPacman(title string) Resource {
 	// Create resource with defaults
-	pr := &PacmanResource{
+	p := &Pacman{
 		BaseResource: BaseResource{
 			Title: title,
 			Type:  "pacman",
@@ -32,11 +32,11 @@ func NewPacmanResource(title string) Resource {
 		},
 	}
 
-	return &pr
+	return &p
 }
 
 // Evaluate evaluates the state of the resource
-func (pr *PacmanResource) Evaluate() (State, error) {
+func (p *Pacman) Evaluate() (State, error) {
 	s := State{
 		Current: StateUnknown,
 		Want:    pr.State,
@@ -60,7 +60,7 @@ func (pr *PacmanResource) Evaluate() (State, error) {
 }
 
 // Create installs packages
-func (pr *PacmanResource) Create() error {
+func (p *Pacman) Create() error {
 	pr.Printf("installing package\n")
 
 	cmd := exec.Command(pacmanPath, "--sync", "--noconfirm", pr.Name)
@@ -74,7 +74,7 @@ func (pr *PacmanResource) Create() error {
 }
 
 // Delete deletes packages
-func (pr *PacmanResource) Delete() error {
+func (p *Pacman) Delete() error {
 	pr.Printf("removing package\n")
 
 	cmd := exec.Command(pacmanPath, "--remove", "--noconfirm", pr.Name)
@@ -88,12 +88,12 @@ func (pr *PacmanResource) Delete() error {
 }
 
 // Update updates packages
-func (pr *PacmanResource) Update() error {
+func (p *Pacman) Update() error {
 	pr.Printf("updating package\n")
 
 	return pr.Create()
 }
 
 func init() {
-	RegisterProvider("pacman", NewPacmanResource)
+	RegisterProvider("pacman", NewPacman)
 }
