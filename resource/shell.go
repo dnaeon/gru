@@ -4,52 +4,35 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-
-	"github.com/hashicorp/hcl"
-	"github.com/hashicorp/hcl/hcl/ast"
-	"github.com/imdario/mergo"
 )
 
-// Name and description of the resource
-const shellResourceType = "shell"
-const shellResourceDesc = "executes shell commands"
+// Shell type is a resource which executes shell commands
+type Shell struct {
+	BaseResource
 
-// ShellResource type is a resource which executes shell commands
-type ShellResource struct {
-	BaseResource `hcl:",squash"`
+	// Command to be executed
+	Command string `luar:"command"`
 
-	Command string `hcl:"command"`
-
-	Creates string `hcl:"creates"`
+	// File to be checked for existence before running the command
+	Creates string `luar:"creates"`
 }
 
-// NewShellResource creates a new resource for executing shell commands
-func NewShellResource(title string, obj *ast.ObjectItem, config *Config) (Resource, error) {
-	// Resource defaults
-	defaults := &ShellResource{
+// NewShell creates a new resource for executing shell commands
+func NewShell(title string) (Resource, error) {
+	s := &Shell{
 		BaseResource: BaseResource{
-			Title:  title,
-			Type:   shellResourceType,
-			State:  StatePresent,
-			Config: config,
+			Title: title,
+			Type:  shellResourceType,
+			State: StatePresent,
 		},
 		Command: title,
 	}
 
-	var sr ShellResource
-	err := hcl.DecodeObject(&sr, obj)
-	if err != nil {
-		return nil, err
-	}
-
-	// Merge the decoded object with the resource defaults
-	err = mergo.Merge(&sr, defaults)
-
-	return &sr, err
+	return &s, nil
 }
 
 // Evaluate evaluates the state of the resource
-func (sr *ShellResource) Evaluate() (State, error) {
+func (s *Shell) Evaluate() (State, error) {
 	// Assumes that the command to be executed is idempotent
 	//
 	// Sets the current state to absent and wanted to be present,
@@ -60,12 +43,12 @@ func (sr *ShellResource) Evaluate() (State, error) {
 	// that can be checked for existence.
 	rs := State{
 		Current: StateAbsent,
-		Want:    sr.State,
+		Want:    s.State,
 		Update:  false,
 	}
 
-	if sr.Creates != "" {
-		_, err := os.Stat(sr.Creates)
+	if s.Creates != "" {
+		_, err := os.Stat(s.Creates)
 		if os.IsNotExist(err) {
 			rs.Current = StateAbsent
 		} else {
@@ -77,36 +60,30 @@ func (sr *ShellResource) Evaluate() (State, error) {
 }
 
 // Create executes the shell command
-func (sr *ShellResource) Create() error {
-	sr.Printf("executing command\n")
+func (s *Shell) Create() error {
+	s.Printf("executing command\n")
 
-	args := strings.Fields(sr.Command)
+	args := strings.Fields(s.Command)
 	cmd := exec.Command(args[0], args[1:]...)
 	out, err := cmd.CombinedOutput()
 
 	for _, line := range strings.Split(string(out), "\n") {
-		sr.Printf("%s\n", line)
+		s.Printf("%s\n", line)
 	}
 
 	return err
 }
 
 // Delete is a no-op
-func (sr *ShellResource) Delete() error {
+func (s *Shell) Delete() error {
 	return nil
 }
 
 // Update is a no-op
-func (sr *ShellResource) Update() error {
+func (s *Shell) Update() error {
 	return nil
 }
 
 func init() {
-	item := RegistryItem{
-		Name:        shellResourceType,
-		Description: shellResourceDesc,
-		Provider:    NewShellResource,
-	}
-
-	Register(item)
+	RegisterProvider("shell", NewShell)
 }
