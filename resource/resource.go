@@ -47,22 +47,22 @@ type Config struct {
 // Partially implements the Resource interface
 type BaseResource struct {
 	// Type of the resource
-	Type string `hcl:"-"`
+	Type string `luar:"-"`
 
 	// Title of the resource
-	Title string `hcl:"-"`
+	Title string `luar:"-"`
 
 	// Resource configuration settings
-	Config *Config `hcl:"-"`
+	Config *Config `luar:"-"`
 
 	// Desired state of the resource
-	State string `hcl:"state"`
+	State string `luar:"state"`
 
 	// Resources before which this resource should be processed
-	Before []string `hcl:"before"`
+	Before []string `luar:"before"`
 
 	// Resources after which this resource should be processed
-	After []string `hcl:"require"`
+	After []string `luar:"require"`
 }
 
 // SetType sets the type for the resource.
