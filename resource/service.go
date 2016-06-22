@@ -8,76 +8,56 @@ import (
 
 	"github.com/coreos/go-systemd/dbus"
 	"github.com/coreos/go-systemd/util"
-	"github.com/hashicorp/hcl"
-	"github.com/hashicorp/hcl/hcl/ast"
-	"github.com/imdario/mergo"
 )
 
-// Name and description of the resource
-const serviceResourceType = "service"
-const serviceResourceDesc = "manages services using systemd"
-
-// ServiceResource type is a resource which manages
-// services on a GNU/Linux system running systemd
-type ServiceResource struct {
-	BaseResource `hcl:",squash"`
+// Service type is a resource which manages
+// services on a GNU/Linux system running with systemd
+type Service struct {
+	BaseResource
 
 	// Name of the service
-	Name string `hcl:"name"`
+	Name string `luar:"name"`
 
 	// If true then enable service during boot-time
-	Enable bool `hcl:"enable"`
+	Enable bool `luar:"enable"`
 
 	// Systemd unit name
-	UnitName string `hcl:"-"`
+	unit string `luar:"-"`
 }
 
-// NewServiceResource creates a new resource for managing services
+// NewService creates a new resource for managing services
 // using systemd on a GNU/Linux system
-func NewServiceResource(title string, obj *ast.ObjectItem, config *Config) (Resource, error) {
-	// Resource defaults
-	defaults := &ServiceResource{
+func NewService(title string) (Resource, error) {
+	s := &Service{
 		BaseResource: BaseResource{
-			Title:  title,
-			Type:   serviceResourceType,
-			State:  StateRunning,
-			Config: config,
+			Title: title,
+			Type:  "service",
+			State: StateRunning,
 		},
 		Name:   title,
 		Enable: false,
+		unit:   fmt.Sprintf("%s.service", title),
 	}
 
-	var sr ServiceResource
-	err := hcl.DecodeObject(&sr, obj)
-	if err != nil {
-		return nil, err
-	}
-
-	// Merge the decoded object with the resource defaults
-	err = mergo.Merge(&sr, defaults)
-
-	// Set the unit name for the service we manage
-	sr.UnitName = fmt.Sprintf("%s.service", sr.Name)
-
-	return &sr, err
+	return &s, nil
 }
 
 // unitProperty retrieves the requested property for the service unit
-func (sr *ServiceResource) unitProperty(propertyName string) (*dbus.Property, error) {
+func (s *Service) unitProperty(propertyName string) (*dbus.Property, error) {
 	conn, err := dbus.New()
 	if err != nil {
 		return nil, err
 	}
 	defer conn.Close()
 
-	property, err := conn.GetUnitProperty(sr.UnitName, propertyName)
+	property, err := conn.GetUnitProperty(s.unit, propertyName)
 
 	return property, err
 }
 
 // unitIsEnabled checks if the unit is enabled or disabled
-func (sr *ServiceResource) unitIsEnabled() (bool, error) {
-	unitState, err := sr.unitProperty("UnitFileState")
+func (s *Service) unitIsEnabled() (bool, error) {
+	unitState, err := s.unitProperty("UnitFileState")
 	if err != nil {
 		return false, err
 	}
@@ -96,53 +76,53 @@ func (sr *ServiceResource) unitIsEnabled() (bool, error) {
 }
 
 // enableUnit enables the service unit during boot-time
-func (sr *ServiceResource) enableUnit() error {
+func (s *Service) enableUnit() error {
 	conn, err := dbus.New()
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
-	sr.Printf("enabling service\n")
+	s.Printf("enabling service\n")
 
-	units := []string{sr.UnitName}
+	units := []string{s.unit}
 	_, changes, err := conn.EnableUnitFiles(units, false, false)
 	if err != nil {
 		return err
 	}
 
 	for _, change := range changes {
-		sr.Printf("%s %s -> %s\n", change.Type, change.Filename, change.Destination)
+		s.Printf("%s %s -> %s\n", change.Type, change.Filename, change.Destination)
 	}
 
 	return nil
 }
 
 // disableUnit disables the service unit during boot-time
-func (sr *ServiceResource) disableUnit() error {
+func (s *Service) disableUnit() error {
 	conn, err := dbus.New()
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
-	sr.Printf("disabling service\n")
+	s.Printf("disabling service\n")
 
-	units := []string{sr.UnitName}
+	units := []string{s.unit}
 	changes, err := conn.DisableUnitFiles(units, false)
 	if err != nil {
 		return err
 	}
 
 	for _, change := range changes {
-		sr.Printf("%s %s\n", change.Type, change.Filename)
+		s.Printf("%s %s\n", change.Type, change.Filename)
 	}
 
 	return nil
 }
 
 // daemonReload instructs systemd to scan for and reload unit files
-func (sr *ServiceResource) daemonReload() error {
+func (s *Service) daemonReload() error {
 	conn, err := dbus.New()
 	if err != nil {
 		return err
@@ -153,15 +133,15 @@ func (sr *ServiceResource) daemonReload() error {
 }
 
 // Evaluate evaluates the state of the resource
-func (sr *ServiceResource) Evaluate() (State, error) {
+func (s *Service) Evaluate() (State, error) {
 	rs := State{
 		Current: StateUnknown,
-		Want:    sr.State,
+		Want:    s.State,
 		Update:  false,
 	}
 
 	// Check if the unit is started/stopped
-	activeState, err := sr.unitProperty("ActiveState")
+	activeState, err := s.unitProperty("ActiveState")
 	if err != nil {
 		return rs, err
 	}
@@ -176,14 +156,12 @@ func (sr *ServiceResource) Evaluate() (State, error) {
 		rs.Current = StateStopped
 	}
 
-	// Check if the unit is enabled/disabled
-	enabled, err := sr.unitIsEnabled()
+	enabled, err := s.unitIsEnabled()
 	if err != nil {
 		return rs, err
 	}
 
-	// Check if the resource needs to be updated
-	if sr.Enable != enabled {
+	if s.Enable != enabled {
 		rs.Update = true
 	}
 
@@ -191,63 +169,63 @@ func (sr *ServiceResource) Evaluate() (State, error) {
 }
 
 // Create starts the service unit
-func (sr *ServiceResource) Create() error {
+func (s *Service) Create() error {
 	conn, err := dbus.New()
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
-	sr.Printf("starting service\n")
+	s.Printf("starting service\n")
 
 	ch := make(chan string)
-	jobID, err := conn.StartUnit(sr.UnitName, "replace", ch)
+	jobID, err := conn.StartUnit(s.unit, "replace", ch)
 	if err != nil {
 		return err
 	}
 
 	result := <-ch
-	sr.Printf("systemd job id %d result: %s\n", jobID, result)
+	s.Printf("systemd job id %d result: %s\n", jobID, result)
 
 	return nil
 }
 
 // Delete stops the service unit
-func (sr *ServiceResource) Delete() error {
+func (s *Service) Delete() error {
 	conn, err := dbus.New()
 	if err != nil {
 		return err
 	}
 	defer conn.Close()
 
-	sr.Printf("stopping service\n")
+	s.Printf("stopping service\n")
 
 	ch := make(chan string)
-	jobID, err := conn.StopUnit(sr.UnitName, "replace", ch)
+	jobID, err := conn.StopUnit(s.unit, "replace", ch)
 	if err != nil {
 		return err
 	}
 
 	result := <-ch
-	sr.Printf("systemd job id %d result: %s\n", jobID, result)
+	s.Printf("systemd job id %d result: %s\n", jobID, result)
 
 	return nil
 }
 
 // Update updates the service unit state
-func (sr *ServiceResource) Update() error {
-	enabled, err := sr.unitIsEnabled()
+func (s *Service) Update() error {
+	enabled, err := s.unitIsEnabled()
 	if err != nil {
 		return err
 	}
 
-	if sr.Enable && !enabled {
-		sr.enableUnit()
+	if s.Enable && !enabled {
+		s.enableUnit()
 	} else {
-		sr.disableUnit()
+		s.disableUnit()
 	}
 
-	return sr.daemonReload()
+	return s.daemonReload()
 }
 
 func init() {
@@ -255,7 +233,7 @@ func init() {
 		item := RegistryItem{
 			Name:        serviceResourceType,
 			Description: serviceResourceDesc,
-			Provider:    NewServiceResource,
+			Provider:    NewService,
 		}
 
 		Register(item)
