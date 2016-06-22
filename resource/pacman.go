@@ -19,7 +19,7 @@ type Pacman struct {
 
 // NewPacman creates a new resource for managing packages
 // using the pacman package manager on an Arch Linux system
-func NewPacman(title string) Resource {
+func NewPacman(title string) (Resource, error) {
 	// Create resource with defaults
 	p := &Pacman{
 		BaseResource: BaseResource{
@@ -32,7 +32,7 @@ func NewPacman(title string) Resource {
 		},
 	}
 
-	return &p
+	return &p, nil
 }
 
 // Evaluate evaluates the state of the resource
