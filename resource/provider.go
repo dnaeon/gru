@@ -3,7 +3,7 @@ package resource
 import "fmt"
 
 // Provider type is the type which creates new resources
-type Provider func(title string) Resource
+type Provider func(title string) (Resource, error)
 
 // providerRegistry contains the registered providers
 var providerRegistry = make(map[string]Provider)
