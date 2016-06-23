@@ -52,7 +52,8 @@ func (bp *BasePackage) Evaluate() (State, error) {
 		return s, err
 	}
 
-	cmd := exec.Command(bp.manager, bp.queryArgs, bp.Name)
+	bp.queryArgs = append(bp.queryArgs, bp.Package)
+	cmd := exec.Command(bp.manager, bp.queryArgs...)
 	err = cmd.Run()
 
 	if err != nil {
@@ -68,7 +69,8 @@ func (bp *BasePackage) Evaluate() (State, error) {
 func (bp *BasePackage) Create() error {
 	bp.Printf("installing package\n")
 
-	cmd := exec.Command(bp.manager, bp.installArgs, bp.Package)
+	bp.installArgs = append(bp.installArgs, bp.Package)
+	cmd := exec.Command(bp.manager, bp.installArgs...)
 	out, err := cmd.CombinedOutput()
 
 	for _, line := range strings.Split(string(out), "\n") {
@@ -82,7 +84,8 @@ func (bp *BasePackage) Create() error {
 func (bp *BasePackage) Delete() error {
 	bp.Printf("removing package\n")
 
-	cmd := exec.Command(bp.manager, bp.deinstallArgs, bp.Package)
+	bp.deinstallArgs = append(bp.deinstallArgs, bp.Package)
+	cmd := exec.Command(bp.manager, bp.deinstallArgs...)
 	out, err := cmd.CombinedOutput()
 
 	for _, line := range strings.Split(string(out), "\n") {
@@ -93,10 +96,11 @@ func (bp *BasePackage) Delete() error {
 }
 
 // Update updates the package
-func (p *Pacman) Update() error {
+func (bp *BasePackage) Update() error {
 	bp.Printf("updating package\n")
 
-	cmd := exec.Command(bp.manager, bp.updateArgs, bp.Package)
+	bp.updateArgs = append(bp.updateArgs, bp.Package)
+	cmd := exec.Command(bp.manager, bp.updateArgs...)
 	out, err := cmd.CombinedOutput()
 
 	for _, line := range strings.Split(string(out), "\n") {
@@ -119,7 +123,7 @@ func NewPackage(name string) (Resource, error) {
 	for release, provider := range releases {
 		dst := utils.NewFileUtil(release)
 		if dst.Exists() {
-			return provider(name), nil
+			return provider(name)
 		}
 	}
 
@@ -134,7 +138,7 @@ type Pacman struct {
 
 // NewPacman creates a new resource for managing packages
 // using the pacman package manager on an Arch Linux system
-func NewPacman(name string) *Pacman {
+func NewPacman(name string) (Resource, error) {
 	p := &Pacman{
 		BasePackage: BasePackage{
 			BaseResource: BaseResource{
@@ -162,7 +166,7 @@ type Yum struct {
 
 // NewYum creates a new resource for managing packages
 // using the yum package manager on RHEL and CentOS systems
-func NewYum(name string) *Yum {
+func NewYum(name string) (Resource, error) {
 	y := &Yum{
 		BasePackage: BasePackage{
 			BaseResource: BaseResource{
@@ -179,7 +183,7 @@ func NewYum(name string) *Yum {
 		},
 	}
 
-	return y
+	return y, nil
 }
 
 func init() {
