@@ -82,7 +82,7 @@ func (br *BaseResource) WantAfter() []string {
 // given resource writer object and prepends the
 // resource id to the output
 func (br *BaseResource) Printf(format string, a ...interface{}) (int, error) {
-	fmt.Fprintf(br.Config.Writer, "%s ", br.ResourceID())
+	fmt.Fprintf(br.Config.Writer, "%s ", br.ID())
 
 	return fmt.Fprintf(br.Config.Writer, format, a...)
 }
