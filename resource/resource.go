@@ -45,8 +45,8 @@ type BaseResource struct {
 	// Type of the resource
 	Type string `luar:"-"`
 
-	// Title of the resource
-	Title string `luar:"-"`
+	// Name of the resource
+	Name string `luar:"-"`
 
 	// Resource configuration settings
 	Config *Config `luar:"-"`
@@ -63,7 +63,7 @@ type BaseResource struct {
 
 // ID returns the unique resource id
 func (br *BaseResource) ID() string {
-	return fmt.Sprintf("%s[%s]", br.Type, br.Title)
+	return fmt.Sprintf("%s[%s]", br.Type, br.Name)
 }
 
 // WantBefore returns the resources before which this resource
