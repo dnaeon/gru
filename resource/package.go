@@ -4,96 +4,184 @@ package resource
 
 import (
 	"errors"
-	"fmt"
+	"os/exec"
+	"strings"
 
 	"github.com/dnaeon/gru/utils"
-	"github.com/hashicorp/hcl"
-	"github.com/hashicorp/hcl/hcl/ast"
 )
-
-// Name and description of the resource
-const packageResourceType = "package"
-const packageResourceDesc = "meta resource for package management"
 
 // ErrNoPackageProviderFound is returned when no suitable provider is found
 var ErrNoPackageProviderFound = errors.New("No suitable package provider found")
 
-// BasePackageResource is the base resource type for package management
+// BasePackage is the base resource type for package management
 // It's purpose is to be embeded into other package resource providers.
-type BasePackageResource struct {
-	// Name of the package
-	Name string `hcl:"name"`
+type BasePackage struct {
+	BaseResource
+
+	// Name of the package to manage
+	Package string `luar:"-"`
 
 	// Version of the package
-	Version string `hcl:"version"`
+	Version string `luar:"version"`
 
-	// Provider to use
-	Provider string `hcl:"provider"`
+	// Package manager to use
+	manager string `luar:"-"`
+
+	// Arguments to use when quering a package
+	queryArgs []string `luar:"-"`
+
+	// Arguments to use when installing a package
+	installArgs []string `luar:"-"`
+
+	// Arguments to use when deinstalling a package
+	deinstallArgs []string `luar:"-"`
+
+	// Arguments to use when updating a package
+	updateArgs []string `luar:"-"`
 }
 
-// NewPackageResource creates a new resource for managing packages
-func NewPackageResource(title string, obj *ast.ObjectItem, config *Config) (Resource, error) {
-	// The package providers that we know of
-	providers := map[string]Provider{
-		pacmanResourceType: NewPacmanResource,
-		yumResourceType:    NewYumResource,
+// Evaluate evaluates the state of the package
+func (bp *BasePackage) Evaluate() (State, error) {
+	s := State{
+		Current: StateUnknown,
+		Want:    bp.State,
 	}
 
+	_, err := exec.LookPath(bp.manager)
+	if err != nil {
+		return s, err
+	}
+
+	cmd := exec.Command(bp.manager, bp.queryArgs, bp.Name)
+	err = cmd.Run()
+
+	if err != nil {
+		s.Current = StateAbsent
+	} else {
+		s.Current = StatePresent
+	}
+
+	return s, nil
+}
+
+// Create installs the package
+func (bp *BasePackage) Create() error {
+	bp.Printf("installing package\n")
+
+	cmd := exec.Command(bp.manager, bp.installArgs, bp.Package)
+	out, err := cmd.CombinedOutput()
+
+	for _, line := range strings.Split(string(out), "\n") {
+		bp.Printf("%s\n", line)
+	}
+
+	return err
+}
+
+// Delete deletes the package
+func (bp *BasePackage) Delete() error {
+	bp.Printf("removing package\n")
+
+	cmd := exec.Command(bp.manager, bp.deinstallArgs, bp.Package)
+	out, err := cmd.CombinedOutput()
+
+	for _, line := range strings.Split(string(out), "\n") {
+		bp.Printf("%s\n", line)
+	}
+
+	return err
+}
+
+// Update updates the package
+func (p *Pacman) Update() error {
+	bp.Printf("updating package\n")
+
+	cmd := exec.Command(bp.manager, bp.updateArgs, bp.Package)
+	out, err := cmd.CombinedOutput()
+
+	for _, line := range strings.Split(string(out), "\n") {
+		bp.Printf("%s\n", line)
+	}
+
+	return err
+}
+
+// NewPackage creates a new resource for managing packages
+func NewPackage(name string) (Resource, error) {
 	// Releases files used by the various GNU/Linux distros
 	releases := map[string]Provider{
-		"/etc/arch-release":   NewPacmanResource,
-		"/etc/centos-release": NewYumResource,
-		"/etc/redhat-release": NewYumResource,
+		"/etc/arch-release":   NewPacman,
+		"/etc/centos-release": NewYum,
+		"/etc/redhat-release": NewYum,
 	}
 
-	// Decode the object from HCL
-	var pr BasePackageResource
-	err := hcl.DecodeObject(&pr, obj)
-	if err != nil {
-		return nil, err
-	}
-
-	// If we have a provider for this resource, use it
-	if pr.Provider != "" {
-		provider, ok := providers[pr.Provider]
-		if !ok {
-			return nil, fmt.Errorf("Unknown package provider '%s'", pr.Provider)
-		}
-
-		r, err := provider(title, obj, config)
-		if err != nil {
-			return nil, err
-		}
-
-		// Replace the resource type with our meta type
-		r.SetType(packageResourceType)
-		return r, nil
-	}
-
-	// Do our best to determine the proper provider for this resource
+	// Do our best to determine the proper provider
 	for release, provider := range releases {
 		dst := utils.NewFileUtil(release)
 		if dst.Exists() {
-			r, err := provider(title, obj, config)
-			if err != nil {
-				return nil, err
-			}
-
-			// Replace the resource type with our meta type
-			r.SetType(packageResourceType)
-			return r, nil
+			return provider(name)
 		}
 	}
 
 	return nil, ErrNoPackageProviderFound
 }
 
-func init() {
-	item := RegistryItem{
-		Name:        packageResourceType,
-		Description: packageResourceDesc,
-		Provider:    NewPackageResource,
+// Pacman type represents the resource for package
+// management on Arch Linux systems
+type Pacman struct {
+	BasePackage
+}
+
+// NewPacman creates a new resource for managing packages
+// using the pacman package manager on an Arch Linux system
+func NewPacman(name string) (Resource, error) {
+	p := &Pacman{
+		BasePackage: BasePackage{
+			BaseResource: BaseResource{
+				Name:  name,
+				Type:  "package",
+				State: StatePresent,
+			},
+			Package:       name,
+			manager:       "/usr/bin/pacman",
+			queryArgs:     []string{"--query"},
+			installArgs:   []string{"--sync", "--noconfirm"},
+			deinstallArgs: []string{"--remove", "--noconfirm"},
+			updateArgs:    []string{"--sync", "--noconfirm"},
+		},
 	}
 
-	Register(item)
+	return &p, nil
+}
+
+// Yum type represents the resource for package management on
+// RHEL and CentOS systems
+type Yum struct {
+	BasePackage
+}
+
+// NewYum creates a new resource for managing packages
+// using the yum package manager on RHEL and CentOS systems
+func NewYum(name string) (Resource, error) {
+	y := &Yum{
+		BasePackage: BasePackage{
+			BaseResource: BaseResource{
+				Name:  name,
+				Type:  "package",
+				State: StatePresent,
+			},
+			Package:       name,
+			manager:       "/usr/bin/yum",
+			queryArgs:     []string{"-q", "--noplugins", "list", "installed"},
+			installArgs:   []string{"--assumeyes", "install"},
+			deinstallArgs: []string{"--assumeyes", "remove"},
+			updateArgs:    []string{"--assumeyes", "install"},
+		},
+	}
+
+	return &y, nil
+}
+
+func init() {
+	RegisterProvider("package", NewPackage)
 }
