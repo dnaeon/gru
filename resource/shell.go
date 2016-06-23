@@ -22,13 +22,13 @@ func NewShell(name string) (Resource, error) {
 	s := &Shell{
 		BaseResource: BaseResource{
 			Name:  name,
-			Type:  shellResourceType,
+			Type:  "shell",
 			State: StatePresent,
 		},
 		Command: name,
 	}
 
-	return &s, nil
+	return s, nil
 }
 
 // Evaluate evaluates the state of the resource
