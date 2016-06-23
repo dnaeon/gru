@@ -35,7 +35,7 @@ func NewService(name string) (Resource, error) {
 		unit:   fmt.Sprintf("%s.service", name),
 	}
 
-	return &s, nil
+	return s, nil
 }
 
 // unitProperty retrieves the requested property for the service unit
