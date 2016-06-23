@@ -3,6 +3,7 @@ package resource
 import (
 	"fmt"
 	"io"
+	"os"
 )
 
 // Resource is the interface type for resources
@@ -34,8 +35,13 @@ type Config struct {
 	// The site repo which contains module and data files
 	SiteRepo string
 
-	// Writer used by the resources
+	// Writer used by the resources to log events
 	Writer io.Writer
+}
+
+// DefaultConfig is the default configuration used by the resources
+var DefaultConfig = &Config{
+	Writer: os.Stdout,
 }
 
 // BaseResource is the base resource type for all resources
@@ -78,11 +84,10 @@ func (br *BaseResource) WantAfter() []string {
 	return br.After
 }
 
-// Printf works just like fmt.Printf except that it writes to the
-// given resource writer object and prepends the
-// resource id to the output
-func (br *BaseResource) Printf(format string, a ...interface{}) (int, error) {
-	fmt.Fprintf(br.Config.Writer, "%s ", br.ID())
+// Log works just like fmt.Printf except that it writes to the
+// default config writer object and prepends the resource id to the output
+func (br *BaseResource) Log(format string, a ...interface{}) (int, error) {
+	fmt.Fprintf(DefaultConfig.Writer, "%s ", br.ID())
 
-	return fmt.Fprintf(br.Config.Writer, format, a...)
+	return fmt.Fprintf(DefaultConfig.Writer, format, a...)
 }
