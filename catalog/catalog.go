@@ -2,34 +2,42 @@ package catalog
 
 import (
 	"fmt"
+	"io"
 
-	"github.com/dnaeon/gru/module"
 	"github.com/dnaeon/gru/resource"
+	"github.com/layeh/gopher-luar"
+	"github.com/yuin/gopher-lua"
 )
 
-// Catalog type represents a collection of modules and resources
+// Catalog type contains a collection of resources
 type Catalog struct {
-	// Loaded modules after topological sorting
-	Modules []*module.Module
+	// Unsorted contains the list of resources created by Lua
+	unsorted []resource.Resource
 
-	// Instantiated resources from the loaded modules
-	Resources []resource.Resource
+	// Sorted contains the list of resources after a topological sort
+	sorted []resource.Resource
 
-	// Catalog configuration
-	Config *Config
+	// Configuration settings
+	config *Config
 }
 
 // Config type represents a set of settings to use when
 // creating and processing the catalog
 type Config struct {
-	// Name of main module to load
-	Main string
+	// Name of the Lua module to load and execute
+	Module string
 
 	// Do not take any actions, just report what would be done
 	DryRun bool
 
-	// Module configuration settings to use
-	ModuleConfig *module.Config
+	// Writer used to log events
+	Writer io.Writer
+
+	// Path to the site repo containing module and data files
+	SiteRepo string
+
+	// The Lua state
+	L *lua.LState
 }
 
 // Run processes the catalog
@@ -94,36 +102,26 @@ func (c *Catalog) Run() error {
 // Load creates a new catalog from the provided configuration
 func Load(config *Config) (*Catalog, error) {
 	c := &Catalog{
-		Modules:   make([]*module.Module, 0),
-		Resources: make([]resource.Resource, 0),
-		Config:    config,
+		config:   config,
+		sorted:   make([]resource.Resource, 0),
+		unsorted: make([]resource.Resource, 0),
 	}
 
-	// Discover and load the modules from the provided
-	// module path, sort the import graph and
-	// finally add the sorted modules to the catalog
-	modules, err := module.DiscoverAndLoad(config.ModuleConfig)
-	if err != nil {
+	// Inject the configuration for resources
+	resource.DefaultConfig = &resource.Config{
+		Writer:   config.Writer,
+		SiteRepo: config.SiteRepo,
+	}
+
+	// Register the resources and catalog in Lua
+	resource.LuaRegisterBuiltin(config.L)
+	config.L.SetGlobal("catalog", luar.New(config.L, c.unsorted))
+	if err := L.DoFile(config.Module); err != nil {
 		return c, err
 	}
 
-	modulesGraph, err := module.ImportGraph(config.Main, config.ModuleConfig.Path)
-	if err != nil {
-		return c, err
-	}
-
-	modulesSorted, err := modulesGraph.Sort()
-	if err != nil {
-		return c, err
-	}
-
-	for _, node := range modulesSorted {
-		c.Modules = append(c.Modules, modules[node.Name])
-	}
-
-	// Build the dependency graph for the resources from the
-	// loaded modules and sort them
-	collection, err := module.ResourceCollection(c.Modules)
+	// Perform a topological sort of the resources
+	collection, err := resource.CreateCollection(c.unsorted)
 	if err != nil {
 		return c, err
 	}
@@ -139,7 +137,7 @@ func Load(config *Config) (*Catalog, error) {
 	}
 
 	for _, node := range collectionSorted {
-		c.Resources = append(c.Resources, collection[node.Name])
+		c.sorted = append(c.sorted, collection[node.Name])
 	}
 
 	return c, nil
