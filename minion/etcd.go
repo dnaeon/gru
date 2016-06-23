@@ -16,11 +16,10 @@ import (
 	"github.com/dnaeon/backoff"
 	"github.com/dnaeon/gru/catalog"
 	"github.com/dnaeon/gru/classifier"
-	"github.com/dnaeon/gru/module"
-	"github.com/dnaeon/gru/resource"
 	"github.com/dnaeon/gru/task"
 	"github.com/dnaeon/gru/utils"
 	"github.com/libgit2/git2go"
+	"github.com/yuin/gopher-lua"
 
 	etcdclient "github.com/coreos/etcd/client"
 	"github.com/pborman/uuid"
@@ -198,22 +197,21 @@ func (m *etcdMinion) processTask(t *task.Task) error {
 		return err
 	}
 
-	// Update state of task to indicate that we are now processing it
 	t.State = task.TaskStateProcessing
 	m.SaveTaskResult(t)
 
 	// Create the catalog and process it
 	var buf bytes.Buffer
+
+	L := lua.NewState()
+	defer L.Close()
+
 	config := &catalog.Config{
-		Main:   t.Command,
-		DryRun: t.DryRun,
-		ModuleConfig: &module.Config{
-			Path: filepath.Join(m.localSiteRepo, "modules"),
-			ResourceConfig: &resource.Config{
-				SiteRepo: m.localSiteRepo,
-				Writer:   &buf,
-			},
-		},
+		Module:   t.Command,
+		DryRun:   t.DryRun,
+		Writer:   &buf,
+		SiteRepo: m.localSiteRepo,
+		L:        L,
 	}
 
 	katalog, err := catalog.Load(config)
