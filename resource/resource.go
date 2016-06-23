@@ -3,7 +3,6 @@ package resource
 import (
 	"fmt"
 	"io"
-	"os"
 )
 
 // Resource is the interface type for resources
@@ -40,9 +39,7 @@ type Config struct {
 }
 
 // DefaultConfig is the default configuration used by the resources
-var DefaultConfig = &Config{
-	Writer: os.Stdout,
-}
+var DefaultConfig = &Config{}
 
 // BaseResource is the base resource type for all resources
 // The purpose of this type is to be embedded into other resources
