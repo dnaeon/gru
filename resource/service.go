@@ -15,10 +15,7 @@ import (
 type Service struct {
 	BaseResource
 
-	// Name of the service
-	Name string `luar:"name"`
-
-	// If true then enable service during boot-time
+	// If true then enable the service during boot-time
 	Enable bool `luar:"enable"`
 
 	// Systemd unit name
@@ -27,30 +24,29 @@ type Service struct {
 
 // NewService creates a new resource for managing services
 // using systemd on a GNU/Linux system
-func NewService(title string) (Resource, error) {
+func NewService(name string) (Resource, error) {
 	s := &Service{
 		BaseResource: BaseResource{
-			Title: title,
+			Name:  name,
 			Type:  "service",
 			State: StateRunning,
 		},
-		Name:   title,
 		Enable: false,
-		unit:   fmt.Sprintf("%s.service", title),
+		unit:   fmt.Sprintf("%s.service", name),
 	}
 
 	return &s, nil
 }
 
 // unitProperty retrieves the requested property for the service unit
-func (s *Service) unitProperty(propertyName string) (*dbus.Property, error) {
+func (s *Service) unitProperty(name string) (*dbus.Property, error) {
 	conn, err := dbus.New()
 	if err != nil {
 		return nil, err
 	}
 	defer conn.Close()
 
-	property, err := conn.GetUnitProperty(s.unit, propertyName)
+	property, err := conn.GetUnitProperty(s.unit, name)
 
 	return property, err
 }
@@ -121,7 +117,7 @@ func (s *Service) disableUnit() error {
 	return nil
 }
 
-// daemonReload instructs systemd to scan for and reload unit files
+// daemonReload instructs systemd to reload it's configuration
 func (s *Service) daemonReload() error {
 	conn, err := dbus.New()
 	if err != nil {
@@ -134,7 +130,7 @@ func (s *Service) daemonReload() error {
 
 // Evaluate evaluates the state of the resource
 func (s *Service) Evaluate() (State, error) {
-	rs := State{
+	state := State{
 		Current: StateUnknown,
 		Want:    s.State,
 		Update:  false,
@@ -143,7 +139,7 @@ func (s *Service) Evaluate() (State, error) {
 	// Check if the unit is started/stopped
 	activeState, err := s.unitProperty("ActiveState")
 	if err != nil {
-		return rs, err
+		return state, err
 	}
 
 	// TODO: Handle cases where the unit is not found
@@ -151,21 +147,21 @@ func (s *Service) Evaluate() (State, error) {
 	value := activeState.Value.Value().(string)
 	switch value {
 	case "active", "reloading", "activating":
-		rs.Current = StateRunning
+		state.Current = StateRunning
 	case "inactive", "failed", "deactivating":
-		rs.Current = StateStopped
+		state.Current = StateStopped
 	}
 
 	enabled, err := s.unitIsEnabled()
 	if err != nil {
-		return rs, err
+		return state, err
 	}
 
 	if s.Enable != enabled {
-		rs.Update = true
+		state.Update = true
 	}
 
-	return rs, nil
+	return state, nil
 }
 
 // Create starts the service unit
@@ -230,12 +226,6 @@ func (s *Service) Update() error {
 
 func init() {
 	if util.IsRunningSystemd() {
-		item := RegistryItem{
-			Name:        serviceResourceType,
-			Description: serviceResourceDesc,
-			Provider:    NewService,
-		}
-
-		Register(item)
+		RegisterProvider("service", NewService)
 	}
 }
