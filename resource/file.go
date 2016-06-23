@@ -41,7 +41,7 @@ type File struct {
 	BaseResource
 
 	// Path to the file
-	Path string `luar:"path"`
+	Path string `luar:"-"`
 
 	// Permission bits to set on the file
 	Mode int `luar:"mode"`
@@ -72,7 +72,7 @@ type File struct {
 }
 
 // NewFile creates a resource for managing files and directories
-func NewFile(title string) (Resource, error) {
+func NewFile(name string) (Resource, error) {
 	// Defaults for owner and group
 	currentUser, err := user.Current()
 	if err != nil {
@@ -87,11 +87,11 @@ func NewFile(title string) (Resource, error) {
 	// Resource defaults
 	f := &File{
 		BaseResource: BaseResource{
-			Title: title,
+			Name:  name,
 			Type:  "file",
 			State: StatePresent,
 		},
-		Path:      title,
+		Path:      name,
 		Mode:      0644,
 		Owner:     currentUser.Username,
 		Group:     currentGroup.Name,
@@ -107,7 +107,7 @@ func NewFile(title string) (Resource, error) {
 
 // Evaluate evaluates the file resource
 func (f *File) Evaluate() (State, error) {
-	rs := State{
+	s := State{
 		Current: StateUnknown,
 		Want:    f.State,
 		Update:  false,
@@ -115,23 +115,23 @@ func (f *File) Evaluate() (State, error) {
 
 	// Check that the given file type is a valid one
 	if f.FileType != fileTypeRegular && f.FileType != fileTypeDirectory {
-		return rs, fmt.Errorf("Unknown file type '%s'", f.FileType)
+		return s, fmt.Errorf("Unknown file type '%s'", f.FileType)
 	}
 
 	// Check for file presence
 	fi, err := os.Stat(f.Path)
 	if os.IsNotExist(err) {
-		rs.Current = StateAbsent
-		return rs, nil
+		s.Current = StateAbsent
+		return s, nil
 	}
 
-	rs.Current = StatePresent
+	s.Current = StatePresent
 
 	// If we have a source, ensure that it exists
 	if f.Source != "" {
 		dst := utils.NewFileUtil(filepath.Join(f.Config.SiteRepo, f.Source))
 		if !dst.Exists() {
-			return rs, fmt.Errorf("source %s does not exist", f.Source)
+			return s, fmt.Errorf("source %s does not exist", f.Source)
 		}
 	}
 
@@ -139,55 +139,55 @@ func (f *File) Evaluate() (State, error) {
 	switch f.FileType {
 	case fileTypeRegular:
 		if !fi.Mode().IsRegular() {
-			return rs, fmt.Errorf("%s exists, but is not a regular file", f.Path)
+			return s, fmt.Errorf("%s exists, but is not a regular file", f.Path)
 		}
 
 		outdated, err := f.isRegularFileContentOutdated()
 		if err != nil {
-			return rs, err
+			return s, err
 		}
 
 		if outdated {
-			rs.Update = true
+			s.Update = true
 		}
 	case fileTypeDirectory:
 		if !fi.IsDir() {
-			return rs, fmt.Errorf("%s exists, but is not a directory", f.Path)
+			return s, fmt.Errorf("%s exists, but is not a directory", f.Path)
 		}
 
 		outdated, err := f.isDirectoryContentOutdated()
 		if err != nil {
-			return rs, err
+			return s, err
 		}
 
 		if outdated {
-			rs.Update = true
+			s.Update = true
 		}
 	}
 
 	outdated, err := f.isPermissionsOutdated()
 	if err != nil {
-		return rs, err
+		return s, err
 	}
 
 	if outdated {
-		rs.Update = true
+		s.Update = true
 	}
 
 	outdated, err = f.isOwnerOutdated()
 	if err != nil {
-		return rs, err
+		return s, err
 	}
 
 	if outdated {
-		rs.Update = true
+		s.Update = true
 	}
 
 	// Report on what has been identified as being out of date
 	if f.Purge {
 		for name := range f.extra {
 			f.Printf("%s exists, but is not part of source\n", name)
-			rs.Update = true
+			s.Update = true
 		}
 	}
 
@@ -203,7 +203,7 @@ func (f *File) Evaluate() (State, error) {
 		}
 	}
 
-	return rs, nil
+	return s, nil
 }
 
 // Create creates the file managed by the resource
