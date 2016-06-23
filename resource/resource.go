@@ -7,12 +7,8 @@ import (
 
 // Resource is the interface type for resources
 type Resource interface {
-	// SetType sets the type for the resource
-	// Primary usage of this method is by meta resources
-	SetType(string)
-
 	// ResourceID returns the unique identifier of a resource
-	ResourceID() string
+	ID() string
 
 	// Returns the resources before which this resource shoud be processed
 	WantBefore() []string
@@ -65,14 +61,8 @@ type BaseResource struct {
 	After []string `luar:"require"`
 }
 
-// SetType sets the type for the resource.
-// This method is primarily being used by meta resources.
-func (br *BaseResource) SetType(t string) {
-	br.Type = t
-}
-
-// ResourceID returns the unique resource id
-func (br *BaseResource) ResourceID() string {
+// ID returns the unique resource id
+func (br *BaseResource) ID() string {
 	return fmt.Sprintf("%s[%s]", br.Type, br.Title)
 }
 
