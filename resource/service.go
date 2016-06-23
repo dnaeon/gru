@@ -31,7 +31,7 @@ func NewService(name string) (Resource, error) {
 			Type:  "service",
 			State: StateRunning,
 		},
-		Enable: false,
+		Enable: true,
 		unit:   fmt.Sprintf("%s.service", name),
 	}
 
