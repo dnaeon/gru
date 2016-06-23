@@ -18,14 +18,14 @@ type Shell struct {
 }
 
 // NewShell creates a new resource for executing shell commands
-func NewShell(title string) (Resource, error) {
+func NewShell(name string) (Resource, error) {
 	s := &Shell{
 		BaseResource: BaseResource{
-			Title: title,
+			Name:  name,
 			Type:  shellResourceType,
 			State: StatePresent,
 		},
-		Command: title,
+		Command: name,
 	}
 
 	return &s, nil
@@ -41,7 +41,7 @@ func (s *Shell) Evaluate() (State, error) {
 	// If the command to be executed is not idempotent on it's own,
 	// in order to ensure idempotency we should specify a file,
 	// that can be checked for existence.
-	rs := State{
+	state := State{
 		Current: StateAbsent,
 		Want:    s.State,
 		Update:  false,
@@ -50,13 +50,13 @@ func (s *Shell) Evaluate() (State, error) {
 	if s.Creates != "" {
 		_, err := os.Stat(s.Creates)
 		if os.IsNotExist(err) {
-			rs.Current = StateAbsent
+			state.Current = StateAbsent
 		} else {
-			rs.Current = StatePresent
+			state.Current = StatePresent
 		}
 	}
 
-	return rs, nil
+	return state, nil
 }
 
 // Create executes the shell command
