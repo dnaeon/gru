@@ -119,7 +119,7 @@ func NewPackage(name string) (Resource, error) {
 	for release, provider := range releases {
 		dst := utils.NewFileUtil(release)
 		if dst.Exists() {
-			return provider(name)
+			return provider(name), nil
 		}
 	}
 
@@ -134,7 +134,7 @@ type Pacman struct {
 
 // NewPacman creates a new resource for managing packages
 // using the pacman package manager on an Arch Linux system
-func NewPacman(name string) (Resource, error) {
+func NewPacman(name string) *Pacman {
 	p := &Pacman{
 		BasePackage: BasePackage{
 			BaseResource: BaseResource{
@@ -151,7 +151,7 @@ func NewPacman(name string) (Resource, error) {
 		},
 	}
 
-	return &p, nil
+	return p, nil
 }
 
 // Yum type represents the resource for package management on
@@ -162,7 +162,7 @@ type Yum struct {
 
 // NewYum creates a new resource for managing packages
 // using the yum package manager on RHEL and CentOS systems
-func NewYum(name string) (Resource, error) {
+func NewYum(name string) *Yum {
 	y := &Yum{
 		BasePackage: BasePackage{
 			BaseResource: BaseResource{
@@ -179,7 +179,7 @@ func NewYum(name string) (Resource, error) {
 		},
 	}
 
-	return &y, nil
+	return y
 }
 
 func init() {
