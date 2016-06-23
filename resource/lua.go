@@ -6,7 +6,7 @@ import (
 )
 
 // LuaRegisterBuiltin registers resource providers in Lua
-func LuaRegisterBuiltin(L *lua.LState) error {
+func LuaRegisterBuiltin(L *lua.LState) {
 	for typ, provider := range providerRegistry {
 		// Wrap resource providers, so that we can properly handle any
 		// errors returned by providers during resource instantiation.

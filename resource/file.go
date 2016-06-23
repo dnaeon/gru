@@ -98,7 +98,7 @@ func NewFile(name string) (Resource, error) {
 		FileType:  fileTypeRegular,
 		Recursive: false,
 		Purge:     false,
-		outdated:  make([]*outdatedFile),
+		outdated:  make([]*outdatedFile, 0),
 		extra:     make(map[string]struct{}),
 	}
 
