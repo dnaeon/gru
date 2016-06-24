@@ -42,57 +42,59 @@ type Config struct {
 
 // Run processes the catalog
 func (c *Catalog) Run() error {
-	// Use the same writer as the one used by the resources
-	w := c.Config.ModuleConfig.ResourceConfig.Writer
-
 	fmt.Fprintf(w, "Loaded %d resources from %d modules\n", len(c.Resources), len(c.Modules))
 	for _, r := range c.Resources {
-		id := r.ResourceID()
-
-		state, err := r.Evaluate()
-		if err != nil {
-			fmt.Fprintf(w, "%s %s\n", id, err)
-			continue
+		if err := c.processResource(r); err != nil {
+			fmt.Fprintf(c.Config.Writer, "%s %s\n", r.ID(), err)
 		}
+	}
 
-		if c.Config.DryRun {
-			continue
-		}
+	return nil
+}
 
-		// TODO: Skip resources which have failed dependencies
+// processResource processes a single resource
+func (c *Catalog) processResource(r resource.Resource) error {
+	id := r.ResourceID()
+	state, err := r.Evaluate()
+	if err != nil {
+		return err
+	}
 
-		var resourceErr error
-		switch {
-		case state.Want == state.Current:
-			// Resource is in the desired state
-			break
-		case state.Want == resource.StatePresent || state.Want == resource.StateRunning:
-			// Resource is absent, should be present
-			if state.Current == resource.StateAbsent || state.Current == resource.StateStopped {
-				fmt.Fprintf(w, "%s is %s, should be %s\n", id, state.Current, state.Want)
-				resourceErr = r.Create()
+	if c.Config.DryRun {
+		return nil
+	}
+
+	// TODO: Skip resources which have failed dependencies
+
+	switch {
+	case state.Want == state.Current:
+		// Resource is in the desired state
+		break
+	case state.Want == resource.StatePresent || state.Want == resource.StateRunning:
+		// Resource is absent, should be present
+		if state.Current == resource.StateAbsent || state.Current == resource.StateStopped {
+			fmt.Fprintf(c.Config.Writer, "%s is %s, should be %s\n", id, state.Current, state.Want)
+			if err := r.Create(); err != nil {
+				return err
 			}
-		case state.Want == resource.StateAbsent || state.Want == resource.StateStopped:
-			// Resource is present, should be absent
-			if state.Current == resource.StatePresent || state.Current == resource.StateRunning {
-				fmt.Fprintf(w, "%s is %s, should be %s\n", id, state.Current, state.Want)
-				resourceErr = r.Delete()
-			}
-		default:
-			fmt.Fprintf(w, "%s unknown state(s): want %s, current %s\n", id, state.Want, state.Current)
-			continue
 		}
-
-		if resourceErr != nil {
-			fmt.Fprintf(w, "%s %s\n", id, resourceErr)
-		}
-
-		// Update resource if needed
-		if state.Update {
-			fmt.Fprintf(w, "%s resource is out of date, will be updated\n", id)
-			if err := r.Update(); err != nil {
-				fmt.Fprintf(w, "%s %s\n", id, err)
+	case state.Want == resource.StateAbsent || state.Want == resource.StateStopped:
+		// Resource is present, should be absent
+		if state.Current == resource.StatePresent || state.Current == resource.StateRunning {
+			fmt.Fprintf(c.Config.Writer, "%s is %s, should be %s\n", id, state.Current, state.Want)
+			if err := r.Delete(); err != nil {
+				return err
 			}
+		}
+	default:
+		return fmt.Errorf("unknown state %s", state.Want)
+	}
+
+	// Update resource if needed
+	if state.Update {
+		fmt.Fprintf(c.Config.Writer, "%s resource is out of date\n", id)
+		if err := r.Update(); err != nil {
+			return err
 		}
 	}
 
