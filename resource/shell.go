@@ -61,14 +61,14 @@ func (s *Shell) Evaluate() (State, error) {
 
 // Create executes the shell command
 func (s *Shell) Create() error {
-	s.Printf("executing command\n")
+	s.Log("executing command\n")
 
 	args := strings.Fields(s.Command)
 	cmd := exec.Command(args[0], args[1:]...)
 	out, err := cmd.CombinedOutput()
 
 	for _, line := range strings.Split(string(out), "\n") {
-		s.Printf("%s\n", line)
+		s.Log("%s\n", line)
 	}
 
 	return err

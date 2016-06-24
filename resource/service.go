@@ -79,7 +79,7 @@ func (s *Service) enableUnit() error {
 	}
 	defer conn.Close()
 
-	s.Printf("enabling service\n")
+	s.Log("enabling service\n")
 
 	units := []string{s.unit}
 	_, changes, err := conn.EnableUnitFiles(units, false, false)
@@ -88,7 +88,7 @@ func (s *Service) enableUnit() error {
 	}
 
 	for _, change := range changes {
-		s.Printf("%s %s -> %s\n", change.Type, change.Filename, change.Destination)
+		s.Log("%s %s -> %s\n", change.Type, change.Filename, change.Destination)
 	}
 
 	return nil
@@ -102,7 +102,7 @@ func (s *Service) disableUnit() error {
 	}
 	defer conn.Close()
 
-	s.Printf("disabling service\n")
+	s.Log("disabling service\n")
 
 	units := []string{s.unit}
 	changes, err := conn.DisableUnitFiles(units, false)
@@ -111,7 +111,7 @@ func (s *Service) disableUnit() error {
 	}
 
 	for _, change := range changes {
-		s.Printf("%s %s\n", change.Type, change.Filename)
+		s.Log("%s %s\n", change.Type, change.Filename)
 	}
 
 	return nil
@@ -172,7 +172,7 @@ func (s *Service) Create() error {
 	}
 	defer conn.Close()
 
-	s.Printf("starting service\n")
+	s.Log("starting service\n")
 
 	ch := make(chan string)
 	jobID, err := conn.StartUnit(s.unit, "replace", ch)
@@ -181,7 +181,7 @@ func (s *Service) Create() error {
 	}
 
 	result := <-ch
-	s.Printf("systemd job id %d result: %s\n", jobID, result)
+	s.Log("systemd job id %d result: %s\n", jobID, result)
 
 	return nil
 }
@@ -194,7 +194,7 @@ func (s *Service) Delete() error {
 	}
 	defer conn.Close()
 
-	s.Printf("stopping service\n")
+	s.Log("stopping service\n")
 
 	ch := make(chan string)
 	jobID, err := conn.StopUnit(s.unit, "replace", ch)
@@ -203,7 +203,7 @@ func (s *Service) Delete() error {
 	}
 
 	result := <-ch
-	s.Printf("systemd job id %d result: %s\n", jobID, result)
+	s.Log("systemd job id %d result: %s\n", jobID, result)
 
 	return nil
 }

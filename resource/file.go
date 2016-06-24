@@ -186,20 +186,20 @@ func (f *File) Evaluate() (State, error) {
 	// Report on what has been identified as being out of date
 	if f.Purge {
 		for name := range f.extra {
-			f.Printf("%s exists, but is not part of source\n", name)
+			f.Log("%s exists, but is not part of source\n", name)
 			s.Update = true
 		}
 	}
 
 	for _, item := range f.outdated {
 		if item.flags&flagOutdatedContent != 0 {
-			f.Printf("content of %s is out of date\n", item.dst)
+			f.Log("content of %s is out of date\n", item.dst)
 		}
 		if item.flags&flagOutdatedPermissions != 0 {
-			f.Printf("permissions of %s are out of date\n", item.dst)
+			f.Log("permissions of %s are out of date\n", item.dst)
 		}
 		if item.flags&flagOutdatedOwner != 0 {
-			f.Printf("owner of %s is out of date\n", item.dst)
+			f.Log("owner of %s is out of date\n", item.dst)
 		}
 	}
 
@@ -208,7 +208,7 @@ func (f *File) Evaluate() (State, error) {
 
 // Create creates the file managed by the resource
 func (f *File) Create() error {
-	f.Printf("creating resource\n")
+	f.Log("creating resource\n")
 
 	switch f.FileType {
 	case fileTypeRegular:
@@ -249,7 +249,7 @@ func (f *File) Create() error {
 
 // Delete deletes the file managed by the resource
 func (f *File) Delete() error {
-	f.Printf("removing resource\n")
+	f.Log("removing resource\n")
 
 	if f.Recursive {
 		return os.RemoveAll(f.Path)
@@ -264,7 +264,7 @@ func (f *File) Update() error {
 	if f.Purge {
 		for name := range f.extra {
 			dstFile := utils.NewFileUtil(name)
-			f.Printf("purging %s\n", name)
+			f.Log("purging %s\n", name)
 			if err := dstFile.Remove(); err != nil {
 				return err
 			}
@@ -292,7 +292,7 @@ func (f *File) Update() error {
 				return err
 			}
 
-			f.Printf("setting content of %s to md5:%s\n", item.dst, srcMd5)
+			f.Log("setting content of %s to md5:%s\n", item.dst, srcMd5)
 			if err := dstFile.CopyFrom(item.src, true); err != nil {
 				return err
 			}
@@ -300,7 +300,7 @@ func (f *File) Update() error {
 
 		// Update permissions if needed
 		if item.flags&flagOutdatedPermissions != 0 {
-			f.Printf("setting permissions of %s to %#o\n", item.dst, f.Mode)
+			f.Log("setting permissions of %s to %#o\n", item.dst, f.Mode)
 			if err := dstFile.Chmod(os.FileMode(f.Mode)); err != nil {
 				return err
 			}
@@ -308,7 +308,7 @@ func (f *File) Update() error {
 
 		// Update ownership if needed
 		if item.flags&flagOutdatedOwner != 0 {
-			f.Printf("setting owner of %s to %s:%s\n", item.dst, f.Owner, f.Group)
+			f.Log("setting owner of %s to %s:%s\n", item.dst, f.Owner, f.Group)
 			if err := dstFile.SetOwner(f.Owner, f.Group); err != nil {
 				return err
 			}
