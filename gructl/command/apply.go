@@ -2,12 +2,10 @@ package command
 
 import (
 	"os"
-	"path/filepath"
 
 	"github.com/codegangsta/cli"
 	"github.com/dnaeon/gru/catalog"
-	"github.com/dnaeon/gru/module"
-	"github.com/dnaeon/gru/resource"
+	"github.com/yuin/gopher-lua"
 )
 
 // NewApplyCommand creates a new sub-command for
@@ -40,17 +38,16 @@ func execApplyCommand(c *cli.Context) {
 		displayError(errNoModuleName, 64)
 	}
 
+	L := lua.NewState()
+	defer L.Close()
 	config := &catalog.Config{
-		Main:   c.Args()[0],
-		DryRun: c.Bool("dry-run"),
-		ModuleConfig: &module.Config{
-			Path: filepath.Join(c.String("siterepo"), "modules"),
-			ResourceConfig: &resource.Config{
-				SiteRepo: c.String("siterepo"),
-				Writer:   os.Stdout,
-			},
-		},
+		Module:   c.Args()[0],
+		DryRun:   c.Bool("dry-run"),
+		Writer:   os.Stdout,
+		SiteRepo: c.String("siterepo"),
+		L:        L,
 	}
+
 	katalog, err := catalog.Load(config)
 	if err != nil {
 		displayError(err, 1)
