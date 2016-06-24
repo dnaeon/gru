@@ -40,7 +40,7 @@ func execGraphCommand(c *cli.Context) {
 	module := filepath.Join(c.String("siterepo"), c.Args()[0])
 
 	// A fake catalog used to load resources from Lua
-	var sorted []resource.Resource
+	var unsorted []resource.Resource
 
 	L := lua.NewState()
 	defer L.Close()
