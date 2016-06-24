@@ -42,10 +42,10 @@ type Config struct {
 
 // Run processes the catalog
 func (c *Catalog) Run() error {
-	fmt.Fprintf(w, "Loaded %d resources from %d modules\n", len(c.Resources), len(c.Modules))
-	for _, r := range c.Resources {
+	fmt.Fprintf(c.config.Writer, "Loaded %d resources\n", len(c.sorted))
+	for _, r := range c.sorted {
 		if err := c.processResource(r); err != nil {
-			fmt.Fprintf(c.Config.Writer, "%s %s\n", r.ID(), err)
+			fmt.Fprintf(c.config.Writer, "%s %s\n", r.ID(), err)
 		}
 	}
 
@@ -54,13 +54,13 @@ func (c *Catalog) Run() error {
 
 // processResource processes a single resource
 func (c *Catalog) processResource(r resource.Resource) error {
-	id := r.ResourceID()
+	id := r.ID()
 	state, err := r.Evaluate()
 	if err != nil {
 		return err
 	}
 
-	if c.Config.DryRun {
+	if c.config.DryRun {
 		return nil
 	}
 
@@ -73,7 +73,7 @@ func (c *Catalog) processResource(r resource.Resource) error {
 	case state.Want == resource.StatePresent || state.Want == resource.StateRunning:
 		// Resource is absent, should be present
 		if state.Current == resource.StateAbsent || state.Current == resource.StateStopped {
-			fmt.Fprintf(c.Config.Writer, "%s is %s, should be %s\n", id, state.Current, state.Want)
+			fmt.Fprintf(c.config.Writer, "%s is %s, should be %s\n", id, state.Current, state.Want)
 			if err := r.Create(); err != nil {
 				return err
 			}
@@ -81,7 +81,7 @@ func (c *Catalog) processResource(r resource.Resource) error {
 	case state.Want == resource.StateAbsent || state.Want == resource.StateStopped:
 		// Resource is present, should be absent
 		if state.Current == resource.StatePresent || state.Current == resource.StateRunning {
-			fmt.Fprintf(c.Config.Writer, "%s is %s, should be %s\n", id, state.Current, state.Want)
+			fmt.Fprintf(c.config.Writer, "%s is %s, should be %s\n", id, state.Current, state.Want)
 			if err := r.Delete(); err != nil {
 				return err
 			}
@@ -92,7 +92,7 @@ func (c *Catalog) processResource(r resource.Resource) error {
 
 	// Update resource if needed
 	if state.Update {
-		fmt.Fprintf(c.Config.Writer, "%s resource is out of date\n", id)
+		fmt.Fprintf(c.config.Writer, "%s resource is out of date\n", id)
 		if err := r.Update(); err != nil {
 			return err
 		}
@@ -118,7 +118,7 @@ func Load(config *Config) (*Catalog, error) {
 	// Register the resources and catalog in Lua
 	resource.LuaRegisterBuiltin(config.L)
 	config.L.SetGlobal("catalog", luar.New(config.L, c.unsorted))
-	if err := L.DoFile(config.Module); err != nil {
+	if err := config.L.DoFile(config.Module); err != nil {
 		return c, err
 	}
 
