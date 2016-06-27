@@ -12,13 +12,13 @@ import (
 // Catalog type contains a collection of resources
 type Catalog struct {
 	// Unsorted contains the list of resources created by Lua
-	unsorted []resource.Resource
+	unsorted []resource.Resource `luar:"-"`
 
 	// Sorted contains the list of resources after a topological sort
-	sorted []resource.Resource
+	sorted []resource.Resource `luar:"-"`
 
 	// Configuration settings
-	config *Config
+	config *Config `luar:"-"`
 }
 
 // Config type represents a set of settings to use when
