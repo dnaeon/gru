@@ -48,13 +48,14 @@ func execApplyCommand(c *cli.Context) error {
 		L:        L,
 	}
 
-	katalog, err := catalog.Load(config)
-	if err != nil {
-		return cli.NewExitError(err.Error(), 1)
+	katalog := catalog.New(config)
+	if err := katalog.Load(); err != nil {
+		if err != nil {
+			return cli.NewExitError(err.Error(), 1)
+		}
 	}
 
-	err = katalog.Run()
-	if err != nil {
+	if err := katalog.Run(); err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
 

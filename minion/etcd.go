@@ -214,8 +214,8 @@ func (m *etcdMinion) processTask(t *task.Task) error {
 		L:        L,
 	}
 
-	katalog, err := catalog.Load(config)
-	if err != nil {
+	katalog := catalog.New(config)
+	if err := katalog.Load(); err != nil {
 		t.State = task.TaskStateUnknown
 		t.Result = err.Error()
 		return err
