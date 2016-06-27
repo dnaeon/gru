@@ -48,7 +48,45 @@ func New(config *Config) *Catalog {
 		unsorted: make([]resource.Resource, 0),
 	}
 
+	// Inject the configuration for resources
+	resource.DefaultConfig = &resource.Config{
+		Writer:   config.Writer,
+		SiteRepo: config.SiteRepo,
+	}
+
 	return c
+}
+
+// Load loads resources into the catalog
+func (c *Catalog) Load(config *Config) error {
+	// Register the resource providers and catalog in Lua
+	resource.LuaRegisterBuiltin(c.config.L)
+	c.config.L.SetGlobal("catalog", luar.New(c.config.L, c))
+	if err := c.config.L.DoFile(c.config.Module); err != nil {
+		return err
+	}
+
+	// Perform a topological sort of the resources
+	collection, err := resource.CreateCollection(c.unsorted)
+	if err != nil {
+		return err
+	}
+
+	collectionGraph, err := collection.DependencyGraph()
+	if err != nil {
+		return err
+	}
+
+	collectionSorted, err := collectionGraph.Sort()
+	if err != nil {
+		return err
+	}
+
+	for _, node := range collectionSorted {
+		c.sorted = append(c.sorted, collection[node.Name])
+	}
+
+	return nil
 }
 
 // Run processes the catalog
@@ -110,44 +148,4 @@ func (c *Catalog) processResource(r resource.Resource) error {
 	}
 
 	return nil
-}
-
-// Load creates a new catalog from the provided configuration
-func Load(config *Config) (*Catalog, error) {
-	c := New()
-
-	// Inject the configuration for resources
-	resource.DefaultConfig = &resource.Config{
-		Writer:   config.Writer,
-		SiteRepo: config.SiteRepo,
-	}
-
-	// Register the resources and catalog in Lua
-	resource.LuaRegisterBuiltin(config.L)
-	config.L.SetGlobal("catalog", luar.New(config.L, c.unsorted))
-	if err := config.L.DoFile(config.Module); err != nil {
-		return c, err
-	}
-
-	// Perform a topological sort of the resources
-	collection, err := resource.CreateCollection(c.unsorted)
-	if err != nil {
-		return c, err
-	}
-
-	collectionGraph, err := collection.DependencyGraph()
-	if err != nil {
-		return c, err
-	}
-
-	collectionSorted, err := collectionGraph.Sort()
-	if err != nil {
-		return c, err
-	}
-
-	for _, node := range collectionSorted {
-		c.sorted = append(c.sorted, collection[node.Name])
-	}
-
-	return c, nil
 }
