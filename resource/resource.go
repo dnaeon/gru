@@ -64,6 +64,12 @@ type BaseResource struct {
 	After []string `luar:"require"`
 }
 
+// Log works just like fmt.Printf except that it writes to the
+// default config writer object
+func Log(format string, a ...interface{}) (int, error) {
+	return fmt.Fprintf(DefaultConfig.Writer, format, a...)
+}
+
 // ID returns the unique resource id
 func (br *BaseResource) ID() string {
 	return fmt.Sprintf("%s[%s]", br.Type, br.Name)
@@ -81,10 +87,9 @@ func (br *BaseResource) WantAfter() []string {
 	return br.After
 }
 
-// Log works just like fmt.Printf except that it writes to the
-// default config writer object and prepends the resource id to the output
-func (br *BaseResource) Log(format string, a ...interface{}) (int, error) {
-	fmt.Fprintf(DefaultConfig.Writer, "%s ", br.ID())
-
-	return fmt.Fprintf(DefaultConfig.Writer, format, a...)
+// Log writes to the default config writer object and
+// prepends the resource id to the output
+func (br *BaseResource) Log(format string, a ...interface{}) {
+	Log("%s ", br.ID())
+	Log(format, a...)
 }
