@@ -44,7 +44,7 @@ type File struct {
 	Path string `luar:"-"`
 
 	// Permission bits to set on the file
-	Mode int `luar:"mode"`
+	Mode os.FileMode `luar:"mode"`
 
 	// Owner of the file
 	Owner string `luar:"owner"`
@@ -217,7 +217,7 @@ func (f *File) Create() error {
 		}
 
 		dst := utils.NewFileUtil(f.Path)
-		if err := dst.Chmod(os.FileMode(f.Mode)); err != nil {
+		if err := dst.Chmod(f.Mode); err != nil {
 			return err
 		}
 		if err := dst.SetOwner(f.Owner, f.Group); err != nil {
@@ -235,7 +235,7 @@ func (f *File) Create() error {
 
 		for _, path := range dstRegistry {
 			dst := utils.NewFileUtil(path)
-			if err := dst.Chmod(os.FileMode(f.Mode)); err != nil {
+			if err := dst.Chmod(f.Mode); err != nil {
 				return err
 			}
 			if err := dst.SetOwner(f.Owner, f.Group); err != nil {
@@ -301,7 +301,7 @@ func (f *File) Update() error {
 		// Update permissions if needed
 		if item.flags&flagOutdatedPermissions != 0 {
 			f.Log("setting permissions of %s to %#o\n", item.dst, f.Mode)
-			if err := dstFile.Chmod(os.FileMode(f.Mode)); err != nil {
+			if err := dstFile.Chmod(f.Mode); err != nil {
 				return err
 			}
 		}
@@ -505,7 +505,7 @@ func (f *File) isPermissionsOutdated() (bool, error) {
 			return false, err
 		}
 
-		if mode.Perm() != os.FileMode(f.Mode) {
+		if mode.Perm() != f.Mode {
 			f.outdated = append(f.outdated, item)
 			isOutdated = true
 		}
