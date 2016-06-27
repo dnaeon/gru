@@ -63,6 +63,11 @@ func (c *Catalog) Add(r resource.Resource) {
 	c.unsorted = append(c.unsorted, r)
 }
 
+// Len returns the number of unsorted resources in catalog
+func (c *Catalog) Len() int {
+	return len(c.unsorted)
+}
+
 // Load loads resources into the catalog
 func (c *Catalog) Load() error {
 	// Register the resource providers and catalog in Lua
