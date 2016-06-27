@@ -4,9 +4,9 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/dnaeon/gru/catalog"
 	"github.com/dnaeon/gru/graph"
 	"github.com/dnaeon/gru/resource"
-	"github.com/layeh/gopher-luar"
 	"github.com/urfave/cli"
 	"github.com/yuin/gopher-lua"
 )
@@ -37,21 +37,24 @@ func execGraphCommand(c *cli.Context) error {
 		return cli.NewExitError(errNoModuleName.Error(), 64)
 	}
 
-	module := filepath.Join(c.String("siterepo"), c.Args()[0])
-
-	// A fake catalog used to load resources from Lua
-	unsorted := make([]resource.Resource, 0)
-
 	L := lua.NewState()
 	defer L.Close()
+	module := filepath.Join(c.String("siterepo"), c.Args()[0])
+	config := &catalog.Config{
+		Module:   module,
+		DryRun:   true,
+		Writer:   os.Stdout,
+		SiteRepo: c.String("siterepo"),
+		L:        L,
+	}
 
+	katalog := catalog.New(config)
 	resource.LuaRegisterBuiltin(L)
-	L.SetGlobal("catalog", luar.New(L, unsorted))
 	if err := L.DoFile(module); err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
 
-	collection, err := resource.CreateCollection(unsorted)
+	collection, err := resource.CreateCollection(katalog.Unsorted)
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
