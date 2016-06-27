@@ -40,6 +40,17 @@ type Config struct {
 	L *lua.LState
 }
 
+// New creates a new empty catalog with the provided configuration
+func New(config *Config) *Catalog {
+	c := &Catalog{
+		config:   config,
+		sorted:   make([]resource.Resource, 0),
+		unsorted: make([]resource.Resource, 0),
+	}
+
+	return c
+}
+
 // Run processes the catalog
 func (c *Catalog) Run() error {
 	fmt.Fprintf(c.config.Writer, "Loaded %d resources\n", len(c.sorted))
@@ -103,11 +114,7 @@ func (c *Catalog) processResource(r resource.Resource) error {
 
 // Load creates a new catalog from the provided configuration
 func Load(config *Config) (*Catalog, error) {
-	c := &Catalog{
-		config:   config,
-		sorted:   make([]resource.Resource, 0),
-		unsorted: make([]resource.Resource, 0),
-	}
+	c := New()
 
 	// Inject the configuration for resources
 	resource.DefaultConfig = &resource.Config{
