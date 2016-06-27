@@ -54,6 +54,9 @@ func New(config *Config) *Catalog {
 		SiteRepo: config.SiteRepo,
 	}
 
+	// Register the catalog in Lua
+	c.config.L.SetGlobal("catalog", luar.New(config.L, c))
+
 	return c
 }
 
@@ -72,7 +75,6 @@ func (c *Catalog) Len() int {
 func (c *Catalog) Load() error {
 	// Register the resource providers and catalog in Lua
 	resource.LuaRegisterBuiltin(c.config.L)
-	c.config.L.SetGlobal("catalog", luar.New(c.config.L, c))
 	if err := c.config.L.DoFile(c.config.Module); err != nil {
 		return err
 	}
