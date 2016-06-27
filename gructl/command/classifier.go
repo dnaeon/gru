@@ -3,10 +3,10 @@ package command
 import (
 	"fmt"
 
-	"github.com/codegangsta/cli"
-	etcdclient "github.com/coreos/etcd/client"
+	"github.com/coreos/etcd/client"
 	"github.com/gosuri/uitable"
 	"github.com/pborman/uuid"
+	"github.com/urfave/cli"
 )
 
 // NewClassifierCommand creates a new sub-command for retrieving
@@ -22,42 +22,44 @@ func NewClassifierCommand() cli.Command {
 }
 
 // Executes the "classifier" command
-func execClassifierCommand(c *cli.Context) {
+func execClassifierCommand(c *cli.Context) error {
 	if len(c.Args()) == 0 {
-		displayError(errNoMinion, 64)
+		return cli.NewExitError(errNoMinion.Error(), 64)
 	}
 
 	arg := c.Args()[0]
 	minion := uuid.Parse(arg)
 	if minion == nil {
-		displayError(errInvalidUUID, 64)
+		return cli.NewExitError(errInvalidUUID.Error(), 64)
 	}
 
-	client := newEtcdMinionClientFromFlags(c)
+	klient := newEtcdMinionClientFromFlags(c)
 
 	// Ignore errors about missing classifier directory
-	classifierKeys, err := client.MinionClassifierKeys(minion)
+	classifierKeys, err := klient.MinionClassifierKeys(minion)
 	if err != nil {
-		if eerr, ok := err.(etcdclient.Error); !ok || eerr.Code != etcdclient.ErrorCodeKeyNotFound {
-			displayError(err, 1)
+		if eerr, ok := err.(client.Error); !ok || eerr.Code != client.ErrorCodeKeyNotFound {
+			return cli.NewExitError(err.Error(), 1)
 		}
 	}
 
 	if len(classifierKeys) == 0 {
-		return
+		return nil
 	}
 
 	table := uitable.New()
 	table.MaxColWidth = 80
 	table.AddRow("KEY", "VALUE")
 	for _, key := range classifierKeys {
-		classifier, err := client.MinionClassifier(minion, key)
+		classifier, err := klient.MinionClassifier(minion, key)
 		if err != nil {
-			displayError(err, 1)
+			return cli.NewExitError(err.Error(), 1)
 		}
 
 		table.AddRow(classifier.Key, classifier.Value)
 	}
 
 	fmt.Println(table)
+
+	return nil
 }

@@ -6,9 +6,9 @@ import (
 
 	"github.com/dnaeon/gru/task"
 
-	"github.com/codegangsta/cli"
 	"github.com/gosuri/uiprogress"
 	"github.com/gosuri/uitable"
+	"github.com/urfave/cli"
 )
 
 // NewPushCommand creates a new sub-command for submitting
@@ -37,9 +37,9 @@ func NewPushCommand() cli.Command {
 }
 
 // Executes the "push" command
-func execPushCommand(c *cli.Context) {
+func execPushCommand(c *cli.Context) error {
 	if len(c.Args()) < 1 {
-		displayError(errNoModuleName, 64)
+		return cli.NewExitError(errNoModuleName.Error(), 64)
 	}
 
 	// Create the task that we send to our minions
@@ -54,12 +54,12 @@ func execPushCommand(c *cli.Context) {
 	minions, err := parseClassifierPattern(client, cFlag)
 
 	if err != nil {
-		displayError(err, 1)
+		return cli.NewExitError(err.Error(), 1)
 	}
 
 	numMinions := len(minions)
 	if numMinions == 0 {
-		displayError(errNoMinionFound, 1)
+		return cli.NewExitError(errNoMinionFound.Error(), 1)
 	}
 
 	fmt.Printf("Found %d minion(s) for task processing\n\n", numMinions)
@@ -98,4 +98,6 @@ func execPushCommand(c *cli.Context) {
 	table.AddRow("TASK", "SUBMITTED", "FAILED", "TOTAL")
 	table.AddRow(t.ID, numMinions-failed, failed, numMinions)
 	fmt.Println(table)
+
+	return nil
 }

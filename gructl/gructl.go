@@ -6,8 +6,7 @@ import (
 
 	"github.com/dnaeon/gru/gructl/command"
 	"github.com/dnaeon/gru/version"
-
-	"github.com/codegangsta/cli"
+	"github.com/urfave/cli"
 )
 
 // Main is the entry point of gructl

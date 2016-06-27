@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/codegangsta/cli"
 	"github.com/gosuri/uitable"
 	"github.com/pborman/uuid"
+	"github.com/urfave/cli"
 )
 
 // NewResultCommand creates a new sub-command for retrieving
@@ -32,15 +32,15 @@ func NewResultCommand() cli.Command {
 }
 
 // Executes the "result" command
-func execResultCommand(c *cli.Context) {
+func execResultCommand(c *cli.Context) error {
 	if len(c.Args()) == 0 {
-		displayError(errNoTask, 64)
+		return cli.NewExitError(errNoTask.Error(), 64)
 	}
 
 	arg := c.Args()[0]
 	id := uuid.Parse(arg)
 	if id == nil {
-		displayError(errInvalidUUID, 64)
+		return cli.NewExitError(errInvalidUUID.Error(), 64)
 	}
 
 	client := newEtcdMinionClientFromFlags(c)
@@ -58,7 +58,7 @@ func execResultCommand(c *cli.Context) {
 		// with the given task uuid
 		m, err := client.MinionWithTaskResult(id)
 		if err != nil {
-			displayError(err, 1)
+			return cli.NewExitError(err.Error(), 1)
 		}
 		minionWithTask = m
 	} else {
@@ -66,13 +66,13 @@ func execResultCommand(c *cli.Context) {
 		// from the given minion only
 		minion := uuid.Parse(mFlag)
 		if minion == nil {
-			displayError(errInvalidUUID, 64)
+			return cli.NewExitError(errInvalidUUID.Error(), 64)
 		}
 		minionWithTask = append(minionWithTask, minion)
 	}
 
 	if len(minionWithTask) == 0 {
-		return
+		return nil
 	}
 
 	// Create table for the task results
@@ -91,7 +91,7 @@ func execResultCommand(c *cli.Context) {
 	for _, minionID := range minionWithTask {
 		t, err := client.MinionTaskResult(minionID, id)
 		if err != nil {
-			displayError(err, 1)
+			return cli.NewExitError(err.Error(), 1)
 		}
 
 		if c.Bool("details") {
@@ -107,4 +107,6 @@ func execResultCommand(c *cli.Context) {
 	}
 
 	fmt.Println(table)
+
+	return nil
 }

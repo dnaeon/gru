@@ -3,10 +3,9 @@ package command
 import (
 	"fmt"
 
-	"github.com/codegangsta/cli"
+	"github.com/coreos/etcd/client"
 	"github.com/gosuri/uitable"
-
-	etcdclient "github.com/coreos/etcd/client"
+	"github.com/urfave/cli"
 )
 
 // NewListCommand creates a new sub-command for retrieving the
@@ -29,34 +28,36 @@ func NewListCommand() cli.Command {
 }
 
 // Executes the "list" command
-func execListCommand(c *cli.Context) {
-	client := newEtcdMinionClientFromFlags(c)
+func execListCommand(c *cli.Context) error {
+	klient := newEtcdMinionClientFromFlags(c)
 
 	cFlag := c.String("with-classifier")
-	minions, err := parseClassifierPattern(client, cFlag)
+	minions, err := parseClassifierPattern(klient, cFlag)
 
 	// Ignore errors about missing minion directory
 	if err != nil {
-		if eerr, ok := err.(etcdclient.Error); !ok || eerr.Code != etcdclient.ErrorCodeKeyNotFound {
-			displayError(err, 1)
+		if eerr, ok := err.(client.Error); !ok || eerr.Code != client.ErrorCodeKeyNotFound {
+			return cli.NewExitError(err.Error(), 1)
 		}
 	}
 
 	if len(minions) == 0 {
-		return
+		return nil
 	}
 
 	table := uitable.New()
 	table.MaxColWidth = 80
 	table.AddRow("MINION", "NAME")
 	for _, minion := range minions {
-		name, err := client.MinionName(minion)
+		name, err := klient.MinionName(minion)
 		if err != nil {
-			displayError(err, 1)
+			return cli.NewExitError(err.Error(), 1)
 		}
 
 		table.AddRow(minion, name)
 	}
 
 	fmt.Println(table)
+
+	return nil
 }

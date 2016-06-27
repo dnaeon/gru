@@ -3,8 +3,8 @@ package command
 import (
 	"os"
 
-	"github.com/codegangsta/cli"
 	"github.com/dnaeon/gru/catalog"
+	"github.com/urfave/cli"
 	"github.com/yuin/gopher-lua"
 )
 
@@ -33,9 +33,9 @@ func NewApplyCommand() cli.Command {
 }
 
 // Executes the "apply" command
-func execApplyCommand(c *cli.Context) {
+func execApplyCommand(c *cli.Context) error {
 	if len(c.Args()) < 1 {
-		displayError(errNoModuleName, 64)
+		return cli.NewExitError(errNoModuleName.Error(), 64)
 	}
 
 	L := lua.NewState()
@@ -50,11 +50,13 @@ func execApplyCommand(c *cli.Context) {
 
 	katalog, err := catalog.Load(config)
 	if err != nil {
-		displayError(err, 1)
+		return cli.NewExitError(err.Error(), 1)
 	}
 
 	err = katalog.Run()
 	if err != nil {
-		displayError(err, 1)
+		return cli.NewExitError(err.Error(), 1)
 	}
+
+	return nil
 }

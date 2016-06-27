@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/codegangsta/cli"
-	etcdclient "github.com/coreos/etcd/client"
+	"github.com/coreos/etcd/client"
 	"github.com/gosuri/uitable"
 	"github.com/pborman/uuid"
+	"github.com/urfave/cli"
 )
 
 // NewQueueCommand creates a new sub-command for retrieving the
@@ -23,28 +23,28 @@ func NewQueueCommand() cli.Command {
 }
 
 // Executes the "queue" command
-func execQueueCommand(c *cli.Context) {
+func execQueueCommand(c *cli.Context) error {
 	if len(c.Args()) == 0 {
-		displayError(errNoMinion, 64)
+		return cli.NewExitError(errNoMinion.Error(), 64)
 	}
 
 	minion := uuid.Parse(c.Args()[0])
 	if minion == nil {
-		displayError(errInvalidUUID, 64)
+		return cli.NewExitError(errInvalidUUID.Error(), 64)
 	}
 
-	client := newEtcdMinionClientFromFlags(c)
+	klient := newEtcdMinionClientFromFlags(c)
 
 	// Ignore errors about missing queue directory
-	queue, err := client.MinionTaskQueue(minion)
+	queue, err := klient.MinionTaskQueue(minion)
 	if err != nil {
-		if eerr, ok := err.(etcdclient.Error); !ok || eerr.Code != etcdclient.ErrorCodeKeyNotFound {
-			displayError(err, 1)
+		if eerr, ok := err.(client.Error); !ok || eerr.Code != client.ErrorCodeKeyNotFound {
+			return cli.NewExitError(err.Error(), 1)
 		}
 	}
 
 	if len(queue) == 0 {
-		return
+		return nil
 	}
 
 	table := uitable.New()
@@ -55,4 +55,6 @@ func execQueueCommand(c *cli.Context) {
 	}
 
 	fmt.Println(table)
+
+	return nil
 }

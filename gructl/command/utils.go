@@ -6,7 +6,7 @@ import (
 
 	"github.com/dnaeon/gru/client"
 
-	"github.com/codegangsta/cli"
+	"github.com/urfave/cli"
 	etcdclient "github.com/coreos/etcd/client"
 	"github.com/pborman/uuid"
 )

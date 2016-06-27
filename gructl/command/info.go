@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/codegangsta/cli"
-	etcdclient "github.com/coreos/etcd/client"
+	"github.com/coreos/etcd/client"
 	"github.com/gosuri/uitable"
 	"github.com/pborman/uuid"
+	"github.com/urfave/cli"
 )
 
 // NewInfoCommand creates a new sub-command for retrieving
@@ -23,49 +23,49 @@ func NewInfoCommand() cli.Command {
 }
 
 // Executes the "info" command
-func execInfoCommand(c *cli.Context) {
+func execInfoCommand(c *cli.Context) error {
 	if len(c.Args()) == 0 {
-		displayError(errNoMinion, 64)
+		return cli.NewExitError(errNoMinion.Error(), 64)
 	}
 
 	arg := c.Args()[0]
 	minion := uuid.Parse(arg)
 	if minion == nil {
-		displayError(errInvalidUUID, 64)
+		return cli.NewExitError(errInvalidUUID.Error(), 64)
 	}
 
-	client := newEtcdMinionClientFromFlags(c)
-	name, err := client.MinionName(minion)
+	klient := newEtcdMinionClientFromFlags(c)
+	name, err := klient.MinionName(minion)
 	if err != nil {
-		displayError(err, 1)
+		return cli.NewExitError(err.Error(), 1)
 	}
 
-	lastseen, err := client.MinionLastseen(minion)
+	lastseen, err := klient.MinionLastseen(minion)
 	if err != nil {
-		displayError(err, 1)
+		return cli.NewExitError(err.Error(), 1)
 	}
 
 	// Ignore errors about missing queue directory
-	taskQueue, err := client.MinionTaskQueue(minion)
+	taskQueue, err := klient.MinionTaskQueue(minion)
 	if err != nil {
-		if eerr, ok := err.(etcdclient.Error); !ok || eerr.Code != etcdclient.ErrorCodeKeyNotFound {
-			displayError(err, 1)
+		if eerr, ok := err.(client.Error); !ok || eerr.Code != client.ErrorCodeKeyNotFound {
+			return cli.NewExitError(err.Error(), 1)
 		}
 	}
 
 	// Ignore errors about missing log directory
-	taskLog, err := client.MinionTaskLog(minion)
+	taskLog, err := klient.MinionTaskLog(minion)
 	if err != nil {
-		if eerr, ok := err.(etcdclient.Error); !ok || eerr.Code != etcdclient.ErrorCodeKeyNotFound {
-			displayError(err, 1)
+		if eerr, ok := err.(client.Error); !ok || eerr.Code != client.ErrorCodeKeyNotFound {
+			return cli.NewExitError(err.Error(), 1)
 		}
 	}
 
 	// Ignore errors about missing classifier directory
-	classifierKeys, err := client.MinionClassifierKeys(minion)
+	classifierKeys, err := klient.MinionClassifierKeys(minion)
 	if err != nil {
-		if eerr, ok := err.(etcdclient.Error); !ok || eerr.Code != etcdclient.ErrorCodeKeyNotFound {
-			displayError(err, 1)
+		if eerr, ok := err.(client.Error); !ok || eerr.Code != client.ErrorCodeKeyNotFound {
+			return cli.NewExitError(err.Error(), 1)
 		}
 	}
 
@@ -79,4 +79,6 @@ func execInfoCommand(c *cli.Context) {
 	table.AddRow("Classifiers:", len(classifierKeys))
 
 	fmt.Println(table)
+
+	return nil
 }

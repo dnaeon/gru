@@ -1,10 +1,6 @@
 package command
 
-import (
-	"errors"
-	"fmt"
-	"os"
-)
+import "errors"
 
 var (
 	errNoMinion          = errors.New("Missing minion uuid")
@@ -16,10 +12,3 @@ var (
 	errNoModuleName      = errors.New("Missing module name")
 	errNoSiteRepo        = errors.New("Missing site repo")
 )
-
-// Displays the error and exists with the
-// given exit code
-func displayError(err error, code int) {
-	fmt.Fprintf(os.Stderr, "Error: %s [exit code %d]\n", err, code)
-	os.Exit(code)
-}

@@ -5,8 +5,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/codegangsta/cli"
 	"github.com/dnaeon/gru/minion"
+	"github.com/urfave/cli"
 )
 
 // NewServeCommand creates a new sub-command for starting a
@@ -35,14 +35,14 @@ func NewServeCommand() cli.Command {
 }
 
 // Executes the "serve" command
-func execServeCommand(c *cli.Context) {
+func execServeCommand(c *cli.Context) error {
 	name, err := os.Hostname()
 	if err != nil {
-		displayError(err, 1)
+		return cli.NewExitError(err.Error(), 1)
 	}
 
 	if c.String("siterepo") == "" {
-		displayError(errNoSiteRepo, 64)
+		return cli.NewExitError(errNoSiteRepo.Error(), 64)
 	}
 
 	nameFlag := c.String("name")
@@ -59,7 +59,7 @@ func execServeCommand(c *cli.Context) {
 
 	m, err := minion.NewEtcdMinion(minionCfg)
 	if err != nil {
-		displayError(err, 1)
+		return cli.NewExitError(err.Error(), 1)
 	}
 
 	// Channel on which the shutdown signal is sent
@@ -69,10 +69,12 @@ func execServeCommand(c *cli.Context) {
 	// Start minion
 	err = m.Serve()
 	if err != nil {
-		displayError(err, 1)
+		return cli.NewExitError(err.Error(), 1)
 	}
 
 	// Block until a shutdown signal is received
 	<-quit
 	m.Stop()
+
+	return nil
 }

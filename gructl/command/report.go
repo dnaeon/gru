@@ -3,8 +3,8 @@ package command
 import (
 	"fmt"
 
-	"github.com/codegangsta/cli"
 	"github.com/gosuri/uitable"
+	"github.com/urfave/cli"
 )
 
 // NewReportCommand creates a new sub-command for
@@ -20,9 +20,9 @@ func NewReportCommand() cli.Command {
 }
 
 // Executes the "report" command
-func execReportCommand(c *cli.Context) {
+func execReportCommand(c *cli.Context) error {
 	if len(c.Args()) == 0 {
-		displayError(errNoClassifier, 64)
+		return cli.NewExitError(errNoClassifier.Error(), 64)
 	}
 
 	classifierKey := c.Args()[0]
@@ -30,18 +30,18 @@ func execReportCommand(c *cli.Context) {
 
 	minions, err := client.MinionWithClassifierKey(classifierKey)
 	if err != nil {
-		displayError(err, 1)
+		return cli.NewExitError(err.Error(), 1)
 	}
 
 	if len(minions) == 0 {
-		return
+		return nil
 	}
 
 	report := make(map[string]int)
 	for _, minion := range minions {
 		classifier, err := client.MinionClassifier(minion, classifierKey)
 		if err != nil {
-			displayError(err, 1)
+			return cli.NewExitError(err.Error(), 1)
 		}
 		report[classifier.Value]++
 	}
@@ -55,4 +55,6 @@ func execReportCommand(c *cli.Context) {
 	}
 
 	fmt.Println(table)
+
+	return nil
 }
