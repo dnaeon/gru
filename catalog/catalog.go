@@ -12,7 +12,7 @@ import (
 // Catalog type contains a collection of resources
 type Catalog struct {
 	// Unsorted contains the list of resources created by Lua
-	unsorted []resource.Resource `luar:"-"`
+	Unsorted []resource.Resource `luar:"-"`
 
 	// Sorted contains the list of resources after a topological sort
 	sorted []resource.Resource `luar:"-"`
@@ -45,7 +45,7 @@ func New(config *Config) *Catalog {
 	c := &Catalog{
 		config:   config,
 		sorted:   make([]resource.Resource, 0),
-		unsorted: make([]resource.Resource, 0),
+		Unsorted: make([]resource.Resource, 0),
 	}
 
 	// Inject the configuration for resources
@@ -63,12 +63,12 @@ func New(config *Config) *Catalog {
 // Add adds a resource to the catalog.
 // This method is called from Lua when adding new resources
 func (c *Catalog) Add(r resource.Resource) {
-	c.unsorted = append(c.unsorted, r)
+	c.Unsorted = append(c.Unsorted, r)
 }
 
 // Len returns the number of unsorted resources in catalog
 func (c *Catalog) Len() int {
-	return len(c.unsorted)
+	return len(c.Unsorted)
 }
 
 // Load loads resources into the catalog
@@ -80,7 +80,7 @@ func (c *Catalog) Load() error {
 	}
 
 	// Perform a topological sort of the resources
-	collection, err := resource.CreateCollection(c.unsorted)
+	collection, err := resource.CreateCollection(c.Unsorted)
 	if err != nil {
 		return err
 	}
