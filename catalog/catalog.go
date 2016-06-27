@@ -57,6 +57,12 @@ func New(config *Config) *Catalog {
 	return c
 }
 
+// Add adds a resource to the catalog.
+// This method is called from Lua when adding new resources
+func (c *Catalog) Add(r resource.Resource) {
+	c.unsorted = append(c.unsorted, r)
+}
+
 // Load loads resources into the catalog
 func (c *Catalog) Load() error {
 	// Register the resource providers and catalog in Lua
