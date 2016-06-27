@@ -58,7 +58,7 @@ func New(config *Config) *Catalog {
 }
 
 // Load loads resources into the catalog
-func (c *Catalog) Load(config *Config) error {
+func (c *Catalog) Load() error {
 	// Register the resource providers and catalog in Lua
 	resource.LuaRegisterBuiltin(c.config.L)
 	c.config.L.SetGlobal("catalog", luar.New(c.config.L, c))
