@@ -7,6 +7,17 @@ import (
 
 // LuaRegisterBuiltin registers resource providers in Lua
 func LuaRegisterBuiltin(L *lua.LState) {
+	// Go functions registered in Lua
+	builtins := map[string]interface{}{
+		"log": Log,
+	}
+
+	// Register functions in Lua
+	for name, fn := range builtins {
+		L.SetGlobal(name, luar.New(L, fn))
+	}
+
+	// Register resource providers in Lua
 	for typ, provider := range providerRegistry {
 		// Wrap resource providers, so that we can properly handle any
 		// errors returned by providers during resource instantiation.
