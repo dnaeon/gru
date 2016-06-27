@@ -2,7 +2,8 @@ package resource
 
 import (
 	"fmt"
-	"io"
+	"log"
+	"os"
 )
 
 // Resource is the interface type for resources
@@ -34,12 +35,18 @@ type Config struct {
 	// The site repo which contains module and data files
 	SiteRepo string
 
-	// Writer used by the resources to log events
-	Writer io.Writer
+	// Logger used by the resources to log events
+	Logger *log.Logger
 }
 
+// DefaultLogger is the default logger instance used for
+// logging events from the resources
+var DefaultLogger = log.New(os.Stdout, "", log.LstdFlags)
+
 // DefaultConfig is the default configuration used by the resources
-var DefaultConfig = &Config{}
+var DefaultConfig = &Config{
+	Logger: DefaultLogger,
+}
 
 // BaseResource is the base resource type for all resources
 // The purpose of this type is to be embedded into other resources
@@ -64,10 +71,9 @@ type BaseResource struct {
 	After []string `luar:"require"`
 }
 
-// Log works just like fmt.Printf except that it writes to the
-// default config writer object
-func Log(format string, a ...interface{}) (int, error) {
-	return fmt.Fprintf(DefaultConfig.Writer, format, a...)
+// Log logs an event using the default resource logger
+func Log(format string, a ...interface{}) {
+	DefaultConfig.Logger.Printf(format, a...)
 }
 
 // ID returns the unique resource id
@@ -90,6 +96,6 @@ func (br *BaseResource) WantAfter() []string {
 // Log writes to the default config writer object and
 // prepends the resource id to the output
 func (br *BaseResource) Log(format string, a ...interface{}) {
-	Log("%s ", br.ID())
-	Log(format, a...)
+	f := fmt.Sprintf("%s %s", br.ID(), format)
+	Log(f, a...)
 }
