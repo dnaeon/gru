@@ -43,7 +43,7 @@ func execGraphCommand(c *cli.Context) error {
 	config := &catalog.Config{
 		Module:   module,
 		DryRun:   true,
-		Writer:   os.Stdout,
+		Logger:   resource.DefaultLogger,
 		SiteRepo: c.String("siterepo"),
 		L:        L,
 	}

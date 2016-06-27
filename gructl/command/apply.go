@@ -1,9 +1,8 @@
 package command
 
 import (
-	"os"
-
 	"github.com/dnaeon/gru/catalog"
+	"github.com/dnaeon/gru/resource"
 	"github.com/urfave/cli"
 	"github.com/yuin/gopher-lua"
 )
@@ -43,7 +42,7 @@ func execApplyCommand(c *cli.Context) error {
 	config := &catalog.Config{
 		Module:   c.Args()[0],
 		DryRun:   c.Bool("dry-run"),
-		Writer:   os.Stdout,
+		Logger:   resource.DefaultLogger,
 		SiteRepo: c.String("siterepo"),
 		L:        L,
 	}

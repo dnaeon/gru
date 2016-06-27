@@ -2,7 +2,7 @@ package catalog
 
 import (
 	"fmt"
-	"io"
+	"log"
 
 	"github.com/dnaeon/gru/resource"
 	"github.com/layeh/gopher-luar"
@@ -31,7 +31,7 @@ type Config struct {
 	DryRun bool
 
 	// Writer used to log events
-	Writer io.Writer
+	Logger *log.Logger
 
 	// Path to the site repo containing module and data files
 	SiteRepo string
@@ -50,7 +50,7 @@ func New(config *Config) *Catalog {
 
 	// Inject the configuration for resources
 	resource.DefaultConfig = &resource.Config{
-		Writer:   config.Writer,
+		Logger:   config.Logger,
 		SiteRepo: config.SiteRepo,
 	}
 
@@ -104,10 +104,10 @@ func (c *Catalog) Load() error {
 
 // Run processes the catalog
 func (c *Catalog) Run() error {
-	fmt.Fprintf(c.config.Writer, "Loaded %d resources\n", len(c.sorted))
+	c.config.Logger.Printf("Loaded %d resources\n", len(c.sorted))
 	for _, r := range c.sorted {
 		if err := c.processResource(r); err != nil {
-			fmt.Fprintf(c.config.Writer, "%s %s\n", r.ID(), err)
+			c.config.Logger.Printf("%s %s\n", r.ID(), err)
 		}
 	}
 
@@ -135,7 +135,7 @@ func (c *Catalog) processResource(r resource.Resource) error {
 	case state.Want == resource.StatePresent || state.Want == resource.StateRunning:
 		// Resource is absent, should be present
 		if state.Current == resource.StateAbsent || state.Current == resource.StateStopped {
-			fmt.Fprintf(c.config.Writer, "%s is %s, should be %s\n", id, state.Current, state.Want)
+			c.config.Logger.Printf("%s is %s, should be %s\n", id, state.Current, state.Want)
 			if err := r.Create(); err != nil {
 				return err
 			}
@@ -143,7 +143,7 @@ func (c *Catalog) processResource(r resource.Resource) error {
 	case state.Want == resource.StateAbsent || state.Want == resource.StateStopped:
 		// Resource is present, should be absent
 		if state.Current == resource.StatePresent || state.Current == resource.StateRunning {
-			fmt.Fprintf(c.config.Writer, "%s is %s, should be %s\n", id, state.Current, state.Want)
+			c.config.Logger.Printf("%s is %s, should be %s\n", id, state.Current, state.Want)
 			if err := r.Delete(); err != nil {
 				return err
 			}
@@ -154,7 +154,7 @@ func (c *Catalog) processResource(r resource.Resource) error {
 
 	// Update resource if needed
 	if state.Update {
-		fmt.Fprintf(c.config.Writer, "%s resource is out of date\n", id)
+		c.config.Logger.Printf("%s resource is out of date\n", id)
 		if err := r.Update(); err != nil {
 			return err
 		}

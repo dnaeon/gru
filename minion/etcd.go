@@ -209,7 +209,7 @@ func (m *etcdMinion) processTask(t *task.Task) error {
 	config := &catalog.Config{
 		Module:   t.Command,
 		DryRun:   t.DryRun,
-		Writer:   &buf,
+		Logger:   log.New(&buf, "", log.LstdFlags),
 		SiteRepo: m.localSiteRepo,
 		L:        L,
 	}
