@@ -68,7 +68,7 @@ type BaseResource struct {
 	Before []string `luar:"before"`
 
 	// Resources after which this resource should be processed
-	After []string `luar:"require"`
+	After []string `luar:"after"`
 }
 
 // Log logs an event using the default resource logger
