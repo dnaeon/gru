@@ -54,8 +54,12 @@ func New(config *Config) *Catalog {
 		SiteRepo: config.SiteRepo,
 	}
 
-	// Register the catalog in Lua
-	c.config.L.SetGlobal("catalog", luar.New(config.L, c))
+	// Register the catalog type in Lua and also register
+	// metamethods for the catalog, so that we can use
+	// the catalog in a more Lua-friendly way
+	mt := luar.MT(config.L, c)
+	mt.RawSetString("__len", luar.New(config.L, (*Catalog).Len))
+	config.L.SetGlobal("catalog", luar.New(config.L, c))
 
 	return c
 }
