@@ -28,6 +28,9 @@ type Resource interface {
 
 	// Updates the resource
 	Update() error
+
+	// Log logs events
+	Log(format string, a ...interface{})
 }
 
 // Config type contains various settings used by the resources
