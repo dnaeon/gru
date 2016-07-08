@@ -20,36 +20,36 @@ The `site repo` in Gru is what contains modules and data files.
 
 Technically speaking the site repo is a Git repository,
 which is being distributed to our minions, this way making it possible
-for remote systems to sync from it, load modules and later on
-process them.
+for remote systems to sync from it and evaluate modules.
 
-This is how a typical site repo structure looks like.
+This is how a typical empty site repo structure looks like.
 
 ```bash
 $ tree site
 site
-├── data
-└── modules
+├── code
+└── data
 
 2 directories, 0 files
 ```
 
-The `modules` directory is where Gru modules reside, while `data`
-directory is being used for static content and file templates.
+The `code` directory is used for modules, which are written in the
+[Lua](https://www.lua.org/) programming language. Lua is what forms the
+DSL language of Gru, and is used for creating resources and registering
+them to the `catalog`.
+
+The `data` directory is being used for static content and
+file templates, which are used by resources.
 
 You can also find an example site repo in the
 [example site repo](../site) directory from the Gru repository.
 
-This is also the place where you can find the modules we will
-prepare in this document, so you might want to grab
+This is also the place where you can find the module we will
+create in this document, so you might want to grab
 the example site repo first while you work on the instructions from
 this document.
 
 ## Writing the module
-
-Modules in Gru are expressed in
-[HCL](https://github.com/hashicorp/hcl) and reside in the
-`modules` directory of the site repo as already mentioned above.
 
 In the beginning of this document we have mentioned that we will be
 installing and configuring [memcached](https://memcached.org/) on our
@@ -57,14 +57,27 @@ systems. The steps we need to perform in order to do that can be
 summarized as follows - installing the needed package, configuring the
 service and afterwards starting the service.
 
-First, let's begin with installing the requred packages by creating
+As mentioned earlier, modules are written in
+[Lua](https://www.lua.org/). In our Lua code we instantiate
+resources and also register them to the catalog.
+
+Let us begin with installing the required packages by creating
 our first resource.
 
-```hcl
-package "memcached" {
-  state = "present"
-}
+```lua
+-- Manage the memcached package
+memcached_pkg = pkg.new("memcached")
+memcached_pkg.state = "present"
 ```
+
+What we do in the above Lua code is to instantiate a new
+[package resource](https://godoc.org/github.com/dnaeon/gru/resource#Package)
+by calling the `pkg.new()` constructor. Each resource has a `new`
+constructor, which accepts one argument - the *resource name*.
+
+The created resource is returned and assigned to the `memcached_pkg`
+variable, which we can use to modify resource attributes and also
+register the resource to the catalog, as we will do a bit later.
 
 By default the `memcached` service listens only on localhost, so
 if we want to change that and listen on all interfaces we will have to
@@ -77,35 +90,54 @@ what we will do now.
 
 First, let's create the needed directory for our drop-in unit.
 
-```hcl
-file "/etc/systemd/system/memcached.service.d" {
-  state = "present"
-  filetype = "directory"
-  require = [
-    "package[memcached]",
-  ]
+```lua
+-- Path to the systemd drop-in unit directory
+systemd_dir = "/etc/systemd/system/memcached.service.d/"
+
+-- Manage the systemd drop-in unit directory
+unit_dir = file.new(systemd_dir)
+unit_dir.state = "present"
+unit_dir.filetype = "directory"
+unit_dir.after = {
+   memcached_pkg:ID(),
 }
 ```
 
+In order to create the systemd drop-in directory for our unit,
+we create a [file resource](https://godoc.org/github.com/dnaeon/gru/resource#File), and
+afterwards set any attributes of the resource.
+
+What you should also notice is that we have created a dependency
+relation between our `file` resource and the `pkg` resource,
+which manages the `memcached` package. Doing this allows us to
+create resource dependencies, so that we define the proper way
+resources should be evaluated and processed.
+
+When creating resource dependencies we use the *resource id* for the
+resource to which we want to link to. The *resource id* is a string,
+which comprises of the *resource type* and the *resource name*.
+
+You can get the id of a resource by calling it's `ID()` method.
+
 Now, let's install the actual drop-in unit file.
 
-```hcl
-file "/etc/systemd/system/memcached.service.d/override.conf" {
-  state = "present"
-  mode = 0644
-  source = "data/memcached/memcached-override.conf"
-  require = [
-    "file[/etc/systemd/system/memcached.service.d]",
-  ]
+```lua
+-- Manage the systemd drop-in unit
+unit_file = file.new(systemd_dir .. "override.conf")
+unit_file.state = "present"
+unit_file.mode = tonumber("0644", 8)
+unit_file.source = "data/memcached/memcached-override.conf"
+unit_file.after = {
+   unit_dir:ID(),
 }
 ```
 
 The above `file` resource will take care of installing the
 `override.conf` drop-in unit to it's correct location.
 
-You may have also noticed the `source` parameter that we use in our
-resource - that parameter tells Gru where in the site directory is the
-actual source file located.
+You may have also noticed the `source` attribute that we have used in our
+resource - that attribute tells where in the site directory the
+actual source file resides.
 
 And this is what the actual drop-in unit file looks like, which
 will be used as the source for our resource.
@@ -120,60 +152,50 @@ Once we install the systemd drop-in unit we need to tell
 `systemd(1)` to re-read it's configuration, so the next resource
 takes care of that as well.
 
-```hcl
-shell "systemctl daemon-reload" {
-  require = [
-    "file[/etc/systemd/system/memcached.service.d/override.conf]",
-  ]
+```lua
+-- Instruct systemd(1) to reload it's configuration
+systemd_reload = shell.new("systemctl daemon-reload")
+systemd_reload.after = {
+   unit_file:ID(),
 }
 ```
 
-And finally let's create a resource that enables and starts the
-memcached service.
+The next resource takes care of enabling and starting the memcached
+service.
 
-```hcl
-service "memcached" {
-  state = "running"
-  enable = true
-  require = [
-    "package[memcached]",
-    "file[/etc/systemd/system/memcached.service.d/override.conf]",
-  ]
+```lua
+-- Manage the memcached service
+memcached_svc = service.new("memcached")
+memcached_svc.state = "running"
+memcached_svc.enable = true
+memcached_svc.after = {
+   memcached_pkg:ID(),
+   unit_file:ID(),
 }
+```
+
+As a last step we need to do is to actually register our
+resources to the catalog, so the next Lua chunk does that.
+
+```lua
+-- Finally, register the resources to the catalog
+catalog:add(memcached_pkg, unit_dir, unit_file, systemd_reload, memcached_svc)
 ```
 
 With all that we have now created our first module, which should
 take care of installing and configuring memcached for us!
 
-One last step that we should also consider doing is to validate our
-configuration. In order to do that we will use the `gructl validate`
-command.
-
-```bash
-$ gructl validate memcached
-Loaded 5 resources from 1 modules
-```
-
-We can also see our new module being successfully discovered
-using the `gructl module` command.
-
-```bash
-$ gructl module memcached
-MODULE          PATH
-memcached       .../site/modules/memcached.hcl
-```
-
 And this is how our site repo looks like once we have everything in
 place.
 
 ```bash
-$ tree site/
-site/
-├── data
-│   └── memcached
-│       └── memcached-override.conf
-└── modules
-    └── memcached.hcl
+$ tree site
+site
+├── code
+│   └── memcached.lua
+└── data
+    └── memcached
+        └── memcached-override.conf
 
 3 directories, 2 files
 ```
@@ -184,9 +206,7 @@ In the previous chapter of this document we have created a number of
 resources, which took care of installing and configuring memcached.
 
 What you should have also noticed is that in most of the resources we
-have used these `require` parameters.
-
-The `require` parameter is used for creating resource dependencies.
+have used resource dependencies.
 
 Before the resources are being processed by the catalog, Gru is
 building a [DAG graph](https://en.wikipedia.org/wiki/Directed_acyclic_graph)
@@ -194,44 +214,29 @@ of all resources and attempts to perform a
 [topological sort](https://en.wikipedia.org/wiki/Topological_sorting)
 on them, in order to determine the proper order of resource execution.
 
-Considering the example memcached module we have created in the
-previous chapter, let's see what it's DAG graph looks like.
+Considering the example memcached module we have already created, lets
+see what it's DAG graph looks like.
 
 In order to do that we will use the `gructl graph` command.
 
 ```bash
-$ gructl graph --siterepo site/ memcached
+$ gructl graph code/memcached.lua
 ```
 
 Executing the above command generates the graph representation for
-our modules and resources.
+our resources.
 
 ```dot
-digraph memcached_imports {
-        label = "memcached_imports";
-        nodesep=1.0;
-        node [shape=box];
-        edge [style=filled];
-        "memcached";
-}
 digraph resources {
-        label = "resources";
-        nodesep=1.0;
-        node [shape=box];
-        edge [style=filled];
-        subgraph cluster_memcached {
-                label = "memcached";
-                color = black;
-                "service[memcached]";
-                "shell[systemctl daemon-reload]";
-                "file[/etc/systemd/system/memcached.service.d]";
-                "file[/etc/systemd/system/memcached.service.d/override.conf]";
-                "package[memcached]";
-        }
-        "service[memcached]" -> {"package[memcached]" "file[/etc/systemd/system/memcached.service.d/override.conf]"};
-        "shell[systemctl daemon-reload]" -> {"file[/etc/systemd/system/memcached.service.d/override.conf]"};
-        "file[/etc/systemd/system/memcached.service.d]" -> {"package[memcached]"};
-        "file[/etc/systemd/system/memcached.service.d/override.conf]" -> {"file[/etc/systemd/system/memcached.service.d]"};
+	label = "resources";
+	nodesep=1.0;
+	node [shape=box];
+	edge [style=filled];
+	"file[/etc/systemd/system/memcached.service.d/]" -> {"pkg[memcached]"};
+	"file[/etc/systemd/system/memcached.service.d/override.conf]" -> {"file[/etc/systemd/system/memcached.service.d/]"};
+	"shell[systemctl daemon-reload]" -> {"file[/etc/systemd/system/memcached.service.d/override.conf]"};
+	"service[memcached]" -> {"pkg[memcached]" "file[/etc/systemd/system/memcached.service.d/override.conf]"};
+	"pkg[memcached]";
 }
 ```
 
@@ -243,7 +248,7 @@ If we pipe the above result to `dot(1)` we can generate a visual
 representation of our graph, e.g.:
 
 ```bash
-$ gructl graph --resources memcached | dot -O -Tpng
+$ gructl graph site/code/memcached.lua | dot -O -Tpng
 ```
 
 And this is how the dependency graph for our memcached module looks like.
@@ -252,7 +257,7 @@ And this is how the dependency graph for our memcached module looks like.
 
 Using `gructl graph` we can see what the resource execution
 order would look like and it can also help us identify
-circular dependencies in our resources and modules.
+circular dependencies in our resources.
 
 ## Applying Configuration
 
@@ -271,46 +276,50 @@ prepared so far on the local system using the standalone mode.
 The command we need to execute is `gructl apply`.
 
 ```bash
-$ sudo gructl apply --siterepo site/ memcached
+$ sudo gructl apply site/code/memcached.lua
 ```
 
 Executing the above command generates the following output from our
 resources.
 
 ```bash
-$ sudo gructl apply --siterepo site/ memcached
-Loaded 5 resources from 1 modules
-package[memcached] is absent, should be present
-package[memcached] installing package
-package[memcached] resolving dependencies...
-package[memcached] looking for conflicting packages...
-package[memcached]
-package[memcached] Packages (1) memcached-1.4.25-1
-package[memcached]
-package[memcached] Total Installed Size:  0.14 MiB
-package[memcached]
-package[memcached] :: Proceed with installation? [Y/n]
-package[memcached] checking keyring...
-package[memcached] checking package integrity...
-package[memcached] loading package files...
-package[memcached] checking for file conflicts...
-package[memcached] checking available disk space...
-package[memcached] :: Processing package changes...
-package[memcached] installing memcached...
-package[memcached] Optional dependencies for memcached
-package[memcached]     perl: for memcached-tool usage [installed]
-package[memcached] :: Running post-transaction hooks...
-package[memcached] (1/1) Updating manpage index...
-package[memcached]
-file[/etc/systemd/system/memcached.service.d] is absent, should be present
-file[/etc/systemd/system/memcached.service.d] creating resource
-file[/etc/systemd/system/memcached.service.d/override.conf] is absent, should be present
-file[/etc/systemd/system/memcached.service.d/override.conf] creating resource
-shell[systemctl daemon-reload] is absent, should be present
-shell[systemctl daemon-reload] executing command
-service[memcached] is stopped, should be running
-service[memcached] starting service
-service[memcached] systemd job id 2013 result: done
+$ sudo gructl apply site/code/memcached.lua
+2016/07/08 16:41:52 Loaded 5 resources
+2016/07/08 16:41:52 pkg[memcached] is absent, should be present
+2016/07/08 16:41:52 pkg[memcached] installing package
+2016/07/08 16:41:53 pkg[memcached] resolving dependencies...
+2016/07/08 16:41:53 pkg[memcached] looking for conflicting packages...
+2016/07/08 16:41:53 pkg[memcached]
+2016/07/08 16:41:53 pkg[memcached] Packages (1) memcached-1.4.25-1
+2016/07/08 16:41:53 pkg[memcached]
+2016/07/08 16:41:53 pkg[memcached] Total Installed Size:  0.14 MiB
+2016/07/08 16:41:53 pkg[memcached]
+2016/07/08 16:41:53 pkg[memcached] :: Proceed with installation? [Y/n]
+2016/07/08 16:41:53 pkg[memcached] checking keyring...
+2016/07/08 16:41:53 pkg[memcached] checking package integrity...
+2016/07/08 16:41:53 pkg[memcached] loading package files...
+2016/07/08 16:41:53 pkg[memcached] checking for file conflicts...
+2016/07/08 16:41:53 pkg[memcached] checking available disk space...
+2016/07/08 16:41:53 pkg[memcached] :: Processing package changes...
+2016/07/08 16:41:53 pkg[memcached] installing memcached...
+2016/07/08 16:41:53 pkg[memcached] Optional dependencies for memcached
+2016/07/08 16:41:53 pkg[memcached]     perl: for memcached-tool usage [installed]
+2016/07/08 16:41:53 pkg[memcached] :: Running post-transaction hooks...
+2016/07/08 16:41:53 pkg[memcached] (1/1) Updating manpage index...
+2016/07/08 16:41:53 pkg[memcached]
+2016/07/08 16:41:53 file[/etc/systemd/system/memcached.service.d/] is absent, should be present
+2016/07/08 16:41:53 file[/etc/systemd/system/memcached.service.d/] creating resource
+2016/07/08 16:41:53 file[/etc/systemd/system/memcached.service.d/override.conf] is absent, should be present
+2016/07/08 16:41:53 file[/etc/systemd/system/memcached.service.d/override.conf] creating resource
+2016/07/08 16:41:53 shell[systemctl daemon-reload] is absent, should be present
+2016/07/08 16:41:53 shell[systemctl daemon-reload] executing command
+2016/07/08 16:41:53 shell[systemctl daemon-reload]
+2016/07/08 16:41:53 service[memcached] is stopped, should be running
+2016/07/08 16:41:53 service[memcached] starting service
+2016/07/08 16:41:53 service[memcached] systemd job id 2336 result: done
+2016/07/08 16:41:53 service[memcached] resource is out of date
+2016/07/08 16:41:53 service[memcached] enabling service
+2016/07/08 16:41:53 service[memcached] symlink /etc/systemd/system/multi-user.target.wants/memcached.service -> /usr/lib/systemd/system/memcached.service
 ```
 
 From the output we can also see that the order of execution of our
@@ -325,13 +334,12 @@ $ systemctl status memcached
    Loaded: loaded (/usr/lib/systemd/system/memcached.service; enabled; vendor preset: disabled)
   Drop-In: /etc/systemd/system/memcached.service.d
            └─override.conf
-   Active: active (running) since Wed 2016-05-25 17:57:04 EEST; 3min 11s ago
- Main PID: 5613 (memcached)
-    Tasks: 6 (limit: 512)
+   Active: active (running) since Fri 2016-07-08 16:41:53 EEST; 2min 27s ago
+ Main PID: 12297 (memcached)
    CGroup: /system.slice/memcached.service
-           └─5613 /usr/bin/memcached
+           └─12297 /usr/bin/memcached
 
-May 25 17:57:04 mnikolov-laptop systemd[1]: Started Memcached Daemon.
+Jul 08 16:41:53 mnikolov-laptop systemd[1]: Started Memcached Daemon.
 ```
 
 Everything looks good and we can see our drop-in unit being used as well.
@@ -386,7 +394,7 @@ If we want to get more info about a specific minion we can use the
 $ gructl info f827bffd-bd9e-5441-be36-a92a51d0b79e
 Minion:         f827bffd-bd9e-5441-be36-a92a51d0b79e
 Name:           Bob
-Lastseen:       2016-05-27 14:59:53 +0300 EEST
+Lastseen:       2016-07-08 16:52:30 +0300 EEST
 Queue:          0
 Log:            0
 Classifiers:    7
@@ -400,6 +408,7 @@ Using the `gructl classifier` command we can list the classifiers
 that a minion has, e.g.
 
 ```bash
+$ gructl classifier f827bffd-bd9e-5441-be36-a92a51d0b79e
 KEY             VALUE
 os              linux
 arch            amd64
@@ -429,7 +438,7 @@ Submitting task to minion(s) ...
    0s [====================================================================] 100%
 
 TASK                                    SUBMITTED       FAILED  TOTAL
-76f0f2cb-220a-4529-8f85-c5e55865d68c    1               0       1
+52508404-e254-4e89-b15d-57e39365d8fd    1               0       1
 ```
 
 The `gructl push` command also returns the unique task id of our
@@ -439,13 +448,13 @@ Looking at the log of our minion we can see that it has successfully
 received and processed the task as seen from the log snippet below.
 
 ```bash
-2016/05/27 17:08:19 Received task 76f0f2cb-220a-4529-8f85-c5e55865d68c
-2016/05/27 17:08:19 Processing task 76f0f2cb-220a-4529-8f85-c5e55865d68c
-2016/05/27 17:08:19 Starting site repo sync
-2016/05/27 17:08:19 Site repo sync completed
-2016/05/27 17:08:19 Setting environment to production
-2016/05/27 17:08:19 Environment set to production@1668f509bc4c57862fcb695fcd4917448f0ca794
-2016/05/27 17:08:19 Finished processing task 76f0f2cb-220a-4529-8f85-c5e55865d68c
+2016/07/08 17:01:47 Received task 52508404-e254-4e89-b15d-57e39365d8fd
+2016/07/08 17:01:47 Processing task 52508404-e254-4e89-b15d-57e39365d8fd
+2016/07/08 17:01:47 Starting site repo sync
+2016/07/08 17:01:47 Site repo sync completed
+2016/07/08 17:01:47 Setting environment to production
+2016/07/08 17:01:47 Environment set to production@6c087d0ef85d6dcb986d334e2e91dc0f7fef0698
+2016/07/08 17:01:47 Finished processing task 52508404-e254-4e89-b15d-57e39365d8fd
 ```
 
 Using the `gructl log` command we can check the log of our minions,
@@ -454,7 +463,7 @@ which contains the previously executed tasks and their results, e.g.
 ```bash
 $ gructl log f827bffd-bd9e-5441-be36-a92a51d0b79e
 TASK                                    STATE   RECEIVED                        PROCESSED
-76f0f2cb-220a-4529-8f85-c5e55865d68c    success 2016-05-27 17:08:19 +0300 EEST  2016-05-27 17:08:19 +0300 EEST
+52508404-e254-4e89-b15d-57e39365d8fd    success 2016-07-08 17:01:47 +0300 EEST  2016-07-08 17:01:47 +0300 EEST
 ```
 
 The argument we pass to `gructl log` is the minion id. In order to
@@ -462,10 +471,9 @@ retrieve the actual task result we use the `gructl result` command and
 pass it the task id, e.g.
 
 ```bash
-$ gructl result 76f0f2cb-220a-4529-8f85-c5e55865d68c
+$ gructl result 52508404-e254-4e89-b15d-57e39365d8fd
 MINION                                  RESULT                                          STATE
-f827bffd-bd9e-5441-be36-a92a51d0b79e    Loaded 5 resources from 1 modules               success
-                                        pac...
+f827bffd-bd9e-5441-be36-a92a51d0b79e    2016/07/08 17:01:47 Loaded 5 resource...        success
 ```
 
 If you need to examine the task result in details you can use the
