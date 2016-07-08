@@ -142,11 +142,14 @@ func NewPacman(name string) (Resource, error) {
 	p := &Pacman{
 		BasePackage: BasePackage{
 			BaseResource: BaseResource{
-				Name:  name,
-				Type:  "package",
-				State: StatePresent,
+				Name:   name,
+				Type:   "package",
+				State:  StatePresent,
+				After:  make([]string, 0),
+				Before: make([]string, 0),
 			},
 			Package:       name,
+			Version:       "",
 			manager:       "/usr/bin/pacman",
 			queryArgs:     []string{"--query"},
 			installArgs:   []string{"--sync", "--noconfirm"},
@@ -170,9 +173,11 @@ func NewYum(name string) (Resource, error) {
 	y := &Yum{
 		BasePackage: BasePackage{
 			BaseResource: BaseResource{
-				Name:  name,
-				Type:  "package",
-				State: StatePresent,
+				Name:   name,
+				Type:   "package",
+				State:  StatePresent,
+				After:  make([]string, 0),
+				Before: make([]string, 0),
 			},
 			Package:       name,
 			manager:       "/usr/bin/yum",
@@ -188,4 +193,6 @@ func NewYum(name string) (Resource, error) {
 
 func init() {
 	RegisterProvider("package", NewPackage)
+	RegisterProvider("yum", NewYum)
+	RegisterProvider("pacman", NewPacman)
 }
