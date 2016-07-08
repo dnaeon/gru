@@ -7,15 +7,15 @@ func TestPacman(t *testing.T) {
 	defer L.Close()
 
 	const code = `
-	pkg = pacman.new("tmux")
+	tmux = pacman.new("tmux")
 	`
 
 	if err := L.DoString(code); err != nil {
 		t.Fatal(err)
 	}
 
-	pkg := luaResource(L, "pkg").(*Pacman)
-	errorIfNotEqual(t, "package", pkg.Type)
+	pkg := luaResource(L, "tmux").(*Pacman)
+	errorIfNotEqual(t, "pkg", pkg.Type)
 	errorIfNotEqual(t, "tmux", pkg.Name)
 	errorIfNotEqual(t, StatePresent, pkg.State)
 	errorIfNotEqual(t, []string{}, pkg.Before)
@@ -29,15 +29,15 @@ func TestYum(t *testing.T) {
 	defer L.Close()
 
 	const code = `
-	pkg = yum.new("tmux")
+	tmux = yum.new("tmux")
 	`
 
 	if err := L.DoString(code); err != nil {
 		t.Fatal(err)
 	}
 
-	pkg := luaResource(L, "pkg").(*Yum)
-	errorIfNotEqual(t, "package", pkg.Type)
+	pkg := luaResource(L, "tmux").(*Yum)
+	errorIfNotEqual(t, "pkg", pkg.Type)
 	errorIfNotEqual(t, "tmux", pkg.Name)
 	errorIfNotEqual(t, StatePresent, pkg.State)
 	errorIfNotEqual(t, []string{}, pkg.Before)
