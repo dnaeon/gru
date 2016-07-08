@@ -10,8 +10,13 @@ import (
 	"github.com/coreos/go-systemd/util"
 )
 
-// Service type is a resource which manages
-// services on a GNU/Linux system running with systemd
+// Service type is a resource which manages services on a
+// GNU/Linux system running with systemd.
+//
+// Example:
+//   svc = service.new("nginx")
+//   svc.state = "running"
+//   svc.enable = true
 type Service struct {
 	BaseResource
 
