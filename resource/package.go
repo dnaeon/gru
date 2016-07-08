@@ -18,10 +18,10 @@ var ErrNoPackageProviderFound = errors.New("No suitable package provider found")
 type BasePackage struct {
 	BaseResource
 
-	// Name of the package to manage
+	// Name of the package to manage. Defaults to the resource name.
 	Package string `luar:"-"`
 
-	// Version of the package
+	// Version of the package.
 	Version string `luar:"version"`
 
 	// Package manager to use
@@ -110,7 +110,13 @@ func (bp *BasePackage) Update() error {
 	return err
 }
 
-// NewPackage creates a new resource for managing packages
+// NewPackage creates a new resource for managing packages.
+// This provider tries to determine the most appropriate
+// package provider for you, so it is more like a meta-provider.
+//
+// Example:
+//   pkg = package.new("tmux")
+//   pkg.state = "present"
 func NewPackage(name string) (Resource, error) {
 	// Releases files used by the various GNU/Linux distros
 	releases := map[string]Provider{
@@ -130,8 +136,12 @@ func NewPackage(name string) (Resource, error) {
 	return nil, ErrNoPackageProviderFound
 }
 
-// Pacman type represents the resource for package
-// management on Arch Linux systems
+// Pacman type represents the resource for package management on
+// Arch Linux systems.
+//
+// Example:
+//   pkg = pacman.new("tmux")
+//   pkg.state = "present"
 type Pacman struct {
 	BasePackage
 }
@@ -162,7 +172,11 @@ func NewPacman(name string) (Resource, error) {
 }
 
 // Yum type represents the resource for package management on
-// RHEL and CentOS systems
+// RHEL and CentOS systems.
+//
+// Example:
+//   pkg = yum.new("emacs")
+//   pkg.state = "present"
 type Yum struct {
 	BasePackage
 }
