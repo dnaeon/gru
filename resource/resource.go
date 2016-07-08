@@ -74,11 +74,6 @@ type BaseResource struct {
 	After []string `luar:"after"`
 }
 
-// Log logs an event using the default resource logger
-func Log(format string, a ...interface{}) {
-	DefaultConfig.Logger.Printf(format, a...)
-}
-
 // ID returns the unique resource id
 func (br *BaseResource) ID() string {
 	return fmt.Sprintf("%s[%s]", br.Type, br.Name)

@@ -9,7 +9,7 @@ import (
 func LuaRegisterBuiltin(L *lua.LState) {
 	// Go functions registered in Lua
 	builtins := map[string]interface{}{
-		"log": Log,
+		"log": luaLog,
 	}
 
 	// Register functions in Lua
@@ -40,4 +40,9 @@ func LuaRegisterBuiltin(L *lua.LState) {
 		tbl.RawSetH(lua.LString("new"), L.NewFunction(wrapper(provider)))
 		L.SetGlobal(typ, tbl)
 	}
+}
+
+// luaLog logs an event using the default resource logger
+func luaLog(format string, a ...interface{}) {
+	DefaultConfig.Logger.Printf(format, a...)
 }
