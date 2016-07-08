@@ -6,14 +6,30 @@ import (
 	"strings"
 )
 
-// Shell type is a resource which executes shell commands
+// Shell type is a resource which executes shell commands.
+//
+// The command that is to be executed should be idempotent.
+// If the command that is to be executed is not idempotent on it's own,
+// in order to achieve idempotency of the resource you should set the
+// "creates" field to a filename that can be checked for existence.
+//
+// Example:
+//   sh = shell.new("touch /tmp/foo")
+//   sh.creates = "/tmp/foo"
+//
+// Same example as the above one, but written in a different way.
+//
+// Example:
+//   sh = shell.new("creates the /tmp/foo file")
+//   sh.command = "/usr/bin/touch /tmp/foo"
+//   sh.creates = "/tmp/foo"
 type Shell struct {
 	BaseResource
 
-	// Command to be executed
+	// Command to be executed. Defaults to the resource name.
 	Command string `luar:"command"`
 
-	// File to be checked for existence before running the command
+	// File to be checked for existence before executing the command.
 	Creates string `luar:"creates"`
 }
 
