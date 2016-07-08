@@ -1,4 +1,4 @@
-## Gru - Orchestration made easy with Go
+## Gru - Orchestration made easy with Go and Lua
 
 [![Build Status](https://travis-ci.org/dnaeon/gru.svg)](https://travis-ci.org/dnaeon/gru)
 [![GoDoc](https://godoc.org/github.com/dnaeon/gru?status.svg)](https://godoc.org/github.com/dnaeon/gru)
