@@ -66,9 +66,6 @@ type BaseResource struct {
 	// Name of the resource
 	Name string `luar:"-"`
 
-	// Resource configuration settings
-	Config *Config `luar:"-"`
-
 	// Desired state of the resource
 	State string `luar:"state"`
 
