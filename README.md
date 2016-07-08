@@ -4,21 +4,19 @@
 [![GoDoc](https://godoc.org/github.com/dnaeon/gru?status.svg)](https://godoc.org/github.com/dnaeon/gru)
 [![Go Report Card](https://goreportcard.com/badge/github.com/dnaeon/gru)](https://goreportcard.com/report/github.com/dnaeon/gru)
 
-Gru is an orchestration framework written in Go, which
-allows you to manage your UNIX/Linux systems with ease.
-
-## Demo
-
-[![asciicast](https://asciinema.org/a/35920.png)](https://asciinema.org/a/35920)
+Gru is an orchestration framework powered by Go and Lua,
+which allows you to manage your UNIX/Linux systems with ease.
 
 ## Documentation
 
 You can find the latest documentation [here](docs/).
 
+The API documentation is available [here](https://godoc.org/github.com/dnaeon/gru).
+
 ## Status
 
-Experimental. Gru is in early development stage. Consider the
-API unstable as things may change without a notice.
+Gru is in constant development. Consider the API unstable as
+things may change without a notice.
 
 ## Contributions
 
