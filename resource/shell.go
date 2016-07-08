@@ -21,11 +21,14 @@ type Shell struct {
 func NewShell(name string) (Resource, error) {
 	s := &Shell{
 		BaseResource: BaseResource{
-			Name:  name,
-			Type:  "shell",
-			State: StatePresent,
+			Name:   name,
+			Type:   "shell",
+			State:  StatePresent,
+			After:  make([]string, 0),
+			Before: make([]string, 0),
 		},
 		Command: name,
+		Creates: "",
 	}
 
 	return s, nil
