@@ -36,32 +36,45 @@ type outdatedFile struct {
 	flags int
 }
 
-// File type resource manages files and directories
+// File resource manages files and directories.
+//
+// Example:
+//   foo = file.new("/tmp/foo")
+//   foo.state = "present"
+//   foo.mode = 0600
+//
+// Example:
+//   bar = file.new("/tmp/bar")
+//   bar.state = "present"
+//   bar.filetype = "directory"
 type File struct {
 	BaseResource
 
-	// Path to the file
+	// Path to the file. Defaults to the resource name.
 	Path string `luar:"-"`
 
-	// Permission bits to set on the file
+	// Permission bits to set on the file. Defaults to 0644.
 	Mode os.FileMode `luar:"mode"`
 
-	// Owner of the file
+	// Owner of the file. Defaults to the currently running user.
 	Owner string `luar:"owner"`
 
 	// Group of the file
+	// Defaults to the group of the currently running user.
 	Group string `luar:"group"`
 
 	// Source file to use when creating/updating the file
 	Source string `luar:"source"`
 
-	// The file type we manage
+	// The file type we manage.
 	FileType string `luar:"filetype"`
 
-	// Recursively manage the directory if set to true
+	// Recursively manage the directory if set to true.
+	// Defaults to false.
 	Recursive bool `luar:"recursive"`
 
-	// Purge extra files in the target directory if set to true
+	// Purge extra files in the target directory if set to true.
+	// Defaults to false.
 	Purge bool `luar:"purge"`
 
 	// Files identified as being out of date
