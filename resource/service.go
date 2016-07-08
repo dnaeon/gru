@@ -27,9 +27,11 @@ type Service struct {
 func NewService(name string) (Resource, error) {
 	s := &Service{
 		BaseResource: BaseResource{
-			Name:  name,
-			Type:  "service",
-			State: StateRunning,
+			Name:   name,
+			Type:   "service",
+			State:  StateRunning,
+			After:  make([]string, 0),
+			Before: make([]string, 0),
 		},
 		Enable: true,
 		unit:   fmt.Sprintf("%s.service", name),
