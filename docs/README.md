@@ -18,4 +18,5 @@ you should check the document for [enabling services](services.md)
 during boot-time.
 
 You should also check the documentation of
-[available resources](resources/) that you could use in your modules.
+[available resources](https://godoc.org/github.com/dnaeon/gru/resource)
+that you could use in your code.
