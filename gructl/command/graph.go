@@ -2,7 +2,6 @@ package command
 
 import (
 	"os"
-	"path/filepath"
 
 	"github.com/dnaeon/gru/catalog"
 	"github.com/dnaeon/gru/graph"
@@ -39,7 +38,8 @@ func execGraphCommand(c *cli.Context) error {
 
 	L := lua.NewState()
 	defer L.Close()
-	module := filepath.Join(c.String("siterepo"), c.Args()[0])
+
+	module := c.Args()[0]
 	config := &catalog.Config{
 		Module:   module,
 		DryRun:   true,
