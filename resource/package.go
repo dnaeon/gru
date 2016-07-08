@@ -153,7 +153,7 @@ func NewPacman(name string) (Resource, error) {
 		BasePackage: BasePackage{
 			BaseResource: BaseResource{
 				Name:   name,
-				Type:   "package",
+				Type:   "pkg",
 				State:  StatePresent,
 				After:  make([]string, 0),
 				Before: make([]string, 0),
@@ -188,7 +188,7 @@ func NewYum(name string) (Resource, error) {
 		BasePackage: BasePackage{
 			BaseResource: BaseResource{
 				Name:   name,
-				Type:   "package",
+				Type:   "pkg",
 				State:  StatePresent,
 				After:  make([]string, 0),
 				Before: make([]string, 0),
@@ -206,7 +206,7 @@ func NewYum(name string) (Resource, error) {
 }
 
 func init() {
-	RegisterProvider("package", NewPackage)
+	RegisterProvider("pkg", NewPackage)
 	RegisterProvider("yum", NewYum)
 	RegisterProvider("pacman", NewPacman)
 }
