@@ -51,6 +51,11 @@ var DefaultConfig = &Config{
 	Logger: DefaultLogger,
 }
 
+// Log logs an event using the default resource logger
+func Log(format string, a ...interface{}) {
+	DefaultConfig.Logger.Printf(format, a...)
+}
+
 // BaseResource is the base resource type for all resources
 // The purpose of this type is to be embedded into other resources
 // Partially implements the Resource interface
