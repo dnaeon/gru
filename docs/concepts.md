@@ -5,47 +5,46 @@ explained below.
 
 ## Resource
 
-Resources are the core elements in Gru modules. Each resource is
-responsible for handling a particular task, e.g. manage package
-installations, enabling and starting of services, etc.
-
-Resources are evaluated and processed by minions and are
-idempotent.
+Resources are the core components in Gru. Each resource is
+responsible for handling a particular task in an idempotent manner, e.g.
+management of packages, management of services, executing commands, etc.
 
 ## Module
 
-A module is a collection of resources.
+A module is essentially a [Lua](https://www.lua.org/) module.
 
-A module can import other modules, thus allowing for better
-organization of logic and code re-use.
+Lua is used to form the foundation of the DSL language used in Gru.
 
-Modules are what forms the DSL language of Gru and can be written in
-either [HCL](https://github.com/hashicorp/hcl) or
-[JSON](http://www.json.org/).
+Within modules resources are being created and registered to the
+catalog.
 
 ## Catalog
 
-The catalog is a collection of modules. Prior to catalog processing
-the resources from all modules in the catalog are
+The catalog represents a collection of resources, which were
+created after evaluating a given module.
+
+Before processing the catalog all resources are first
 [topologically sorted](https://en.wikipedia.org/wiki/Topological_sorting),
-in order to determine the proper order of evaluation and processing of
-the resources.
+in order to determine the proper order of evaluation and processing.
 
 ## Task
 
-A task bundles a catalog with some meta data such as the
+A task represents a message to remote minions, that a given
+module should be evaluated and result should be returned.
+
+The task itself also bundles additional meta data, such as the
 unique id of the task, the time when task has been received,
 processed, etc.
 
-Tasks are received and processed by minions.
+Tasks are sent out to minions using [etcd](https://github.com/coreos/etcd).
 
 ## Client
 
-The Gru client is used to push tasks to minions, retrieve results,
+The client is used to push tasks to minions, retrieve results,
 generate reports about minions, etc. It is the frontend application of
 Gru.
 
 ## Minion
 
-The minion is a remote system which receives and processes
-tasks from clients.
+The minion is a remote system which receives and processes tasks from
+clients.
