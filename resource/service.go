@@ -10,6 +10,10 @@ import (
 	"github.com/coreos/go-systemd/util"
 )
 
+// ErrNoSystemd error is returned when the system is detected to
+// have no support for systemd.
+var ErrNoSystemd = errors.New("No systemd support found")
+
 // Service type is a resource which manages services on a
 // GNU/Linux system running with systemd.
 //
@@ -30,6 +34,10 @@ type Service struct {
 // NewService creates a new resource for managing services
 // using systemd on a GNU/Linux system
 func NewService(name string) (Resource, error) {
+	if !util.IsRunningSystemd() {
+		return nil, ErrNoSystemd
+	}
+
 	s := &Service{
 		BaseResource: BaseResource{
 			Name:   name,
@@ -232,7 +240,5 @@ func (s *Service) Update() error {
 }
 
 func init() {
-	if util.IsRunningSystemd() {
-		RegisterProvider("service", NewService)
-	}
+	RegisterProvider("service", NewService)
 }
