@@ -5,9 +5,6 @@ sudo: required
 go:
   - tip
 
-before_install:
-  - "./contrib/misc/build-libgit2.sh"
-
 install:
   - make get
 
