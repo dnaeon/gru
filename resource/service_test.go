@@ -1,8 +1,16 @@
 package resource
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/coreos/go-systemd/util"
+)
 
 func TestService(t *testing.T) {
+	if !util.IsRunningSystemd() {
+		return
+	}
+
 	L := newLuaState()
 	defer L.Close()
 
