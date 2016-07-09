@@ -46,9 +46,14 @@ func (gr *GitRepo) Pull(remote, branch string) ([]byte, error) {
 	return exec.Command(gr.git, "--git-dir", gr.Path, "pull", remote).CombinedOutput()
 }
 
-// CheckoutBranch checks out a given local branch
+// Checkout checks out a given local branch
 func (gr *GitRepo) Checkout(branch string) ([]byte, error) {
 	return exec.Command(gr.git, "--git-dir", gr.Path, "checkout", branch).CombinedOutput()
+}
+
+// CheckoutDetached checks out a given local branch in detached mode
+func (gr *GitRepo) CheckoutDetached(branch string) ([]byte, error) {
+	return exec.Command(gr.git, "--git-dir", gr.Path, "checkout", "--detach", branch).CombinedOutput()
 }
 
 // Clone clones the upstream repository
