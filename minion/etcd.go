@@ -18,7 +18,6 @@ import (
 	"github.com/dnaeon/gru/classifier"
 	"github.com/dnaeon/gru/task"
 	"github.com/dnaeon/gru/utils"
-	"github.com/libgit2/git2go"
 	"github.com/yuin/gopher-lua"
 
 	etcdclient "github.com/coreos/etcd/client"
@@ -58,11 +57,8 @@ type etcdMinion struct {
 	// Channel over which tasks are sent for processing
 	taskQueue chan *task.Task
 
-	// The upstream site repo url/path
-	upstreamSiteRepo string
-
-	// Path to the local site repo cloned from Git
-	localSiteRepo string
+	// The Git repository of the site repo
+	gitRepo *utils.GitRepo
 
 	// Channel used to signal for shutdown time
 	done chan struct{}
@@ -93,20 +89,24 @@ func NewEtcdMinion(config *EtcdMinionConfig) (Minion, error) {
 		return nil, err
 	}
 
+	gitRepo, err := utils.NewGitRepo(filepath.Join(cwd, "site"), config.SiteRepo)
+	if err != nil {
+		return nil, err
+	}
+
 	id := utils.GenerateUUID(config.Name)
 	rootDir := filepath.Join(EtcdMinionSpace, id.String())
 	m := &etcdMinion{
-		name:             config.Name,
-		rootDir:          rootDir,
-		queueDir:         filepath.Join(rootDir, "queue"),
-		classifierDir:    filepath.Join(rootDir, "classifier"),
-		logDir:           filepath.Join(rootDir, "log"),
-		id:               id,
-		kapi:             etcdclient.NewKeysAPI(c),
-		taskQueue:        make(chan *task.Task),
-		upstreamSiteRepo: config.SiteRepo,
-		localSiteRepo:    filepath.Join(cwd, "site"),
-		done:             make(chan struct{}),
+		name:          config.Name,
+		rootDir:       rootDir,
+		queueDir:      filepath.Join(rootDir, "queue"),
+		classifierDir: filepath.Join(rootDir, "classifier"),
+		logDir:        filepath.Join(rootDir, "log"),
+		id:            id,
+		kapi:          etcdclient.NewKeysAPI(c),
+		taskQueue:     make(chan *task.Task),
+		gitRepo:       gitRepo,
+		done:          make(chan struct{}),
 	}
 
 	return m, nil
@@ -210,7 +210,7 @@ func (m *etcdMinion) processTask(t *task.Task) error {
 		Module:   t.Command,
 		DryRun:   t.DryRun,
 		Logger:   log.New(&buf, "", log.LstdFlags),
-		SiteRepo: m.localSiteRepo,
+		SiteRepo: m.gitRepo.Path,
 		L:        L,
 	}
 
@@ -422,77 +422,49 @@ func (m *etcdMinion) SaveTaskResult(t *task.Task) error {
 func (m *etcdMinion) setEnvironment(name string) error {
 	log.Printf("Setting environment to %s\n", name)
 
-	repo, err := git.OpenRepository(m.localSiteRepo)
+	if _, err := m.gitRepo.CheckoutDetached(name); err != nil {
+		return err
+	}
+
+	head, err := m.gitRepo.Head()
 	if err != nil {
 		return err
 	}
 
-	remoteBranchName := filepath.Join("origin", name)
-	remoteBranch, err := repo.LookupBranch(remoteBranchName, git.BranchRemote)
-	if err != nil {
-		return err
-	}
-
-	err = repo.SetHeadDetached(remoteBranch.Target())
-	if err != nil {
-		return err
-	}
-
-	checkoutOpts := &git.CheckoutOpts{
-		Strategy: git.CheckoutForce,
-	}
-
-	err = repo.CheckoutHead(checkoutOpts)
-	if err != nil {
-		return err
-	}
-
-	log.Printf("Environment set to %s@%s\n", name, remoteBranch.Target())
+	log.Printf("Environment set to %s@%s\n", name, head)
 
 	return nil
 }
 
 // Sync syncs module and data files from the upstream Git repository
 func (m *etcdMinion) Sync() error {
-	if m.upstreamSiteRepo == "" {
-		log.Printf("Site repo url is not set, skipping sync")
+	if m.gitRepo.Upstream == "" {
+		log.Printf("Upstream site repo URL is not configured")
 		return ErrNoSiteRepo
 	}
 
 	// Site directory does not exist, clone the Git repository from upstream
-	fi, err := os.Stat(m.localSiteRepo)
+	_, err := os.Stat(m.gitRepo.Path)
 	if os.IsNotExist(err) {
-		log.Printf("Site repo is missing, performing initial sync from %s\n", m.upstreamSiteRepo)
-		opts := &git.CloneOptions{}
-		_, err := git.Clone(m.upstreamSiteRepo, m.localSiteRepo, opts)
+		log.Printf("Performing initial site repo sync from %s\n", m.gitRepo.Upstream)
+		_, err := m.gitRepo.Clone()
 		return err
 	}
 
 	// File exists, ensure that it is a valid Git repository
-	if !fi.IsDir() {
-		return fmt.Errorf("%s exists, but is not a directory", m.localSiteRepo)
+	if !m.gitRepo.IsGitRepo() {
+		return fmt.Errorf("%s exists, but is not a Git repository", m.gitRepo.Path)
 	}
 
-	// Open the repository and fetch from the default remote
 	log.Println("Starting site repo sync")
-	repo, err := git.OpenRepository(m.localSiteRepo)
-	if err != nil {
-		return err
-	}
-
-	origin, err := repo.Remotes.Lookup("origin")
-	if err != nil {
-		return err
-	}
-
-	err = origin.Fetch([]string{}, &git.FetchOptions{}, "")
-	if err != nil {
+	if _, err := m.gitRepo.Fetch("origin"); err != nil {
 		log.Printf("Site repo sync failed: %s\n", err)
-	} else {
-		log.Println("Site repo sync completed")
+		return err
 	}
 
-	return err
+	log.Println("Site repo sync completed")
+
+	return nil
 }
 
 // Serve starts the minion
