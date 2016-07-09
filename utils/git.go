@@ -38,7 +38,7 @@ func (gr *GitRepo) Fetch(remote string) ([]byte, error) {
 // Pull pulls from the given remote and merges changes into the
 // local branch
 func (gr *GitRepo) Pull(remote, branch string) ([]byte, error) {
-	out, err := gr.CheckoutBranch(branch)
+	out, err := gr.Checkout(branch)
 	if err != nil {
 		return out, err
 	}
@@ -47,7 +47,7 @@ func (gr *GitRepo) Pull(remote, branch string) ([]byte, error) {
 }
 
 // CheckoutBranch checks out a given local branch
-func (gr *GitRepo) CheckoutBranch(branch string) ([]byte, error) {
+func (gr *GitRepo) Checkout(branch string) ([]byte, error) {
 	return exec.Command(gr.git, "--git-dir", gr.Path, "checkout", branch).CombinedOutput()
 }
 
