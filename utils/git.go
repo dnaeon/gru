@@ -1,6 +1,9 @@
 package utils
 
-import "os/exec"
+import (
+	"os/exec"
+	"strings"
+)
 
 // GitRepo type manages a VCS repository with Git
 type GitRepo struct {
@@ -32,7 +35,7 @@ func NewGitRepo(path, upstream string) (*GitRepo, error) {
 
 // Fetch fetches from the given remote
 func (gr *GitRepo) Fetch(remote string) ([]byte, error) {
-	return exec.Command(gr.git, "--git-dir", gr.Path, "fetch", remote).CombinedOutput()
+	return exec.Command(gr.git, "-C", gr.Path, "fetch", remote).CombinedOutput()
 }
 
 // Pull pulls from the given remote and merges changes into the
@@ -43,17 +46,17 @@ func (gr *GitRepo) Pull(remote, branch string) ([]byte, error) {
 		return out, err
 	}
 
-	return exec.Command(gr.git, "--git-dir", gr.Path, "pull", remote).CombinedOutput()
+	return exec.Command(gr.git, "-C", gr.Path, "pull", remote).CombinedOutput()
 }
 
 // Checkout checks out a given local branch
 func (gr *GitRepo) Checkout(branch string) ([]byte, error) {
-	return exec.Command(gr.git, "--git-dir", gr.Path, "checkout", branch).CombinedOutput()
+	return exec.Command(gr.git, "-C", gr.Path, "checkout", branch).CombinedOutput()
 }
 
 // CheckoutDetached checks out a given local branch in detached mode
 func (gr *GitRepo) CheckoutDetached(branch string) ([]byte, error) {
-	return exec.Command(gr.git, "--git-dir", gr.Path, "checkout", "--detach", branch).CombinedOutput()
+	return exec.Command(gr.git, "-C", gr.Path, "checkout", "--detach", branch).CombinedOutput()
 }
 
 // Clone clones the upstream repository
@@ -62,13 +65,18 @@ func (gr *GitRepo) Clone() ([]byte, error) {
 }
 
 // Head returns the SHA1 commit id at HEAD
-func (gr *GitRepo) Head() ([]byte, error) {
-	return exec.Command(gr.git, "--git-dir", gr.Path, "rev-parse", "--short", "HEAD").CombinedOutput()
+func (gr *GitRepo) Head() (string, error) {
+	head, err := exec.Command(gr.git, "-C", gr.Path, "rev-parse", "--short", "HEAD").CombinedOutput()
+	if err != nil {
+		return "", err
+	}
+
+	return strings.Trim(string(head), "\n"), nil
 }
 
 // IsGitRepo checks if the repository is a valid Git repository
 func (gr *GitRepo) IsGitRepo() bool {
-	err := exec.Command(gr.git, "--git-dir", gr.Path, "rev-parse").Run()
+	err := exec.Command(gr.git, "-C", gr.Path, "rev-parse").Run()
 	if err != nil {
 		return false
 	}
