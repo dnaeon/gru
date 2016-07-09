@@ -50,3 +50,8 @@ func (gr *GitRepo) Pull(remote, branch string) ([]byte, error) {
 func (gr *GitRepo) CheckoutBranch(branch string) ([]byte, error) {
 	return exec.Command(gr.git, "--git-dir", gr.Path, "checkout", branch).CombinedOutput()
 }
+
+// Clone clones the upstream repository
+func (gr *GitRepo) Clone() ([]byte, error) {
+	return exec.Command(gr.git, "clone", gr.Upstream, gr.Path).CombinedOutput()
+}
