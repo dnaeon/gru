@@ -65,3 +65,13 @@ func (gr *GitRepo) Clone() ([]byte, error) {
 func (gr *GitRepo) Head() ([]byte, error) {
 	return exec.Command(gr.git, "--git-dir", gr.Path, "rev-parse", "--short", "HEAD").CombinedOutput()
 }
+
+// IsGitRepo checks if the repository is a valid Git repository
+func (gr *GitRepo) IsGitRepo() bool {
+	err := exec.Command(gr.git, "--git-dir", gr.Path, "rev-parse").Run()
+	if err != nil {
+		return false
+	}
+
+	return true
+}
