@@ -60,3 +60,8 @@ func (gr *GitRepo) CheckoutDetached(branch string) ([]byte, error) {
 func (gr *GitRepo) Clone() ([]byte, error) {
 	return exec.Command(gr.git, "clone", gr.Upstream, gr.Path).CombinedOutput()
 }
+
+// Head returns the SHA1 commit id at HEAD
+func (gr *GitRepo) Head() ([]byte, error) {
+	return exec.Command(gr.git, "--git-dir", gr.Path, "rev-parse", "--short", "HEAD").CombinedOutput()
+}
