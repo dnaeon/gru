@@ -11,13 +11,6 @@ $ gimme tip
 $ source ~/.gimme/envs/gotip.env
 ```
 
-Gru is also using the
-[libgit2/git2go bindings](https://github.com/libgit2/git2go), which
-require version `0.24.0` of `libgit2` to be installed. You could
-install `libgit2` using your package manager or use the
-[contrib/misc/build-libgit2.sh](../contrib/misc/build-libgit2.sh)
-script if your package manager doesn't provide version 0.24.0 of libgit2.
-
 [etcd](https://github.com/coreos/etcd) is used for discovery of
 minions and communication between the minions and clients, so before
 you can use Gru you need to make sure that you have `etcd` up and
@@ -26,6 +19,10 @@ running.
 For more information about installing and configuring
 [etcd](https://github.com/coreos/etcd), please refer to the
 [official etcd documentation](https://coreos.com/etcd/docs/latest/).
+
+[Git](https://git-scm.com/) is used for syncing code and data
+files to the remote minions, so make sure that you have Git
+installed as well.
 
 Once you've got all requirements installed, installing Gru is as
 easy as executing these commands below.
