@@ -24,7 +24,7 @@ func NewGitRepo(path, upstream string) (*GitRepo, error) {
 	repo := &GitRepo{
 		Path:     path,
 		Upstream: upstream,
-		cmd:      path,
+		git:      path,
 	}
 
 	return repo, nil
