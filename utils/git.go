@@ -16,7 +16,7 @@ type GitRepo struct {
 
 // NewGitRepo creates a new Git repository
 func NewGitRepo(path, upstream string) (*GitRepo, error) {
-	path, err := exec.LookPath("git")
+	cmd, err := exec.LookPath("git")
 	if err != nil {
 		return nil, err
 	}
@@ -24,7 +24,7 @@ func NewGitRepo(path, upstream string) (*GitRepo, error) {
 	repo := &GitRepo{
 		Path:     path,
 		Upstream: upstream,
-		git:      path,
+		git:      cmd,
 	}
 
 	return repo, nil
