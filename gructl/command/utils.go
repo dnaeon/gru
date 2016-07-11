@@ -6,9 +6,9 @@ import (
 
 	"github.com/dnaeon/gru/client"
 
-	"github.com/urfave/cli"
 	etcdclient "github.com/coreos/etcd/client"
 	"github.com/pborman/uuid"
+	"github.com/urfave/cli"
 )
 
 func etcdConfigFromFlags(c *cli.Context) etcdclient.Config {
