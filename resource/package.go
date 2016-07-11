@@ -14,7 +14,7 @@ import (
 var ErrNoPackageProviderFound = errors.New("No suitable package provider found")
 
 // BasePackage is the base resource type for package management
-// It's purpose is to be embeded into other package resource providers.
+// It's purpose is to be embedded into other package resource providers.
 type BasePackage struct {
 	BaseResource
 
