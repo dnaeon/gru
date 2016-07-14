@@ -1,5 +1,7 @@
 ## Gru - Orchestration made easy with Go and Lua
 
+[![Join the chat at https://gitter.im/dnaeon/gru](https://badges.gitter.im/dnaeon/gru.svg)](https://gitter.im/dnaeon/gru?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![Build Status](https://travis-ci.org/dnaeon/gru.svg)](https://travis-ci.org/dnaeon/gru)
 [![GoDoc](https://godoc.org/github.com/dnaeon/gru?status.svg)](https://godoc.org/github.com/dnaeon/gru)
 [![Go Report Card](https://goreportcard.com/badge/github.com/dnaeon/gru)](https://goreportcard.com/report/github.com/dnaeon/gru)
