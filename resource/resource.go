@@ -86,6 +86,14 @@ type BaseResource struct {
 	// Resources before which this resource should be processed
 	Before []string `luar:"before"`
 
+	// PresentStates contains the list of states, for which the
+	// resource is considered to be present
+	PresentStates []string `luar:"-"`
+
+	// AbsentStates contains the list of states, for which the
+	// resource is considered to be absent
+	AbsentStates []string `luar:"-"`
+
 	// Resources after which this resource should be processed
 	After []string `luar:"after"`
 }
@@ -116,6 +124,18 @@ func (br *BaseResource) GetBefore() []string {
 // should be processed
 func (br *BaseResource) GetAfter() []string {
 	return br.After
+}
+
+// GetPresentStates returns the list of states, for which the
+// resource is considered to be present
+func (br *BaseResource) GetPresentStates() []string {
+	return br.PresentStates
+}
+
+// GetAbsentStates returns the list of states, for which the
+// resource is considered to be absent
+func (br *BaseResource) GetAbsentStates() []string {
+	return br.AbsentStates
 }
 
 // Log writes to the default config writer object and
