@@ -23,6 +23,8 @@ func TestFile(t *testing.T) {
 	errorIfNotEqual(t, StatePresent, foo.State)
 	errorIfNotEqual(t, []string{}, foo.Before)
 	errorIfNotEqual(t, []string{}, foo.After)
+	errorIfNotEqual(t, []string{"present"}, foo.PresentStates)
+	errorIfNotEqual(t, []string{"absent"}, foo.AbsentStates)
 	errorIfNotEqual(t, "/tmp/foo", foo.Path)
 	errorIfNotEqual(t, os.FileMode(0644), foo.Mode)
 	errorIfNotEqual(t, "", foo.Source)

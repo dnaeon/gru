@@ -20,6 +20,8 @@ func TestPacman(t *testing.T) {
 	errorIfNotEqual(t, StatePresent, pkg.State)
 	errorIfNotEqual(t, []string{}, pkg.Before)
 	errorIfNotEqual(t, []string{}, pkg.After)
+	errorIfNotEqual(t, []string{"present", "installed"}, pkg.PresentStates)
+	errorIfNotEqual(t, []string{"absent", "deinstalled"}, pkg.AbsentStates)
 	errorIfNotEqual(t, "tmux", pkg.Package)
 	errorIfNotEqual(t, "", pkg.Version)
 }
@@ -42,6 +44,8 @@ func TestYum(t *testing.T) {
 	errorIfNotEqual(t, StatePresent, pkg.State)
 	errorIfNotEqual(t, []string{}, pkg.Before)
 	errorIfNotEqual(t, []string{}, pkg.After)
+	errorIfNotEqual(t, []string{"present", "installed"}, pkg.PresentStates)
+	errorIfNotEqual(t, []string{"absent", "deinstalled"}, pkg.AbsentStates)
 	errorIfNotEqual(t, "tmux", pkg.Package)
 	errorIfNotEqual(t, "", pkg.Version)
 }

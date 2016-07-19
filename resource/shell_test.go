@@ -22,6 +22,8 @@ func TestShell(t *testing.T) {
 	errorIfNotEqual(t, StatePresent, sh.State)
 	errorIfNotEqual(t, []string{}, sh.After)
 	errorIfNotEqual(t, []string{}, sh.Before)
+	errorIfNotEqual(t, []string{"present"}, sh.PresentStates)
+	errorIfNotEqual(t, []string{"absent"}, sh.AbsentStates)
 	errorIfNotEqual(t, "touch /tmp/foo", sh.Command)
 	errorIfNotEqual(t, "/tmp/foo", sh.Creates)
 }
