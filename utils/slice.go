@@ -75,3 +75,21 @@ func (l List) Contains(x string) bool {
 
 	return false
 }
+
+// String type represents a string
+type String struct {
+	str string
+}
+
+// NewString creates a new string
+func NewString(s string) String {
+	return String{
+		str: s,
+	}
+}
+
+// IsInList returns a boolean indicating whether the string is
+// contained within a given list
+func (s String) IsInList(l List) bool {
+	return l.Contains(s.str)
+}
