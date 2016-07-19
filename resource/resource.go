@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -82,6 +83,17 @@ type BaseResource struct {
 // ID returns the unique resource id
 func (br *BaseResource) ID() string {
 	return fmt.Sprintf("%s[%s]", br.Type, br.Name)
+}
+
+// Validate validates the resource
+func (br *BaseResource) Validate() error {
+	if br.Type == "" {
+		return errors.New("Invalid resource type")
+	}
+
+	if br.Name == "" {
+		return errors.New("Invalid resource name")
+	}
 }
 
 // WantBefore returns the resources before which this resource
