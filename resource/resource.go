@@ -11,6 +11,9 @@ type Resource interface {
 	// ID returns the unique identifier of the resource
 	ID() string
 
+	// Validate validates the resource
+	Validate() error
+
 	// Returns the resources before which this resource shoud be processed
 	WantBefore() []string
 
