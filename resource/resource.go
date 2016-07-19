@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	"github.com/dnaeon/gru/utils"
 )
 
 // State type represents the current and wanted states of a resource
@@ -125,6 +127,11 @@ func (b *Base) Validate() error {
 
 	if b.Name == "" {
 		return errors.New("Invalid resource name")
+	}
+
+	states := append(b.PresentStates, b.AbsentStates...)
+	if !utils.NewList(states).Contains(b.State) {
+		return fmt.Errorf("Invalid state '%s' for resource %s", b.State, b.ID())
 	}
 
 	return nil
