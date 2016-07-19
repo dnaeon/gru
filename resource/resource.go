@@ -15,11 +15,13 @@ type Resource interface {
 	// Validate validates the resource
 	Validate() error
 
-	// Returns the resources before which this resource shoud be processed
-	WantBefore() []string
+	// GetBefore returns the list of resources before which this
+	// resource shoud be processed
+	GetBefore() []string
 
-	// Returns the resources after which this resource should be processed
-	WantAfter() []string
+	// GetAfter returns the list of resources after which this
+	// resource should be processed
+	GetAfter() []string
 
 	// Evaluates the resource
 	Evaluate() (State, error)
@@ -96,15 +98,15 @@ func (br *BaseResource) Validate() error {
 	}
 }
 
-// WantBefore returns the resources before which this resource
+// GetBefore returns the list of resources before which this resource
 // should be processed
-func (br *BaseResource) WantBefore() []string {
+func (br *BaseResource) GetBefore() []string {
 	return br.Before
 }
 
-// WantAfter returns the resources after which this resource
+// GetAfter returns the list of resources after which this resource
 // should be processed
-func (br *BaseResource) WantAfter() []string {
+func (br *BaseResource) GetAfter() []string {
 	return br.After
 }
 
