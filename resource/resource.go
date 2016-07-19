@@ -8,7 +8,7 @@ import (
 
 // Resource is the interface type for resources
 type Resource interface {
-	// ResourceID returns the unique identifier of a resource
+	// ID returns the unique identifier of the resource
 	ID() string
 
 	// Returns the resources before which this resource shoud be processed
