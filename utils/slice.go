@@ -50,3 +50,18 @@ func (cs *ConcurrentSlice) Iter() <-chan ConcurrentSliceItem {
 
 	return c
 }
+
+// List type represents a slice of strings
+type List []string
+
+// Contains returns a boolean indicating whether the list
+// contains the given string.
+func (l List) Contains(x string) bool {
+	for _, v := range l {
+		if v == x {
+			return true
+		}
+	}
+
+	return false
+}
