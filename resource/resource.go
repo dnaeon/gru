@@ -7,6 +7,20 @@ import (
 	"os"
 )
 
+// State type represents the current and wanted states of a resource
+type State struct {
+	// Current state of the resource
+	Current string
+
+	// Wanted state of the resource
+	Want string
+
+	// Indicates that a resource is in the desired state, but is
+	// out of date and needs to be updated, e.g. a file resource is
+	// present, but its permissions need to be corrected.
+	Update bool
+}
+
 // Resource is the interface type for resources
 type Resource interface {
 	// ID returns the unique identifier of the resource
