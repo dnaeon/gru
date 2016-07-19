@@ -22,7 +22,7 @@ var ErrNoSystemd = errors.New("No systemd support found")
 //   svc.state = "running"
 //   svc.enable = true
 type Service struct {
-	BaseResource
+	Base
 
 	// If true then enable the service during boot-time
 	Enable bool `luar:"enable"`
@@ -39,7 +39,7 @@ func NewService(name string) (Resource, error) {
 	}
 
 	s := &Service{
-		BaseResource: BaseResource{
+		Base: Base{
 			Name:   name,
 			Type:   "service",
 			State:  StateRunning,

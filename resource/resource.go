@@ -70,10 +70,10 @@ func Log(format string, a ...interface{}) {
 	DefaultConfig.Logger.Printf(format, a...)
 }
 
-// BaseResource is the base resource type for all resources
+// Base is the base resource type for all resources
 // The purpose of this type is to be embedded into other resources
 // Partially implements the Resource interface
-type BaseResource struct {
+type Base struct {
 	// Type of the resource
 	Type string `luar:"-"`
 
@@ -99,48 +99,50 @@ type BaseResource struct {
 }
 
 // ID returns the unique resource id
-func (br *BaseResource) ID() string {
-	return fmt.Sprintf("%s[%s]", br.Type, br.Name)
+func (b *Base) ID() string {
+	return fmt.Sprintf("%s[%s]", b.Type, b.Name)
 }
 
 // Validate validates the resource
-func (br *BaseResource) Validate() error {
-	if br.Type == "" {
+func (b *Base) Validate() error {
+	if b.Type == "" {
 		return errors.New("Invalid resource type")
 	}
 
-	if br.Name == "" {
+	if b.Name == "" {
 		return errors.New("Invalid resource name")
 	}
+
+	return nil
 }
 
 // GetBefore returns the list of resources before which this resource
 // should be processed
-func (br *BaseResource) GetBefore() []string {
-	return br.Before
+func (b *Base) GetBefore() []string {
+	return b.Before
 }
 
 // GetAfter returns the list of resources after which this resource
 // should be processed
-func (br *BaseResource) GetAfter() []string {
-	return br.After
+func (b *Base) GetAfter() []string {
+	return b.After
 }
 
 // GetPresentStates returns the list of states, for which the
 // resource is considered to be present
-func (br *BaseResource) GetPresentStates() []string {
-	return br.PresentStates
+func (b *Base) GetPresentStates() []string {
+	return b.PresentStates
 }
 
 // GetAbsentStates returns the list of states, for which the
 // resource is considered to be absent
-func (br *BaseResource) GetAbsentStates() []string {
-	return br.AbsentStates
+func (b *Base) GetAbsentStates() []string {
+	return b.AbsentStates
 }
 
 // Log writes to the default config writer object and
 // prepends the resource id to the output
-func (br *BaseResource) Log(format string, a ...interface{}) {
-	f := fmt.Sprintf("%s %s", br.ID(), format)
+func (b *Base) Log(format string, a ...interface{}) {
+	f := fmt.Sprintf("%s %s", b.ID(), format)
 	Log(f, a...)
 }

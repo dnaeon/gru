@@ -48,7 +48,7 @@ type outdatedFile struct {
 //   bar.state = "present"
 //   bar.filetype = "directory"
 type File struct {
-	BaseResource
+	Base
 
 	// Path to the file. Defaults to the resource name.
 	Path string `luar:"-"`
@@ -99,7 +99,7 @@ func NewFile(name string) (Resource, error) {
 
 	// Resource defaults
 	f := &File{
-		BaseResource: BaseResource{
+		Base: Base{
 			Name:   name,
 			Type:   "file",
 			State:  StatePresent,

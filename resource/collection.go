@@ -39,8 +39,8 @@ func (c Collection) DependencyGraph() (*graph.Graph, error) {
 
 	// Connect the nodes in the graph
 	for id, r := range c {
-		before := r.WantBefore()
-		after := r.WantAfter()
+		before := r.GetBefore()
+		after := r.GetAfter()
 
 		// Connect current resource with the ones that happen after it
 		for _, dep := range after {

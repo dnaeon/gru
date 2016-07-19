@@ -16,7 +16,7 @@ var ErrNoPackageProviderFound = errors.New("No suitable package provider found")
 // BasePackage is the base resource type for package management
 // It's purpose is to be embedded into other package resource providers.
 type BasePackage struct {
-	BaseResource
+	Base
 
 	// Name of the package to manage. Defaults to the resource name.
 	Package string `luar:"-"`
@@ -151,7 +151,7 @@ type Pacman struct {
 func NewPacman(name string) (Resource, error) {
 	p := &Pacman{
 		BasePackage: BasePackage{
-			BaseResource: BaseResource{
+			Base: Base{
 				Name:   name,
 				Type:   "pkg",
 				State:  StatePresent,
@@ -186,7 +186,7 @@ type Yum struct {
 func NewYum(name string) (Resource, error) {
 	y := &Yum{
 		BasePackage: BasePackage{
-			BaseResource: BaseResource{
+			Base: Base{
 				Name:   name,
 				Type:   "pkg",
 				State:  StatePresent,

@@ -24,7 +24,7 @@ import (
 //   sh.command = "/usr/bin/touch /tmp/foo"
 //   sh.creates = "/tmp/foo"
 type Shell struct {
-	BaseResource
+	Base
 
 	// Command to be executed. Defaults to the resource name.
 	Command string `luar:"command"`
@@ -36,7 +36,7 @@ type Shell struct {
 // NewShell creates a new resource for executing shell commands
 func NewShell(name string) (Resource, error) {
 	s := &Shell{
-		BaseResource: BaseResource{
+		Base: Base{
 			Name:   name,
 			Type:   "shell",
 			State:  StatePresent,
