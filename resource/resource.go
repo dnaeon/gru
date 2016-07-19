@@ -23,6 +23,14 @@ type Resource interface {
 	// resource should be processed
 	GetAfter() []string
 
+	// GetPresentStates returns the list of states, for which the
+	// resource is considered to be present
+	GetPresentStates() []string
+
+	// GetAbsentStates returns the list of states, for which the
+	// resource is considered to be absent
+	GetAbsentStates() []string
+
 	// Evaluates the resource
 	Evaluate() (State, error)
 
