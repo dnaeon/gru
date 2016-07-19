@@ -54,6 +54,16 @@ func (cs *ConcurrentSlice) Iter() <-chan ConcurrentSliceItem {
 // List type represents a slice of strings
 type List []string
 
+// NewList creates a new list with the given items
+func NewList(s ...string) List {
+	l := make(List, len(s))
+	for _, v := range s {
+		l = append(l, v)
+	}
+
+	return l
+}
+
 // Contains returns a boolean indicating whether the list
 // contains the given string.
 func (l List) Contains(x string) bool {
