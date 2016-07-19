@@ -102,7 +102,7 @@ func NewFile(name string) (Resource, error) {
 		Base: Base{
 			Name:          name,
 			Type:          "file",
-			State:         StatePresent,
+			State:         "present",
 			Before:        make([]string, 0),
 			After:         make([]string, 0),
 			PresentStates: []string{"present"},
@@ -125,7 +125,7 @@ func NewFile(name string) (Resource, error) {
 // Evaluate evaluates the file resource
 func (f *File) Evaluate() (State, error) {
 	s := State{
-		Current: StateUnknown,
+		Current: "unknown",
 		Want:    f.State,
 		Update:  false,
 	}
@@ -138,11 +138,11 @@ func (f *File) Evaluate() (State, error) {
 	// Check for file presence
 	fi, err := os.Stat(f.Path)
 	if os.IsNotExist(err) {
-		s.Current = StateAbsent
+		s.Current = "absent"
 		return s, nil
 	}
 
-	s.Current = StatePresent
+	s.Current = "present"
 
 	// If we have a source, ensure that it exists
 	if f.Source != "" {

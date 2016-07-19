@@ -42,7 +42,7 @@ func NewService(name string) (Resource, error) {
 		Base: Base{
 			Name:          name,
 			Type:          "service",
-			State:         StateRunning,
+			State:         "running",
 			After:         make([]string, 0),
 			Before:        make([]string, 0),
 			PresentStates: []string{"present", "running"},
@@ -148,7 +148,7 @@ func (s *Service) daemonReload() error {
 // Evaluate evaluates the state of the resource
 func (s *Service) Evaluate() (State, error) {
 	state := State{
-		Current: StateUnknown,
+		Current: "unknown",
 		Want:    s.State,
 		Update:  false,
 	}
@@ -164,9 +164,9 @@ func (s *Service) Evaluate() (State, error) {
 	value := activeState.Value.Value().(string)
 	switch value {
 	case "active", "reloading", "activating":
-		state.Current = StateRunning
+		state.Current = "running"
 	case "inactive", "failed", "deactivating":
-		state.Current = StateStopped
+		state.Current = "stopped"
 	}
 
 	enabled, err := s.unitIsEnabled()

@@ -43,7 +43,7 @@ type BasePackage struct {
 // Evaluate evaluates the state of the package
 func (bp *BasePackage) Evaluate() (State, error) {
 	s := State{
-		Current: StateUnknown,
+		Current: "unknown",
 		Want:    bp.State,
 	}
 
@@ -57,9 +57,9 @@ func (bp *BasePackage) Evaluate() (State, error) {
 	err = cmd.Run()
 
 	if err != nil {
-		s.Current = StateAbsent
+		s.Current = "deinstalled"
 	} else {
-		s.Current = StatePresent
+		s.Current = "installed"
 	}
 
 	return s, nil
@@ -116,7 +116,7 @@ func (bp *BasePackage) Update() error {
 //
 // Example:
 //   pkg = package.new("tmux")
-//   pkg.state = "present"
+//   pkg.state = "installed"
 func NewPackage(name string) (Resource, error) {
 	// Releases files used by the various GNU/Linux distros
 	releases := map[string]Provider{
@@ -141,7 +141,7 @@ func NewPackage(name string) (Resource, error) {
 //
 // Example:
 //   pkg = pacman.new("tmux")
-//   pkg.state = "present"
+//   pkg.state = "installed"
 type Pacman struct {
 	BasePackage
 }
@@ -154,7 +154,7 @@ func NewPacman(name string) (Resource, error) {
 			Base: Base{
 				Name:          name,
 				Type:          "pkg",
-				State:         StatePresent,
+				State:         "installed",
 				After:         make([]string, 0),
 				Before:        make([]string, 0),
 				PresentStates: []string{"present", "installed"},
@@ -178,7 +178,7 @@ func NewPacman(name string) (Resource, error) {
 //
 // Example:
 //   pkg = yum.new("emacs")
-//   pkg.state = "present"
+//   pkg.state = "installed"
 type Yum struct {
 	BasePackage
 }
@@ -191,7 +191,7 @@ func NewYum(name string) (Resource, error) {
 			Base: Base{
 				Name:          name,
 				Type:          "pkg",
-				State:         StatePresent,
+				State:         "installed",
 				After:         make([]string, 0),
 				Before:        make([]string, 0),
 				PresentStates: []string{"present", "installed"},

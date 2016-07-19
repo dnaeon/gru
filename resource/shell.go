@@ -39,7 +39,7 @@ func NewShell(name string) (Resource, error) {
 		Base: Base{
 			Name:          name,
 			Type:          "shell",
-			State:         StatePresent,
+			State:         "present",
 			After:         make([]string, 0),
 			Before:        make([]string, 0),
 			PresentStates: []string{"present"},
@@ -63,7 +63,7 @@ func (s *Shell) Evaluate() (State, error) {
 	// in order to ensure idempotency we should specify a file,
 	// that can be checked for existence.
 	state := State{
-		Current: StateAbsent,
+		Current: "absent",
 		Want:    s.State,
 		Update:  false,
 	}
@@ -71,9 +71,9 @@ func (s *Shell) Evaluate() (State, error) {
 	if s.Creates != "" {
 		_, err := os.Stat(s.Creates)
 		if os.IsNotExist(err) {
-			state.Current = StateAbsent
+			state.Current = "absent"
 		} else {
-			state.Current = StatePresent
+			state.Current = "present"
 		}
 	}
 
