@@ -40,11 +40,13 @@ func NewService(name string) (Resource, error) {
 
 	s := &Service{
 		Base: Base{
-			Name:   name,
-			Type:   "service",
-			State:  StateRunning,
-			After:  make([]string, 0),
-			Before: make([]string, 0),
+			Name:          name,
+			Type:          "service",
+			State:         StateRunning,
+			After:         make([]string, 0),
+			Before:        make([]string, 0),
+			PresentStates: []string{"present", "running"},
+			AbsentStates:  []string{"absent", "stopped"},
 		},
 		Enable: true,
 		unit:   fmt.Sprintf("%s.service", name),

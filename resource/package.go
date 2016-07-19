@@ -152,11 +152,13 @@ func NewPacman(name string) (Resource, error) {
 	p := &Pacman{
 		BasePackage: BasePackage{
 			Base: Base{
-				Name:   name,
-				Type:   "pkg",
-				State:  StatePresent,
-				After:  make([]string, 0),
-				Before: make([]string, 0),
+				Name:          name,
+				Type:          "pkg",
+				State:         StatePresent,
+				After:         make([]string, 0),
+				Before:        make([]string, 0),
+				PresentStates: []string{"present", "installed"},
+				AbsentStates:  []string{"absent", "deinstalled"},
 			},
 			Package:       name,
 			Version:       "",
@@ -187,11 +189,13 @@ func NewYum(name string) (Resource, error) {
 	y := &Yum{
 		BasePackage: BasePackage{
 			Base: Base{
-				Name:   name,
-				Type:   "pkg",
-				State:  StatePresent,
-				After:  make([]string, 0),
-				Before: make([]string, 0),
+				Name:          name,
+				Type:          "pkg",
+				State:         StatePresent,
+				After:         make([]string, 0),
+				Before:        make([]string, 0),
+				PresentStates: []string{"present", "installed"},
+				AbsentStates:  []string{"absent", "deinstalled"},
 			},
 			Package:       name,
 			manager:       "/usr/bin/yum",

@@ -100,11 +100,13 @@ func NewFile(name string) (Resource, error) {
 	// Resource defaults
 	f := &File{
 		Base: Base{
-			Name:   name,
-			Type:   "file",
-			State:  StatePresent,
-			Before: make([]string, 0),
-			After:  make([]string, 0),
+			Name:          name,
+			Type:          "file",
+			State:         StatePresent,
+			Before:        make([]string, 0),
+			After:         make([]string, 0),
+			PresentStates: []string{"present"},
+			AbsentStates:  []string{"absent"},
 		},
 		Path:      name,
 		Mode:      0644,

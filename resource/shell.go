@@ -37,11 +37,13 @@ type Shell struct {
 func NewShell(name string) (Resource, error) {
 	s := &Shell{
 		Base: Base{
-			Name:   name,
-			Type:   "shell",
-			State:  StatePresent,
-			After:  make([]string, 0),
-			Before: make([]string, 0),
+			Name:          name,
+			Type:          "shell",
+			State:         StatePresent,
+			After:         make([]string, 0),
+			Before:        make([]string, 0),
+			PresentStates: []string{"present"},
+			AbsentStates:  []string{"absent"},
 		},
 		Command: name,
 		Creates: "",
