@@ -120,6 +120,10 @@ func (c *Catalog) Run() error {
 
 // processResource processes a single resource
 func (c *Catalog) processResource(r resource.Resource) error {
+	if err := r.Validate(); err != nil {
+		return err
+	}
+
 	id := r.ID()
 	state, err := r.Evaluate()
 	if err != nil {
