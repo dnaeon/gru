@@ -97,6 +97,9 @@ type Base struct {
 	// Desired state of the resource
 	State string `luar:"state"`
 
+	// Resources after which this resource should be processed
+	After []string `luar:"after"`
+
 	// Resources before which this resource should be processed
 	Before []string `luar:"before"`
 
@@ -107,9 +110,6 @@ type Base struct {
 	// AbsentStates contains the list of states, for which the
 	// resource is considered to be absent
 	AbsentStates []string `luar:"-"`
-
-	// Resources after which this resource should be processed
-	After []string `luar:"after"`
 }
 
 // ID returns the unique resource id
