@@ -223,7 +223,7 @@ func (f *File) Evaluate() (State, error) {
 			f.Log("permissions of %s are out of date\n", item.dst)
 		}
 		if item.flags&flagOutdatedOwner != 0 {
-			f.Log("owner of %s is out of date\n", item.dst)
+			f.Log("ownership of %s is out of date\n", item.dst)
 		}
 	}
 
