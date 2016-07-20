@@ -128,8 +128,17 @@ func (f *File) Validate() error {
 		return err
 	}
 
+	// Validate that we have a valid file type
 	if f.FileType != fileTypeRegular && f.FileType != fileTypeDirectory {
 		return fmt.Errorf("Invalid file type '%s'", f.FileType)
+	}
+
+	// If we have a source, ensure that it exists
+	if f.Source != "" {
+		dst := utils.NewFileUtil(filepath.Join(DefaultConfig.SiteRepo, f.Source))
+		if !dst.Exists() {
+			return fmt.Errorf("source file '%s' does not exist", f.Source)
+		}
 	}
 }
 
@@ -149,14 +158,6 @@ func (f *File) Evaluate() (State, error) {
 	}
 
 	s.Current = "present"
-
-	// If we have a source, ensure that it exists
-	if f.Source != "" {
-		dst := utils.NewFileUtil(filepath.Join(DefaultConfig.SiteRepo, f.Source))
-		if !dst.Exists() {
-			return s, fmt.Errorf("source %s does not exist", f.Source)
-		}
-	}
 
 	// Check the file(s) content, permissions and ownership
 	switch f.FileType {
