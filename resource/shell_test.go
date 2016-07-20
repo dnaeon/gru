@@ -19,7 +19,7 @@ func TestShell(t *testing.T) {
 	sh := luaResource(L, "sh").(*Shell)
 	errorIfNotEqual(t, "shell", sh.Type)
 	errorIfNotEqual(t, "create /tmp/foo file", sh.Name)
-	errorIfNotEqual(t, StatePresent, sh.State)
+	errorIfNotEqual(t, "present", sh.State)
 	errorIfNotEqual(t, []string{}, sh.After)
 	errorIfNotEqual(t, []string{}, sh.Before)
 	errorIfNotEqual(t, []string{"present"}, sh.PresentStates)

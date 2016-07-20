@@ -20,7 +20,7 @@ func TestFile(t *testing.T) {
 	foo := luaResource(L, "foo").(*File)
 	errorIfNotEqual(t, "file", foo.Type)
 	errorIfNotEqual(t, "/tmp/foo", foo.Name)
-	errorIfNotEqual(t, StatePresent, foo.State)
+	errorIfNotEqual(t, "present", foo.State)
 	errorIfNotEqual(t, []string{}, foo.Before)
 	errorIfNotEqual(t, []string{}, foo.After)
 	errorIfNotEqual(t, []string{"present"}, foo.PresentStates)
