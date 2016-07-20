@@ -66,19 +66,6 @@ func (bp *BasePackage) Evaluate() (State, error) {
 	return s, nil
 }
 
-// Validate validates the package resource
-func (bp *BasePackage) Validate() error {
-	if err := bp.Base.Validate(); err != nil {
-		return err
-	}
-
-	if bp.Package == "" {
-		return errors.New("Invalid package name")
-	}
-
-	return nil
-}
-
 // Create installs the package
 func (bp *BasePackage) Create() error {
 	bp.Log("installing package\n")
