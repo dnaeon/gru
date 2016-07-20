@@ -59,7 +59,7 @@ type File struct {
 	// Owner of the file. Defaults to the currently running user.
 	Owner string `luar:"owner"`
 
-	// Group of the file
+	// Group of the file.
 	// Defaults to the group of the currently running user.
 	Group string `luar:"group"`
 
@@ -122,17 +122,23 @@ func NewFile(name string) (Resource, error) {
 	return f, nil
 }
 
+// Validate validates the resource
+func (f *File) Validate() error {
+	if err := f.Base.Validate(); err != nil {
+		return err
+	}
+
+	if f.FileType != fileTypeRegular && f.FileType != fileTypeDirectory {
+		return fmt.Errorf("Invalid file type '%s'", f.FileType)
+	}
+}
+
 // Evaluate evaluates the file resource
 func (f *File) Evaluate() (State, error) {
 	s := State{
 		Current:  "unknown",
 		Want:     f.State,
 		Outdated: false,
-	}
-
-	// Check that the given file type is a valid one
-	if f.FileType != fileTypeRegular && f.FileType != fileTypeDirectory {
-		return s, fmt.Errorf("Unknown file type '%s'", f.FileType)
 	}
 
 	// Check for file presence
