@@ -140,6 +140,8 @@ func (f *File) Validate() error {
 			return fmt.Errorf("source file '%s' does not exist", f.Source)
 		}
 	}
+
+	return nil
 }
 
 // Evaluate evaluates the file resource
