@@ -128,8 +128,8 @@ func (b *Base) Validate() error {
 	}
 
 	states := append(b.PresentStates, b.AbsentStates...)
-	if !utils.NewList(states).Contains(b.State) {
-		return fmt.Errorf("Invalid state '%s' for resource %s", b.State, b.ID())
+	if !utils.NewList(states...).Contains(b.State) {
+		return fmt.Errorf("Invalid state '%s'", b.State)
 	}
 
 	return nil
