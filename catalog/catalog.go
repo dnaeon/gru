@@ -1,10 +1,10 @@
 package catalog
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/dnaeon/gru/resource"
+	"github.com/dnaeon/gru/utils"
 	"github.com/layeh/gopher-luar"
 	"github.com/yuin/gopher-lua"
 )
@@ -110,6 +110,8 @@ func (c *Catalog) Load() error {
 func (c *Catalog) Run() error {
 	c.config.Logger.Printf("Loaded %d resources\n", len(c.sorted))
 	for _, r := range c.sorted {
+		// TODO: Skip resources which have failed dependencies
+
 		if err := c.processResource(r); err != nil {
 			c.config.Logger.Printf("%s %s\n", r.ID(), err)
 		}
@@ -124,7 +126,6 @@ func (c *Catalog) processResource(r resource.Resource) error {
 		return err
 	}
 
-	id := r.ID()
 	state, err := r.Evaluate()
 	if err != nil {
 		return err
@@ -134,38 +135,26 @@ func (c *Catalog) processResource(r resource.Resource) error {
 		return nil
 	}
 
-	// TODO: Skip resources which have failed dependencies
+	// Current and wanted states for the resource
+	want := utils.NewString(state.Want)
+	current := utils.NewString(state.Current)
 
+	// The list of present and absent states for the resource
+	present := utils.NewList(r.GetPresentStates()...)
+	absent := utils.NewList(r.GetAbsentStates()...)
+
+	var action func() error
 	switch {
-	case state.Want == state.Current:
-		// Resource is in the desired state
-		break
-	case state.Want == resource.StatePresent || state.Want == resource.StateRunning:
-		// Resource is absent, should be present
-		if state.Current == resource.StateAbsent || state.Current == resource.StateStopped {
-			c.config.Logger.Printf("%s is %s, should be %s\n", id, state.Current, state.Want)
-			if err := r.Create(); err != nil {
-				return err
-			}
-		}
-	case state.Want == resource.StateAbsent || state.Want == resource.StateStopped:
-		// Resource is present, should be absent
-		if state.Current == resource.StatePresent || state.Current == resource.StateRunning {
-			c.config.Logger.Printf("%s is %s, should be %s\n", id, state.Current, state.Want)
-			if err := r.Delete(); err != nil {
-				return err
-			}
-		}
-	default:
-		return fmt.Errorf("unknown state %s", state.Want)
+	case want.IsInList(present) && current.IsInList(absent):
+		action = r.Create
+	case want.IsInList(absent) && current.IsInList(present):
+		action = r.Delete
+	case state.Outdated:
+		action = r.Update
 	}
 
-	// Update resource if needed
-	if state.Update {
-		c.config.Logger.Printf("%s resource is out of date\n", id)
-		if err := r.Update(); err != nil {
-			return err
-		}
+	if action != nil {
+		return action()
 	}
 
 	return nil
