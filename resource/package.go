@@ -43,8 +43,9 @@ type BasePackage struct {
 // Evaluate evaluates the state of the package
 func (bp *BasePackage) Evaluate() (State, error) {
 	s := State{
-		Current: "unknown",
-		Want:    bp.State,
+		Current:  "unknown",
+		Want:     bp.State,
+		Outdated: false,
 	}
 
 	_, err := exec.LookPath(bp.manager)

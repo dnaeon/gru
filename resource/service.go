@@ -148,9 +148,9 @@ func (s *Service) daemonReload() error {
 // Evaluate evaluates the state of the resource
 func (s *Service) Evaluate() (State, error) {
 	state := State{
-		Current: "unknown",
-		Want:    s.State,
-		Update:  false,
+		Current:  "unknown",
+		Want:     s.State,
+		Outdated: false,
 	}
 
 	// Check if the unit is started/stopped
@@ -175,7 +175,7 @@ func (s *Service) Evaluate() (State, error) {
 	}
 
 	if s.Enable != enabled {
-		state.Update = true
+		state.Outdated = true
 	}
 
 	return state, nil

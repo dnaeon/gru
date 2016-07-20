@@ -63,9 +63,9 @@ func (s *Shell) Evaluate() (State, error) {
 	// in order to ensure idempotency we should specify a file,
 	// that can be checked for existence.
 	state := State{
-		Current: "absent",
-		Want:    s.State,
-		Update:  false,
+		Current:  "absent",
+		Want:     s.State,
+		Outdated: false,
 	}
 
 	if s.Creates != "" {

@@ -125,9 +125,9 @@ func NewFile(name string) (Resource, error) {
 // Evaluate evaluates the file resource
 func (f *File) Evaluate() (State, error) {
 	s := State{
-		Current: "unknown",
-		Want:    f.State,
-		Update:  false,
+		Current:  "unknown",
+		Want:     f.State,
+		Outdated: false,
 	}
 
 	// Check that the given file type is a valid one
@@ -165,7 +165,7 @@ func (f *File) Evaluate() (State, error) {
 		}
 
 		if outdated {
-			s.Update = true
+			s.Outdated = true
 		}
 	case fileTypeDirectory:
 		if !fi.IsDir() {
@@ -178,7 +178,7 @@ func (f *File) Evaluate() (State, error) {
 		}
 
 		if outdated {
-			s.Update = true
+			s.Outdated = true
 		}
 	}
 
@@ -188,7 +188,7 @@ func (f *File) Evaluate() (State, error) {
 	}
 
 	if outdated {
-		s.Update = true
+		s.Outdated = true
 	}
 
 	outdated, err = f.isOwnerOutdated()
@@ -197,14 +197,14 @@ func (f *File) Evaluate() (State, error) {
 	}
 
 	if outdated {
-		s.Update = true
+		s.Outdated = true
 	}
 
 	// Report on what has been identified as being out of date
 	if f.Purge {
 		for name := range f.extra {
 			f.Log("%s exists, but is not part of source\n", name)
-			s.Update = true
+			s.Outdated = true
 		}
 	}
 

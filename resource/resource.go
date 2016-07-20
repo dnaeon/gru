@@ -17,10 +17,8 @@ type State struct {
 	// Wanted state of the resource
 	Want string
 
-	// Indicates that a resource is in the desired state, but is
-	// out of date and needs to be updated, e.g. a file resource is
-	// present, but its permissions need to be corrected.
-	Update bool
+	// Outdated indicates that a property of the resource is out of date
+	Outdated bool
 }
 
 // Resource is the interface type for resources
