@@ -17,6 +17,12 @@ type Catalog struct {
 	// Sorted contains the list of resources after a topological sort
 	sorted []resource.Resource `luar:"-"`
 
+	// Result contains the results of resource processing and any
+	// errors that might have occurred during processing.
+	// Keys of the map are the resource ids and their
+	// values are the errors returned from resources.
+	result map[string]error `luar:"-"`
+
 	// Configuration settings
 	config *Config `luar:"-"`
 }
@@ -45,6 +51,7 @@ func New(config *Config) *Catalog {
 	c := &Catalog{
 		config:   config,
 		sorted:   make([]resource.Resource, 0),
+		result:   make(map[string]error),
 		Unsorted: make([]resource.Resource, 0),
 	}
 
@@ -114,8 +121,12 @@ func (c *Catalog) Run() error {
 	for _, r := range c.sorted {
 		// TODO: Skip resources which have failed dependencies
 
-		if err := c.processResource(r); err != nil {
-			c.config.Logger.Printf("%s %s\n", r.ID(), err)
+		// Save the result of resource processing
+		id := r.ID()
+		err := c.processResource(r)
+		c.result[id] = err
+		if err != nil {
+			c.config.Logger.Printf("%s %s\n", id, err)
 		}
 	}
 
