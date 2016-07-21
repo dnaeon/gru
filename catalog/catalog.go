@@ -74,8 +74,12 @@ func New(config *Config) *Catalog {
 
 // Add adds a resource to the catalog.
 // This method is called from Lua when adding new resources
-func (c *Catalog) Add(r ...resource.Resource) {
-	c.Unsorted = append(c.Unsorted, r...)
+func (c *Catalog) Add(resources ...resource.Resource) {
+	for _, r := range resources {
+		if r != nil {
+			c.Unsorted = append(c.Unsorted, r)
+		}
+	}
 }
 
 // Len returns the number of unsorted resources in catalog
