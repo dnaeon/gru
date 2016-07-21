@@ -1,6 +1,7 @@
 package catalog
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/dnaeon/gru/resource"
@@ -115,18 +116,34 @@ func (c *Catalog) Load() error {
 	return nil
 }
 
-// Run processes the catalog
+// Run processes the resources from catalog
 func (c *Catalog) Run() error {
 	c.config.Logger.Printf("Loaded %d resources\n", len(c.sorted))
 	for _, r := range c.sorted {
-		// TODO: Skip resources which have failed dependencies
-
-		// Save the result of resource processing
 		id := r.ID()
-		err := c.processResource(r)
-		c.result[id] = err
-		if err != nil {
-			c.config.Logger.Printf("%s %s\n", id, err)
+
+		// Skip resource
+		if err := c.shouldBeSkipped(r); err != nil {
+			c.result[id] = err
+			c.config.Logger.Printf("%s skipping resource: %s\n", id, err)
+			continue
+		}
+
+		// Process resource and save result
+		if c.result[id] = c.processResource(r); c.result[id] != nil {
+			c.config.Logger.Printf("%s %s\n", id, c.result[id])
+		}
+	}
+
+	return nil
+}
+
+// shouldBeSkipped checks if a resource has failed
+// dependencies and should be skipped from further processing.
+func (c *Catalog) shouldBeSkipped(r resource.Resource) error {
+	for _, dep := range r.Dependencies() {
+		if c.result[dep] != nil {
+			return fmt.Errorf("failed dependency for %s", dep)
 		}
 	}
 
