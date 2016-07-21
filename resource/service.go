@@ -134,6 +134,26 @@ func (s *Service) disableUnit() error {
 	return nil
 }
 
+// setUnitState enables or disables the unit
+func (s *Service) setUnitState() error {
+	enabled, err := s.unitIsEnabled()
+	if err != nil {
+		return err
+	}
+
+	if s.Enable && !enabled {
+		if err := s.enableUnit(); err != nil {
+			return err
+		}
+	} else {
+		if err := s.disableUnit(); err != nil {
+			return err
+		}
+	}
+
+	return s.daemonReload()
+}
+
 // daemonReload instructs systemd to reload it's configuration
 func (s *Service) daemonReload() error {
 	conn, err := dbus.New()
@@ -200,7 +220,7 @@ func (s *Service) Create() error {
 	result := <-ch
 	s.Log("systemd job id %d result: %s\n", jobID, result)
 
-	return nil
+	return s.setUnitState()
 }
 
 // Delete stops the service unit
@@ -222,23 +242,12 @@ func (s *Service) Delete() error {
 	result := <-ch
 	s.Log("systemd job id %d result: %s\n", jobID, result)
 
-	return nil
+	return s.setUnitState()
 }
 
 // Update updates the service unit state
 func (s *Service) Update() error {
-	enabled, err := s.unitIsEnabled()
-	if err != nil {
-		return err
-	}
-
-	if s.Enable && !enabled {
-		s.enableUnit()
-	} else {
-		s.disableUnit()
-	}
-
-	return s.daemonReload()
+	return s.setUnitState()
 }
 
 func init() {
