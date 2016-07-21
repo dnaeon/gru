@@ -39,23 +39,11 @@ func (c Collection) DependencyGraph() (*graph.Graph, error) {
 
 	// Connect the nodes in the graph
 	for id, r := range c {
-		before := r.GetBefore()
-		after := r.GetAfter()
-
-		// Connect current resource with the ones that happen after it
-		for _, dep := range after {
+		for _, dep := range r.Dependencies() {
 			if _, ok := c[dep]; !ok {
 				return g, fmt.Errorf("%s wants %s, which does not exist", id, dep)
 			}
 			g.AddEdge(nodes[id], nodes[dep])
-		}
-
-		// Connect current resource with the ones that happen before it
-		for _, dep := range before {
-			if _, ok := c[dep]; !ok {
-				return g, fmt.Errorf("%s wants %s, which does not exist", id, dep)
-			}
-			g.AddEdge(nodes[dep], nodes[id])
 		}
 	}
 

@@ -29,13 +29,10 @@ type Resource interface {
 	// Validate validates the resource
 	Validate() error
 
-	// GetBefore returns the list of resources before which this
-	// resource shoud be processed
-	GetBefore() []string
-
-	// GetAfter returns the list of resources after which this
-	// resource should be processed
-	GetAfter() []string
+	// Dependencies returns the list of resource dependencies.
+	// Each item in the slice is a string representing the
+	// resource id for each dependency.
+	Dependencies() []string
 
 	// GetPresentStates returns the list of states, for which the
 	// resource is considered to be present
@@ -97,11 +94,8 @@ type Base struct {
 	// Desired state of the resource
 	State string `luar:"state"`
 
-	// Resources after which this resource should be processed
-	After []string `luar:"after"`
-
-	// Resources before which this resource should be processed
-	Before []string `luar:"before"`
+	// Require contains the resource dependencies
+	Require []string `luar:"require"`
 
 	// PresentStates contains the list of states, for which the
 	// resource is considered to be present
@@ -135,16 +129,9 @@ func (b *Base) Validate() error {
 	return nil
 }
 
-// GetBefore returns the list of resources before which this resource
-// should be processed
-func (b *Base) GetBefore() []string {
-	return b.Before
-}
-
-// GetAfter returns the list of resources after which this resource
-// should be processed
-func (b *Base) GetAfter() []string {
-	return b.After
+// Dependencies returns the list of resource dependencies.
+func (b *Base) Dependencies() []string {
+	return b.Require
 }
 
 // GetPresentStates returns the list of states, for which the
