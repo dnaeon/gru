@@ -99,6 +99,8 @@ func (c *Catalog) Load() error {
 		return err
 	}
 
+	// TODO: Find candidates for concurrent processing
+
 	for _, node := range collectionSorted {
 		c.sorted = append(c.sorted, collection[node.Name])
 	}
