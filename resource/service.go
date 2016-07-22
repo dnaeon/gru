@@ -46,6 +46,7 @@ func NewService(name string) (Resource, error) {
 			Require:       make([]string, 0),
 			PresentStates: []string{"present", "running"},
 			AbsentStates:  []string{"absent", "stopped"},
+			Concurrent:    true,
 		},
 		Enable: true,
 		unit:   fmt.Sprintf("%s.service", name),

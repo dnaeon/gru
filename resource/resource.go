@@ -42,6 +42,11 @@ type Resource interface {
 	// resource is considered to be absent
 	GetAbsentStates() []string
 
+	// IsConcurrent returns a boolean, which indicates whether
+	// multiple instances of the same resource type can be
+	// processed concurrently.
+	IsConcurrent() bool
+
 	// Evaluates the resource
 	Evaluate() (State, error)
 
@@ -104,6 +109,10 @@ type Base struct {
 	// AbsentStates contains the list of states, for which the
 	// resource is considered to be absent
 	AbsentStates []string `luar:"-"`
+
+	// Concurrent flag indicates whether multiple instances of the
+	// same resource type can be processed concurrently.
+	Concurrent bool `luar:"-"`
 }
 
 // ID returns the unique resource id
@@ -151,4 +160,11 @@ func (b *Base) GetAbsentStates() []string {
 func (b *Base) Log(format string, a ...interface{}) {
 	f := fmt.Sprintf("%s %s", b.ID(), format)
 	Log(f, a...)
+}
+
+// IsConcurrent returns a boolean indicating whether
+// multiple instances of the same resource type can be
+// processed concurrently.
+func (b *Base) IsConcurrent() bool {
+	return b.Concurrent
 }

@@ -43,6 +43,7 @@ func NewShell(name string) (Resource, error) {
 			Require:       make([]string, 0),
 			PresentStates: []string{"present"},
 			AbsentStates:  []string{"absent"},
+			Concurrent:    true,
 		},
 		Command: name,
 		Creates: "",
