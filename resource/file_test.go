@@ -24,6 +24,7 @@ func TestFile(t *testing.T) {
 	errorIfNotEqual(t, []string{}, foo.Require)
 	errorIfNotEqual(t, []string{"present"}, foo.PresentStates)
 	errorIfNotEqual(t, []string{"absent"}, foo.AbsentStates)
+	errorIfNotEqual(t, true, foo.Concurrent)
 	errorIfNotEqual(t, "/tmp/foo", foo.Path)
 	errorIfNotEqual(t, os.FileMode(0644), foo.Mode)
 	errorIfNotEqual(t, "", foo.Source)

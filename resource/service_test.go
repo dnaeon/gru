@@ -29,5 +29,6 @@ func TestService(t *testing.T) {
 	errorIfNotEqual(t, []string{}, svc.Require)
 	errorIfNotEqual(t, []string{"present", "running"}, svc.PresentStates)
 	errorIfNotEqual(t, []string{"absent", "stopped"}, svc.AbsentStates)
+	errorIfNotEqual(t, true, svc.Concurrent)
 	errorIfNotEqual(t, true, svc.Enable)
 }

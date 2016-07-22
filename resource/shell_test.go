@@ -23,6 +23,7 @@ func TestShell(t *testing.T) {
 	errorIfNotEqual(t, []string{}, sh.Require)
 	errorIfNotEqual(t, []string{"present"}, sh.PresentStates)
 	errorIfNotEqual(t, []string{"absent"}, sh.AbsentStates)
+	errorIfNotEqual(t, true, sh.Concurrent)
 	errorIfNotEqual(t, "touch /tmp/foo", sh.Command)
 	errorIfNotEqual(t, "/tmp/foo", sh.Creates)
 }
