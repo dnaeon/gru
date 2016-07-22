@@ -15,20 +15,20 @@ interactions:
     method: PUT
   response:
     body: |
-      {"action":"set","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo","value":"{\"key\":\"foo\",\"value\":\"bar\"}","expiration":"2016-05-05T12:16:00.191909845Z","ttl":3600,"modifiedIndex":4,"createdIndex":4}}
+      {"action":"set","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo","value":"{\"key\":\"foo\",\"value\":\"bar\"}","expiration":"2016-07-22T14:07:03.041862619Z","ttl":3600,"modifiedIndex":4,"createdIndex":4}}
     headers:
       Content-Length:
       - "236"
       Content-Type:
       - application/json
       Date:
-      - Thu, 05 May 2016 11:16:00 GMT
+      - Fri, 22 Jul 2016 13:07:03 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
       - "4"
       X-Raft-Index:
-      - "31"
+      - "28"
       X-Raft-Term:
       - "2"
     status: 201 Created
@@ -47,20 +47,20 @@ interactions:
     method: PUT
   response:
     body: |
-      {"action":"set","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz","value":"{\"key\":\"baz\",\"value\":\"qux\"}","expiration":"2016-05-05T12:16:00.19273359Z","ttl":3600,"modifiedIndex":5,"createdIndex":5}}
+      {"action":"set","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz","value":"{\"key\":\"baz\",\"value\":\"qux\"}","expiration":"2016-07-22T14:07:03.042691518Z","ttl":3600,"modifiedIndex":5,"createdIndex":5}}
     headers:
       Content-Length:
-      - "235"
+      - "236"
       Content-Type:
       - application/json
       Date:
-      - Thu, 05 May 2016 11:16:00 GMT
+      - Fri, 22 Jul 2016 13:07:03 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
       - "5"
       X-Raft-Index:
-      - "32"
+      - "29"
       X-Raft-Term:
       - "2"
     status: 201 Created
@@ -73,20 +73,20 @@ interactions:
     method: GET
   response:
     body: |
-      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier","dir":true,"nodes":[{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo","value":"{\"key\":\"foo\",\"value\":\"bar\"}","expiration":"2016-05-05T12:16:00.191909845Z","ttl":3600,"modifiedIndex":4,"createdIndex":4},{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz","value":"{\"key\":\"baz\",\"value\":\"qux\"}","expiration":"2016-05-05T12:16:00.19273359Z","ttl":3600,"modifiedIndex":5,"createdIndex":5}],"modifiedIndex":4,"createdIndex":4}}
+      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier","dir":true,"nodes":[{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo","value":"{\"key\":\"foo\",\"value\":\"bar\"}","expiration":"2016-07-22T14:07:03.041862619Z","ttl":3600,"modifiedIndex":4,"createdIndex":4},{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz","value":"{\"key\":\"baz\",\"value\":\"qux\"}","expiration":"2016-07-22T14:07:03.042691518Z","ttl":3600,"modifiedIndex":5,"createdIndex":5}],"modifiedIndex":4,"createdIndex":4}}
     headers:
       Content-Length:
-      - "573"
+      - "574"
       Content-Type:
       - application/json
       Date:
-      - Thu, 05 May 2016 11:16:00 GMT
+      - Fri, 22 Jul 2016 13:07:03 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
       - "5"
       X-Raft-Index:
-      - "32"
+      - "29"
       X-Raft-Term:
       - "2"
     status: 200 OK
@@ -99,20 +99,20 @@ interactions:
     method: GET
   response:
     body: |
-      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo","value":"{\"key\":\"foo\",\"value\":\"bar\"}","expiration":"2016-05-05T12:16:00.191909845Z","ttl":3600,"modifiedIndex":4,"createdIndex":4}}
+      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo","value":"{\"key\":\"foo\",\"value\":\"bar\"}","expiration":"2016-07-22T14:07:03.041862619Z","ttl":3600,"modifiedIndex":4,"createdIndex":4}}
     headers:
       Content-Length:
       - "236"
       Content-Type:
       - application/json
       Date:
-      - Thu, 05 May 2016 11:16:00 GMT
+      - Fri, 22 Jul 2016 13:07:03 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
       - "5"
       X-Raft-Index:
-      - "32"
+      - "29"
       X-Raft-Term:
       - "2"
     status: 200 OK
@@ -125,20 +125,20 @@ interactions:
     method: GET
   response:
     body: |
-      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz","value":"{\"key\":\"baz\",\"value\":\"qux\"}","expiration":"2016-05-05T12:16:00.19273359Z","ttl":3600,"modifiedIndex":5,"createdIndex":5}}
+      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz","value":"{\"key\":\"baz\",\"value\":\"qux\"}","expiration":"2016-07-22T14:07:03.042691518Z","ttl":3600,"modifiedIndex":5,"createdIndex":5}}
     headers:
       Content-Length:
-      - "235"
+      - "236"
       Content-Type:
       - application/json
       Date:
-      - Thu, 05 May 2016 11:16:00 GMT
+      - Fri, 22 Jul 2016 13:07:03 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
       - "5"
       X-Raft-Index:
-      - "32"
+      - "29"
       X-Raft-Term:
       - "2"
     status: 200 OK
@@ -158,13 +158,13 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 05 May 2016 11:16:00 GMT
+      - Fri, 22 Jul 2016 13:07:03 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
       - "5"
       X-Raft-Index:
-      - "32"
+      - "29"
       X-Raft-Term:
       - "2"
     status: 200 OK
@@ -177,20 +177,20 @@ interactions:
     method: GET
   response:
     body: |
-      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo","value":"{\"key\":\"foo\",\"value\":\"bar\"}","expiration":"2016-05-05T12:16:00.191909845Z","ttl":3600,"modifiedIndex":4,"createdIndex":4}}
+      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/foo","value":"{\"key\":\"foo\",\"value\":\"bar\"}","expiration":"2016-07-22T14:07:03.041862619Z","ttl":3600,"modifiedIndex":4,"createdIndex":4}}
     headers:
       Content-Length:
       - "236"
       Content-Type:
       - application/json
       Date:
-      - Thu, 05 May 2016 11:16:00 GMT
+      - Fri, 22 Jul 2016 13:07:03 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
       - "5"
       X-Raft-Index:
-      - "32"
+      - "29"
       X-Raft-Term:
       - "2"
     status: 200 OK
@@ -210,13 +210,13 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 05 May 2016 11:16:00 GMT
+      - Fri, 22 Jul 2016 13:07:03 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
       - "5"
       X-Raft-Index:
-      - "32"
+      - "29"
       X-Raft-Term:
       - "2"
     status: 200 OK
@@ -229,20 +229,20 @@ interactions:
     method: GET
   response:
     body: |
-      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz","value":"{\"key\":\"baz\",\"value\":\"qux\"}","expiration":"2016-05-05T12:16:00.19273359Z","ttl":3600,"modifiedIndex":5,"createdIndex":5}}
+      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier/baz","value":"{\"key\":\"baz\",\"value\":\"qux\"}","expiration":"2016-07-22T14:07:03.042691518Z","ttl":3600,"modifiedIndex":5,"createdIndex":5}}
     headers:
       Content-Length:
-      - "235"
+      - "236"
       Content-Type:
       - application/json
       Date:
-      - Thu, 05 May 2016 11:16:00 GMT
+      - Fri, 22 Jul 2016 13:07:03 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
       - "5"
       X-Raft-Index:
-      - "32"
+      - "29"
       X-Raft-Term:
       - "2"
     status: 200 OK

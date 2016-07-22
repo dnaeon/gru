@@ -20,13 +20,13 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 05 May 2016 11:16:00 GMT
+      - Fri, 22 Jul 2016 13:07:03 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
       - "7"
       X-Raft-Index:
-      - "34"
+      - "31"
       X-Raft-Term:
       - "2"
     status: 201 Created
@@ -50,13 +50,13 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 05 May 2016 11:16:00 GMT
+      - Fri, 22 Jul 2016 13:07:03 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
       - "8"
       X-Raft-Index:
-      - "35"
+      - "32"
       X-Raft-Term:
       - "2"
     status: 201 Created
@@ -80,13 +80,13 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 05 May 2016 11:16:00 GMT
+      - Fri, 22 Jul 2016 13:07:03 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
       - "9"
       X-Raft-Index:
-      - "36"
+      - "33"
       X-Raft-Term:
       - "2"
     status: 201 Created
@@ -99,20 +99,20 @@ interactions:
     method: GET
   response:
     body: |
-      {"action":"get","node":{"key":"/gru/minion","dir":true,"nodes":[{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170","dir":true,"modifiedIndex":4,"createdIndex":4},{"key":"/gru/minion/f827bffd-bd9e-5441-be36-a92a51d0b79e","dir":true,"modifiedIndex":7,"createdIndex":7},{"key":"/gru/minion/f87cf58e-1e19-57e1-bed3-9dff5064b86a","dir":true,"modifiedIndex":9,"createdIndex":9}],"modifiedIndex":4,"createdIndex":4}}
+      {"action":"get","node":{"key":"/gru/minion","dir":true,"nodes":[{"key":"/gru/minion/f827bffd-bd9e-5441-be36-a92a51d0b79e","dir":true,"modifiedIndex":7,"createdIndex":7},{"key":"/gru/minion/f87cf58e-1e19-57e1-bed3-9dff5064b86a","dir":true,"modifiedIndex":9,"createdIndex":9},{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170","dir":true,"modifiedIndex":4,"createdIndex":4}],"modifiedIndex":4,"createdIndex":4}}
     headers:
       Content-Length:
       - "417"
       Content-Type:
       - application/json
       Date:
-      - Thu, 05 May 2016 11:16:00 GMT
+      - Fri, 22 Jul 2016 13:07:03 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
       - "9"
       X-Raft-Index:
-      - "36"
+      - "33"
       X-Raft-Term:
       - "2"
     status: 200 OK

@@ -20,13 +20,13 @@ interactions:
       Content-Type:
       - application/json
       Date:
-      - Thu, 05 May 2016 11:16:00 GMT
+      - Fri, 22 Jul 2016 13:07:03 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
       - "11"
       X-Raft-Index:
-      - "38"
+      - "35"
       X-Raft-Term:
       - "2"
     status: 200 OK
@@ -39,29 +39,29 @@ interactions:
     method: GET
   response:
     body: |
-      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170","dir":true,"nodes":[{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/name","value":"Kevin","modifiedIndex":11,"createdIndex":11},{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier","dir":true,"modifiedIndex":4,"createdIndex":4},{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/lastseen","value":"1450357761","modifiedIndex":6,"createdIndex":6}],"modifiedIndex":4,"createdIndex":4}}
+      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170","dir":true,"nodes":[{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/classifier","dir":true,"modifiedIndex":4,"createdIndex":4},{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/lastseen","value":"1450357761","modifiedIndex":6,"createdIndex":6},{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/name","value":"Kevin","modifiedIndex":11,"createdIndex":11}],"modifiedIndex":4,"createdIndex":4}}
     headers:
       Content-Length:
       - "496"
       Content-Type:
       - application/json
       Date:
-      - Thu, 05 May 2016 11:16:00 GMT
+      - Fri, 22 Jul 2016 13:07:03 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
       - "11"
       X-Raft-Index:
-      - "38"
+      - "35"
       X-Raft-Term:
       - "2"
     status: 200 OK
     code: 200
 - request:
-    body: value=%7B%22Environment%22%3A%22bar%22%2C%22command%22%3A%22foo%22%2C%22timeReceived%22%3A0%2C%22timeProcessed%22%3A0%2C%22id%22%3A%22e6d2bebd-2219-4a8c-9d30-a861097c147e%22%2C%22result%22%3A%22%22%2C%22state%22%3A%22unknown%22%7D
+    body: value=%7B%22dryRun%22%3Afalse%2C%22environment%22%3A%22bar%22%2C%22command%22%3A%22foo%22%2C%22timeReceived%22%3A0%2C%22timeProcessed%22%3A0%2C%22id%22%3A%22e6d2bebd-2219-4a8c-9d30-a861097c147e%22%2C%22result%22%3A%22%22%2C%22state%22%3A%22unknown%22%7D
     form:
       value:
-      - '{"Environment":"bar","command":"foo","timeReceived":0,"timeProcessed":0,"id":"e6d2bebd-2219-4a8c-9d30-a861097c147e","result":"","state":"unknown"}'
+      - '{"dryRun":false,"environment":"bar","command":"foo","timeReceived":0,"timeProcessed":0,"id":"e6d2bebd-2219-4a8c-9d30-a861097c147e","result":"","state":"unknown"}'
     headers:
       Content-Type:
       - application/x-www-form-urlencoded
@@ -69,20 +69,20 @@ interactions:
     method: POST
   response:
     body: |
-      {"action":"create","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/queue/00000000000000000012","value":"{\"Environment\":\"bar\",\"command\":\"foo\",\"timeReceived\":0,\"timeProcessed\":0,\"id\":\"e6d2bebd-2219-4a8c-9d30-a861097c147e\",\"result\":\"\",\"state\":\"unknown\"}","modifiedIndex":12,"createdIndex":12}}
+      {"action":"create","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/queue/00000000000000000012","value":"{\"dryRun\":false,\"environment\":\"bar\",\"command\":\"foo\",\"timeReceived\":0,\"timeProcessed\":0,\"id\":\"e6d2bebd-2219-4a8c-9d30-a861097c147e\",\"result\":\"\",\"state\":\"unknown\"}","modifiedIndex":12,"createdIndex":12}}
     headers:
       Content-Length:
-      - "331"
+      - "348"
       Content-Type:
       - application/json
       Date:
-      - Thu, 05 May 2016 11:16:00 GMT
+      - Fri, 22 Jul 2016 13:07:03 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
       - "12"
       X-Raft-Index:
-      - "39"
+      - "36"
       X-Raft-Term:
       - "2"
     status: 201 Created
@@ -95,20 +95,20 @@ interactions:
     method: GET
   response:
     body: |
-      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/queue","dir":true,"nodes":[{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/queue/00000000000000000012","value":"{\"Environment\":\"bar\",\"command\":\"foo\",\"timeReceived\":0,\"timeProcessed\":0,\"id\":\"e6d2bebd-2219-4a8c-9d30-a861097c147e\",\"result\":\"\",\"state\":\"unknown\"}","modifiedIndex":12,"createdIndex":12}],"modifiedIndex":12,"createdIndex":12}}
+      {"action":"get","node":{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/queue","dir":true,"nodes":[{"key":"/gru/minion/46ce0385-0e2b-5ede-8279-9cd98c268170/queue/00000000000000000012","value":"{\"dryRun\":false,\"environment\":\"bar\",\"command\":\"foo\",\"timeReceived\":0,\"timeProcessed\":0,\"id\":\"e6d2bebd-2219-4a8c-9d30-a861097c147e\",\"result\":\"\",\"state\":\"unknown\"}","modifiedIndex":12,"createdIndex":12}],"modifiedIndex":12,"createdIndex":12}}
     headers:
       Content-Length:
-      - "451"
+      - "468"
       Content-Type:
       - application/json
       Date:
-      - Thu, 05 May 2016 11:16:00 GMT
+      - Fri, 22 Jul 2016 13:07:03 GMT
       X-Etcd-Cluster-Id:
       - 7e27652122e8b2ae
       X-Etcd-Index:
       - "12"
       X-Raft-Index:
-      - "39"
+      - "36"
       X-Raft-Term:
       - "2"
     status: 200 OK
