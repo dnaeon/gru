@@ -9,7 +9,6 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -34,6 +33,9 @@ const EtcdMinionSpace = "/gru/minion"
 
 // Etcd Minion
 type etcdMinion struct {
+	// Configuration settings of the minion
+	config *EtcdMinionConfig
+
 	// Name of the minion
 	name string
 
@@ -68,6 +70,9 @@ type etcdMinion struct {
 // EtcdMinionConfig contains configuration settings for
 // minions which use the etcd backend implementation
 type EtcdMinionConfig struct {
+	// Number of goroutines used for concurrent resource processing
+	Concurrency int
+
 	// Name of the minion
 	Name string
 
@@ -98,6 +103,7 @@ func NewEtcdMinion(config *EtcdMinionConfig) (Minion, error) {
 	id := utils.GenerateUUID(config.Name)
 	rootDir := filepath.Join(EtcdMinionSpace, id.String())
 	m := &etcdMinion{
+		config:        config,
 		name:          config.Name,
 		rootDir:       rootDir,
 		queueDir:      filepath.Join(rootDir, "queue"),
@@ -213,7 +219,7 @@ func (m *etcdMinion) processTask(t *task.Task) error {
 		Logger:      log.New(&buf, "", log.LstdFlags),
 		SiteRepo:    m.gitRepo.Path,
 		L:           L,
-		Concurrency: runtime.NumCPU(),
+		Concurrency: m.config.Concurrency,
 	}
 
 	katalog := catalog.New(config)
