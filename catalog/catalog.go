@@ -5,6 +5,7 @@ import (
 	"log"
 	"sync"
 
+	"github.com/dnaeon/gru/graph"
 	"github.com/dnaeon/gru/resource"
 	"github.com/dnaeon/gru/utils"
 	"github.com/layeh/gopher-luar"
@@ -16,8 +17,16 @@ type Catalog struct {
 	// Unsorted contains the list of resources created by Lua
 	Unsorted []resource.Resource `luar:"-"`
 
-	// Sorted contains the list of resources after a topological sort
-	sorted []resource.Resource `luar:"-"`
+	// Collection contains the unsorted resources as a collection
+	collection resource.Collection `luar:"-"`
+
+	// Sorted contains the resources after a topological sort.
+	sorted []*graph.Node `luar:"-"`
+
+	// Reversed contains the resource dependency graph in reverse
+	// order. It is used for finding the reverse dependencies of
+	// resources.
+	reversed *graph.Graph `luar:"-"`
 
 	// Status contains status information about resources
 	status *status `luar:"-"`
@@ -78,8 +87,10 @@ func (s *status) get(id string) (error, bool) {
 // New creates a new empty catalog with the provided configuration
 func New(config *Config) *Catalog {
 	c := &Catalog{
-		config: config,
-		sorted: make([]resource.Resource, 0),
+		config:     config,
+		collection: make(resource.Collection),
+		sorted:     make([]*graph.Node, 0),
+		reversed:   graph.New(),
 		status: &status{
 			items: make(map[string]error),
 		},
@@ -136,16 +147,20 @@ func (c *Catalog) Load() error {
 		return err
 	}
 
-	collectionSorted, err := collectionGraph.Sort()
+	reversed, err := collection.ReversedGraph()
 	if err != nil {
 		return err
 	}
 
-	// TODO: Find candidates for concurrent processing
-
-	for _, node := range collectionSorted {
-		c.sorted = append(c.sorted, collection[node.Name])
+	sorted, err := collectionGraph.Sort()
+	if err != nil {
+		return err
 	}
+
+	// Set catalog fields
+	c.collection = collection
+	c.sorted = sorted
+	c.reversed = reversed
 
 	c.config.Logger.Printf("Loaded %d resources\n", len(c.sorted))
 
@@ -181,15 +196,17 @@ func (c *Catalog) Run() error {
 	}
 
 	// Process the resources
-	for _, r := range c.sorted {
+	for _, node := range c.sorted {
+		r := c.collection[node.Name]
 		switch {
-		// Resource supports concurrency and has no dependencies
+		// Resource is concurrent and has no dependencies
 		case r.IsConcurrent() && len(r.Dependencies()) == 0:
 			ch <- r
 			continue
-
-		// TODO: Handle concurrently resources with satisfied dependencies
-
+		// Resource is concurrent and have no reverse dependencies
+		case r.IsConcurrent() && len(c.reversed.Nodes[r.ID()].Edges) == 0:
+			ch <- r
+			continue
 		// Resource is not concurrent
 		default:
 			process(r)
