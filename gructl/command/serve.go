@@ -3,6 +3,7 @@ package command
 import (
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 
 	"github.com/dnaeon/gru/minion"
@@ -17,6 +18,11 @@ func NewServeCommand() cli.Command {
 		Usage:  "start minion",
 		Action: execServeCommand,
 		Flags: []cli.Flag{
+			cli.IntFlag{
+				Name:  "concurrency",
+				Usage: "number of goroutines used for concurrent processing",
+				Value: runtime.NumCPU(),
+			},
 			cli.StringFlag{
 				Name:  "name",
 				Usage: "set minion name",
@@ -41,6 +47,11 @@ func execServeCommand(c *cli.Context) error {
 		return cli.NewExitError(err.Error(), 1)
 	}
 
+	concurrency := c.Int("concurrency")
+	if concurrency < 0 {
+		concurrency = runtime.NumCPU()
+	}
+
 	if c.String("siterepo") == "" {
 		return cli.NewExitError(errNoSiteRepo.Error(), 64)
 	}
@@ -52,9 +63,10 @@ func execServeCommand(c *cli.Context) error {
 
 	etcdCfg := etcdConfigFromFlags(c)
 	minionCfg := &minion.EtcdMinionConfig{
-		Name:       name,
-		SiteRepo:   c.String("siterepo"),
-		EtcdConfig: etcdCfg,
+		Concurrency: concurrency,
+		Name:        name,
+		SiteRepo:    c.String("siterepo"),
+		EtcdConfig:  etcdCfg,
 	}
 
 	m, err := minion.NewEtcdMinion(minionCfg)
