@@ -65,7 +65,6 @@ func (g *Graph) Sort() ([]*Node, error) {
 	// nodes without edges, that means we have a circular dependency
 	for len(g.Nodes) > 0 {
 		// Contains the ready nodes, which have no edges to other nodes
-		//ready := make([]*Node, 0)
 		ready := mapset.NewSet()
 
 		// Find the nodes with no edges
