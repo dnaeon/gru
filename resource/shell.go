@@ -31,6 +31,10 @@ type Shell struct {
 
 	// File to be checked for existence before executing the command.
 	Creates string `luar:"creates"`
+
+	// Mute flag indicates whether output from the command should be
+	// dislayed or suppressed
+	Mute bool `luar:"mute"`
 }
 
 // NewShell creates a new resource for executing shell commands
@@ -47,6 +51,7 @@ func NewShell(name string) (Resource, error) {
 		},
 		Command: name,
 		Creates: "",
+		Mute:    false,
 	}
 
 	return s, nil
@@ -88,8 +93,10 @@ func (s *Shell) Create() error {
 	cmd := exec.Command(args[0], args[1:]...)
 	out, err := cmd.CombinedOutput()
 
-	for _, line := range strings.Split(string(out), "\n") {
-		s.Log("%s\n", line)
+	if !s.Mute {
+		for _, line := range strings.Split(string(out), "\n") {
+			s.Log("%s\n", line)
+		}
 	}
 
 	return err
