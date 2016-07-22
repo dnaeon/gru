@@ -1,6 +1,8 @@
 package command
 
 import (
+	"runtime"
+
 	"github.com/dnaeon/gru/catalog"
 	"github.com/dnaeon/gru/resource"
 	"github.com/urfave/cli"
@@ -40,11 +42,12 @@ func execApplyCommand(c *cli.Context) error {
 	L := lua.NewState()
 	defer L.Close()
 	config := &catalog.Config{
-		Module:   c.Args()[0],
-		DryRun:   c.Bool("dry-run"),
-		Logger:   resource.DefaultLogger,
-		SiteRepo: c.String("siterepo"),
-		L:        L,
+		Module:      c.Args()[0],
+		DryRun:      c.Bool("dry-run"),
+		Logger:      resource.DefaultLogger,
+		SiteRepo:    c.String("siterepo"),
+		L:           L,
+		Concurrency: runtime.NumCPU(),
 	}
 
 	katalog := catalog.New(config)

@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -207,11 +208,12 @@ func (m *etcdMinion) processTask(t *task.Task) error {
 	defer L.Close()
 
 	config := &catalog.Config{
-		Module:   t.Command,
-		DryRun:   t.DryRun,
-		Logger:   log.New(&buf, "", log.LstdFlags),
-		SiteRepo: m.gitRepo.Path,
-		L:        L,
+		Module:      t.Command,
+		DryRun:      t.DryRun,
+		Logger:      log.New(&buf, "", log.LstdFlags),
+		SiteRepo:    m.gitRepo.Path,
+		L:           L,
+		Concurrency: runtime.NumCPU(),
 	}
 
 	katalog := catalog.New(config)
