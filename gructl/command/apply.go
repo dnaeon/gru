@@ -27,6 +27,11 @@ func NewApplyCommand() cli.Command {
 				Name:  "dry-run",
 				Usage: "just report what would be done, instead of doing it",
 			},
+			cli.IntFlag{
+				Name:  "concurrency",
+				Usage: "number of goroutines used for concurrent processing",
+				Value: runtime.NumCPU(),
+			},
 		},
 	}
 
@@ -39,6 +44,11 @@ func execApplyCommand(c *cli.Context) error {
 		return cli.NewExitError(errNoModuleName.Error(), 64)
 	}
 
+	concurrency := c.Int("concurrency")
+	if concurrency < 0 {
+		concurrency = runtime.NumCPU()
+	}
+
 	L := lua.NewState()
 	defer L.Close()
 	config := &catalog.Config{
@@ -47,7 +57,7 @@ func execApplyCommand(c *cli.Context) error {
 		Logger:      resource.DefaultLogger,
 		SiteRepo:    c.String("siterepo"),
 		L:           L,
-		Concurrency: runtime.NumCPU(),
+		Concurrency: concurrency,
 	}
 
 	katalog := catalog.New(config)
