@@ -49,28 +49,3 @@ func (c Collection) DependencyGraph() (*graph.Graph, error) {
 
 	return g, nil
 }
-
-// ReversedGraph builds a reverse dependency graph for the collection
-func (c Collection) ReversedGraph() (*graph.Graph, error) {
-	g := graph.New()
-
-	// A map containing the resource ids and their nodes in the graph
-	nodes := make(map[string]*graph.Node)
-	for id := range c {
-		node := graph.NewNode(id)
-		nodes[id] = node
-		g.AddNode(node)
-	}
-
-	// Connect the nodes in the graph
-	for id, r := range c {
-		for _, dep := range r.Dependencies() {
-			if _, ok := c[dep]; !ok {
-				return g, fmt.Errorf("%s wants %s, which does not exist", id, dep)
-			}
-			g.AddEdge(nodes[dep], nodes[id])
-		}
-	}
-
-	return g, nil
-}
