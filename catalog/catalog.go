@@ -147,10 +147,7 @@ func (c *Catalog) Load() error {
 		return err
 	}
 
-	reversed, err := collection.ReversedGraph()
-	if err != nil {
-		return err
-	}
+	reversed := collectionGraph.Reversed()
 
 	sorted, err := collectionGraph.Sort()
 	if err != nil {
