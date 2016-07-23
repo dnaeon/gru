@@ -135,3 +135,25 @@ func (g *Graph) AsDot(name string, w io.Writer) {
 
 	w.Write([]byte("}\n"))
 }
+
+// Reversed creates the reversed representation of the graph
+func (g *Graph) Reversed() *Graph {
+	reversed := New()
+
+	// Create a map of the graph nodes
+	nodes := make(map[string]*Node)
+	for _, n := range g.Nodes {
+		node := NewNode(n.Name)
+		nodes[n.Name] = node
+		reversed.AddNode(node)
+	}
+
+	// Connect the nodes in the graph
+	for _, node := range g.Nodes {
+		for _, edge := range node.Edges {
+			reversed.AddEdge(nodes[edge.Name], nodes[node.Name])
+		}
+	}
+
+	return reversed
+}
