@@ -37,6 +37,11 @@ func NewString(s string) String {
 	}
 }
 
+// String implements the fmt.Stringer interface
+func (s String) String() string {
+	return s.str
+}
+
 // IsInList returns a boolean indicating whether the string is
 // contained within a given list
 func (s String) IsInList(l List) bool {
