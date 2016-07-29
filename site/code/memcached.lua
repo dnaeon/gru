@@ -13,7 +13,7 @@ systemd_dir = "/etc/systemd/system/memcached.service.d/"
 unit_dir = file.new(systemd_dir)
 unit_dir.state = "present"
 unit_dir.filetype = "directory"
-unit_dir.after = {
+unit_dir.require = {
    memcached_pkg:ID(),
 }
 
@@ -22,13 +22,13 @@ unit_file = file.new(systemd_dir .. "override.conf")
 unit_file.state = "present"
 unit_file.mode = tonumber("0644", 8)
 unit_file.source = "data/memcached/memcached-override.conf"
-unit_file.after = {
+unit_file.require = {
    unit_dir:ID(),
 }
 
 -- Instruct systemd(1) to reload it's configuration
 systemd_reload = shell.new("systemctl daemon-reload")
-systemd_reload.after = {
+systemd_reload.require = {
    unit_file:ID(),
 }
 
@@ -36,7 +36,7 @@ systemd_reload.after = {
 memcached_svc = service.new("memcached")
 memcached_svc.state = "running"
 memcached_svc.enable = true
-memcached_svc.after = {
+memcached_svc.require = {
    memcached_pkg:ID(),
    unit_file:ID(),
 }
