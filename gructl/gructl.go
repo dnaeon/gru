@@ -14,6 +14,7 @@ func Main() {
 	app := cli.NewApp()
 	app.Name = "gructl"
 	app.Version = version.Version
+	app.EnableBashCompletion = true
 	app.Usage = "command line tool for managing minions"
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
