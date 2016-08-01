@@ -15,7 +15,7 @@ func TestPacman(t *testing.T) {
 	}
 
 	pkg := luaResource(L, "tmux").(*Pacman)
-	errorIfNotEqual(t, "pkg", pkg.Type)
+	errorIfNotEqual(t, "package", pkg.Type)
 	errorIfNotEqual(t, "tmux", pkg.Name)
 	errorIfNotEqual(t, "installed", pkg.State)
 	errorIfNotEqual(t, []string{}, pkg.Require)
@@ -39,7 +39,7 @@ func TestYum(t *testing.T) {
 	}
 
 	pkg := luaResource(L, "tmux").(*Yum)
-	errorIfNotEqual(t, "pkg", pkg.Type)
+	errorIfNotEqual(t, "package", pkg.Type)
 	errorIfNotEqual(t, "tmux", pkg.Name)
 	errorIfNotEqual(t, "installed", pkg.State)
 	errorIfNotEqual(t, []string{}, pkg.Require)
