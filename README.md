@@ -6,7 +6,7 @@
 [![Join the chat at https://gitter.im/dnaeon/gru](https://badges.gitter.im/dnaeon/gru.svg)](https://gitter.im/dnaeon/gru?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Codewake](https://www.codewake.com/badges/ask_question.svg)](https://www.codewake.com/p/gru)
 
-Gru is fast and concurrent orchestration framework powered
+Gru is a fast and concurrent orchestration framework powered
 by Go and Lua, which allows you to manage your UNIX/Linux systems
 with ease.
 
