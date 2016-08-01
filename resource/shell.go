@@ -14,13 +14,13 @@ import (
 // "creates" field to a filename that can be checked for existence.
 //
 // Example:
-//   sh = shell.new("touch /tmp/foo")
+//   sh = resource.shell.new("touch /tmp/foo")
 //   sh.creates = "/tmp/foo"
 //
 // Same example as the above one, but written in a different way.
 //
 // Example:
-//   sh = shell.new("creates the /tmp/foo file")
+//   sh = resource.shell.new("creates the /tmp/foo file")
 //   sh.command = "/usr/bin/touch /tmp/foo"
 //   sh.creates = "/tmp/foo"
 type Shell struct {

@@ -18,7 +18,7 @@ var ErrNoSystemd = errors.New("No systemd support found")
 // GNU/Linux system running with systemd.
 //
 // Example:
-//   svc = service.new("nginx")
+//   svc = resource.service.new("nginx")
 //   svc.state = "running"
 //   svc.enable = true
 type Service struct {

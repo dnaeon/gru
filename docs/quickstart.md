@@ -66,13 +66,13 @@ our first resource.
 
 ```lua
 -- Manage the memcached package
-memcached_pkg = pkg.new("memcached")
+memcached_pkg = resource.package.new("memcached")
 memcached_pkg.state = "present"
 ```
 
 What we do in the above Lua code is to instantiate a new
 [package resource](https://godoc.org/github.com/dnaeon/gru/resource#Package)
-by calling the `pkg.new()` constructor. Each resource has a `new`
+by calling the `resource.package.new()` constructor. Each resource has a `new`
 constructor, which accepts one argument - the *resource name*.
 
 The created resource is returned and assigned to the `memcached_pkg`
@@ -95,7 +95,7 @@ First, let's create the needed directory for our drop-in unit.
 systemd_dir = "/etc/systemd/system/memcached.service.d/"
 
 -- Manage the systemd drop-in unit directory
-unit_dir = file.new(systemd_dir)
+unit_dir = resource.file.new(systemd_dir)
 unit_dir.state = "present"
 unit_dir.filetype = "directory"
 unit_dir.require = {
@@ -123,7 +123,7 @@ Now, let's install the actual drop-in unit file.
 
 ```lua
 -- Manage the systemd drop-in unit
-unit_file = file.new(systemd_dir .. "override.conf")
+unit_file = resource.file.new(systemd_dir .. "override.conf")
 unit_file.state = "present"
 unit_file.mode = tonumber("0644", 8)
 unit_file.source = "data/memcached/memcached-override.conf"
@@ -154,7 +154,7 @@ takes care of that as well.
 
 ```lua
 -- Instruct systemd(1) to reload it's configuration
-systemd_reload = shell.new("systemctl daemon-reload")
+systemd_reload = resource.shell.new("systemctl daemon-reload")
 systemd_reload.require = {
    unit_file:ID(),
 }
@@ -165,7 +165,7 @@ service.
 
 ```lua
 -- Manage the memcached service
-memcached_svc = service.new("memcached")
+memcached_svc = resource.service.new("memcached")
 memcached_svc.state = "running"
 memcached_svc.enable = true
 memcached_svc.require = {

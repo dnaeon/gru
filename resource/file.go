@@ -39,12 +39,12 @@ type outdatedFile struct {
 // File resource manages files and directories.
 //
 // Example:
-//   foo = file.new("/tmp/foo")
+//   foo = resource.file.new("/tmp/foo")
 //   foo.state = "present"
 //   foo.mode = 0600
 //
 // Example:
-//   bar = file.new("/tmp/bar")
+//   bar = resource.file.new("/tmp/bar")
 //   bar.state = "present"
 //   bar.filetype = "directory"
 type File struct {

@@ -116,7 +116,7 @@ func (bp *BasePackage) Update() error {
 // package provider for you, so it is more like a meta-provider.
 //
 // Example:
-//   pkg = package.new("tmux")
+//   pkg = resource.package.new("tmux")
 //   pkg.state = "installed"
 func NewPackage(name string) (Resource, error) {
 	// Releases files used by the various GNU/Linux distros
@@ -141,7 +141,7 @@ func NewPackage(name string) (Resource, error) {
 // Arch Linux systems.
 //
 // Example:
-//   pkg = pacman.new("tmux")
+//   pkg = resource.pacman.new("tmux")
 //   pkg.state = "installed"
 type Pacman struct {
 	BasePackage
@@ -178,7 +178,7 @@ func NewPacman(name string) (Resource, error) {
 // RHEL and CentOS systems.
 //
 // Example:
-//   pkg = yum.new("emacs")
+//   pkg = resource.yum.new("emacs")
 //   pkg.state = "installed"
 type Yum struct {
 	BasePackage
