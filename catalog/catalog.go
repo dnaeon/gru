@@ -241,14 +241,18 @@ func (c *Catalog) execute(r resource.Resource) error {
 	present := utils.NewList(r.GetPresentStates()...)
 	absent := utils.NewList(r.GetAbsentStates()...)
 
+	id := r.ID()
 	var action func() error
 	switch {
 	case want.IsInList(present) && current.IsInList(absent):
 		action = r.Create
+		c.config.Logger.Printf("%s is %s, should be %s\n", id, current, want)
 	case want.IsInList(absent) && current.IsInList(present):
 		action = r.Delete
+		c.config.Logger.Printf("%s is %s, should be %s\n", id, current, want)
 	case state.Outdated:
 		action = r.Update
+		c.config.Logger.Printf("%s is out of date\n", id)
 	}
 
 	if action != nil {
