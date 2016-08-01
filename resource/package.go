@@ -154,7 +154,7 @@ func NewPacman(name string) (Resource, error) {
 		BasePackage: BasePackage{
 			Base: Base{
 				Name:          name,
-				Type:          "pkg",
+				Type:          "package",
 				State:         "installed",
 				Require:       make([]string, 0),
 				PresentStates: []string{"present", "installed"},
@@ -191,7 +191,7 @@ func NewYum(name string) (Resource, error) {
 		BasePackage: BasePackage{
 			Base: Base{
 				Name:          name,
-				Type:          "pkg",
+				Type:          "package",
 				State:         "installed",
 				Require:       make([]string, 0),
 				PresentStates: []string{"present", "installed"},
