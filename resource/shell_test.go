@@ -7,7 +7,7 @@ func TestShell(t *testing.T) {
 	defer L.Close()
 
 	const code = `
-	sh = shell.new("create /tmp/foo file")
+	sh = resource.shell.new("create /tmp/foo file")
 	sh.command = "touch /tmp/foo"
 	sh.creates = "/tmp/foo"
 	`

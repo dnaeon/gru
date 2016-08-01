@@ -10,7 +10,7 @@ func TestFile(t *testing.T) {
 	defer L.Close()
 
 	const code = `
-	foo = file.new("/tmp/foo")
+	foo = resource.file.new("/tmp/foo")
 	`
 
 	if err := L.DoString(code); err != nil {

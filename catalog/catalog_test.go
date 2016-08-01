@@ -26,9 +26,9 @@ func TestCatalog(t *testing.T) {
 	}
 
 	code := `
-	foo = file.new("foo")
-	bar = file.new("bar")
-	qux = file.new("qux")
+	foo = resource.file.new("foo")
+	bar = resource.file.new("bar")
+	qux = resource.file.new("qux")
 	catalog:add(foo, bar, qux)
 	`
 

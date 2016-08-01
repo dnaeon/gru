@@ -15,7 +15,7 @@ func TestService(t *testing.T) {
 	defer L.Close()
 
 	const code = `
-	svc = service.new("nginx")
+	svc = resource.service.new("nginx")
 	`
 
 	if err := L.DoString(code); err != nil {

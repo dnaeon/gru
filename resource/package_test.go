@@ -7,7 +7,7 @@ func TestPacman(t *testing.T) {
 	defer L.Close()
 
 	const code = `
-	tmux = pacman.new("tmux")
+	tmux = resource.pacman.new("tmux")
 	`
 
 	if err := L.DoString(code); err != nil {
@@ -31,7 +31,7 @@ func TestYum(t *testing.T) {
 	defer L.Close()
 
 	const code = `
-	tmux = yum.new("tmux")
+	tmux = resource.yum.new("tmux")
 	`
 
 	if err := L.DoString(code); err != nil {
