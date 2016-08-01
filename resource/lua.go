@@ -17,6 +17,10 @@ func LuaRegisterBuiltin(L *lua.LState) {
 		L.SetGlobal(name, luar.New(L, fn))
 	}
 
+	// The resource namespace in Lua
+	namespace := L.NewTable()
+	L.SetGlobal("resource", namespace)
+
 	// Register resource providers in Lua
 	for typ, provider := range providerRegistry {
 		// Wrap resource providers, so that we can properly handle any
@@ -38,6 +42,6 @@ func LuaRegisterBuiltin(L *lua.LState) {
 
 		tbl := L.NewTable()
 		tbl.RawSetH(lua.LString("new"), L.NewFunction(wrapper(provider)))
-		L.SetGlobal(typ, tbl)
+		L.SetField(namespace, typ, tbl)
 	}
 }
