@@ -5,6 +5,10 @@ import (
 	"github.com/yuin/gopher-lua"
 )
 
+// DefaultNamespace is the Lua table where resources are being
+// registered to, when using the default namespace.
+const DefaultNamespace = "resource"
+
 // LuaRegisterBuiltin registers resource providers in Lua
 func LuaRegisterBuiltin(L *lua.LState) {
 	// Go functions registered in Lua
@@ -17,9 +21,9 @@ func LuaRegisterBuiltin(L *lua.LState) {
 		L.SetGlobal(name, luar.New(L, fn))
 	}
 
-	// The resource namespace in Lua
-	namespace := L.NewTable()
-	L.SetGlobal("resource", namespace)
+	// The default resource namespace in Lua
+	defaultNamespace := L.NewTable()
+	L.SetGlobal(DefaultNamespace, defaultNamespace)
 
 	// Register resource providers in Lua
 	for typ, provider := range providerRegistry {
@@ -42,6 +46,6 @@ func LuaRegisterBuiltin(L *lua.LState) {
 
 		tbl := L.NewTable()
 		tbl.RawSetH(lua.LString("new"), L.NewFunction(wrapper(provider)))
-		L.SetField(namespace, typ, tbl)
+		L.SetField(defaultNamespace, typ, tbl)
 	}
 }
