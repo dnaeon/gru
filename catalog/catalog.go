@@ -107,7 +107,7 @@ func New(config *Config) *Catalog {
 	// metamethods for the catalog, so that we can use
 	// the catalog in a more Lua-friendly way
 	mt := luar.MT(config.L, c)
-	mt.RawSetString("__len", luar.New(config.L, (*Catalog).Len))
+	mt.RawSetString("__len", luar.New(config.L, (*Catalog).luaLen))
 	config.L.SetGlobal("catalog", luar.New(config.L, c))
 
 	return c
@@ -121,11 +121,6 @@ func (c *Catalog) Add(resources ...resource.Resource) {
 			c.Unsorted = append(c.Unsorted, r)
 		}
 	}
-}
-
-// Len returns the number of unsorted resources in catalog
-func (c *Catalog) Len() int {
-	return len(c.Unsorted)
 }
 
 // Load loads resources into the catalog
@@ -261,4 +256,10 @@ func (c *Catalog) execute(r resource.Resource) error {
 	}
 
 	return nil
+}
+
+// luaLen returns the number of unsorted resources in catalog.
+// This method is called from Lua.
+func (c *Catalog) luaLen() int {
+	return len(c.Unsorted)
 }
