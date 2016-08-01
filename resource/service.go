@@ -251,5 +251,11 @@ func (s *Service) Update() error {
 }
 
 func init() {
-	RegisterProvider("service", NewService)
+	item := RegistryItem{
+		Type:      "service",
+		Provider:  NewService,
+		Namespace: DefaultNamespace,
+	}
+
+	Register(item)
 }

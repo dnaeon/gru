@@ -3,7 +3,7 @@
 --
 
 -- Manage the memcached package
-memcached_pkg = resource.pkg.new("memcached")
+memcached_pkg = resource.package.new("memcached")
 memcached_pkg.state = "present"
 
 -- Path to the systemd drop-in unit directory

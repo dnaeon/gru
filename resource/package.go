@@ -211,7 +211,21 @@ func NewYum(name string) (Resource, error) {
 }
 
 func init() {
-	RegisterProvider("pkg", NewPackage)
-	RegisterProvider("yum", NewYum)
-	RegisterProvider("pacman", NewPacman)
+	pkg := RegistryItem{
+		Type:      "package",
+		Provider:  NewPackage,
+		Namespace: DefaultNamespace,
+	}
+	yum := RegistryItem{
+		Type:      "yum",
+		Provider:  NewYum,
+		Namespace: DefaultNamespace,
+	}
+	pacman := RegistryItem{
+		Type:      "pacman",
+		Provider:  NewPacman,
+		Namespace: DefaultNamespace,
+	}
+
+	Register(pkg, yum, pacman)
 }

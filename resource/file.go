@@ -579,5 +579,11 @@ func (f *File) isOwnerOutdated() (bool, error) {
 }
 
 func init() {
-	RegisterProvider("file", NewFile)
+	item := RegistryItem{
+		Type:      "file",
+		Provider:  NewFile,
+		Namespace: DefaultNamespace,
+	}
+
+	Register(item)
 }

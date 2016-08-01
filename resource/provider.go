@@ -1,21 +1,26 @@
 package resource
 
-import "fmt"
+// providerRegistry contains the registered providers
+var providerRegistry = make([]RegistryItem, 0)
 
 // Provider type is the type which creates new resources
 type Provider func(name string) (Resource, error)
 
-// providerRegistry contains the registered providers
-var providerRegistry = make(map[string]Provider)
+// ProviderItem type represents a single item from the
+// provider registry
+type RegistryItem struct {
+	// Type name of the provider
+	Type string
 
-// RegisterProvider registers a provider to the registry
-func RegisterProvider(typ string, p Provider) error {
-	_, ok := providerRegistry[typ]
-	if ok {
-		return fmt.Errorf("Provider for '%s' is already registered", typ)
-	}
+	// Provider is the actual resource provider
+	Provider Provider
 
-	providerRegistry[typ] = p
+	// Namespace represents the Lua table that the
+	// provider will be registered in
+	Namespace string
+}
 
-	return nil
+// Register registers a provider to the registry
+func Register(items ...RegistryItem) {
+	providerRegistry = append(providerRegistry, items...)
 }

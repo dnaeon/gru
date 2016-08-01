@@ -21,12 +21,8 @@ func LuaRegisterBuiltin(L *lua.LState) {
 		L.SetGlobal(name, luar.New(L, fn))
 	}
 
-	// The default resource namespace in Lua
-	defaultNamespace := L.NewTable()
-	L.SetGlobal(DefaultNamespace, defaultNamespace)
-
 	// Register resource providers in Lua
-	for typ, provider := range providerRegistry {
+	for _, item := range providerRegistry {
 		// Wrap resource providers, so that we can properly handle any
 		// errors returned by providers during resource instantiation.
 		// Since we don't want to return the error to Lua, this is the
@@ -44,8 +40,16 @@ func LuaRegisterBuiltin(L *lua.LState) {
 			}
 		}
 
+		// Create the resource namespace
+		namespace := L.GetGlobal(item.Namespace)
+		if lua.LVIsFalse(namespace) {
+			namespace = L.NewTable()
+			L.SetGlobal(item.Namespace, namespace)
+		}
+
 		tbl := L.NewTable()
-		tbl.RawSetH(lua.LString("new"), L.NewFunction(wrapper(provider)))
-		L.SetField(defaultNamespace, typ, tbl)
+		tbl.RawSetH(lua.LString("new"), L.NewFunction(wrapper(item.Provider)))
+
+		L.SetField(namespace, item.Type, tbl)
 	}
 }
