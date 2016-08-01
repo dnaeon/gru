@@ -208,6 +208,20 @@ func (c *Catalog) Run() error {
 	close(ch)
 	wg.Wait()
 
+	// Print summary report
+	if !c.config.DryRun {
+		failed := 0
+		successful := 0
+		for _, err := range c.status.items {
+			if err != nil {
+				failed++
+			} else {
+				successful++
+			}
+		}
+		c.config.Logger.Printf("Applied %d resources, %d of which have failed and %d have succeeded\n", len(c.sorted), failed, successful)
+	}
+
 	return nil
 }
 
