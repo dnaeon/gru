@@ -40,3 +40,19 @@ You can run the tests by executing the command below.
 ```bash
 $ make test
 ```
+
+## Shell Completion
+
+You can enable shell autocompletion by sourcing the
+correct file from the [contrib/autocomplete](../contrib/autocomplete)
+directory for your shell.
+
+For instance to enable bash autocompletion on an Arch Linux system,
+you would do.
+
+```bash
+$ sudo cp contrib/autocomplete/bash_autocomplete /usr/share/bash-completion/completions/gructl
+```
+
+Note that you will need to install the `bash-completion`
+package, if you don't have it installed already.
