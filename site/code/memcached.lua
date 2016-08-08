@@ -3,8 +3,8 @@
 --
 
 -- Manage the memcached package
-memcached_pkg = resource.package.new("memcached")
-memcached_pkg.state = "present"
+pkg = resource.package.new("memcached")
+pkg.state = "present"
 
 -- Path to the systemd drop-in unit directory
 systemd_dir = "/etc/systemd/system/memcached.service.d/"
@@ -14,7 +14,7 @@ unit_dir = resource.file.new(systemd_dir)
 unit_dir.state = "present"
 unit_dir.filetype = "directory"
 unit_dir.require = {
-   memcached_pkg:ID(),
+   pkg:ID(),
 }
 
 -- Manage the systemd drop-in unit
@@ -33,13 +33,13 @@ systemd_reload.require = {
 }
 
 -- Manage the memcached service
-memcached_svc = resource.service.new("memcached")
-memcached_svc.state = "running"
-memcached_svc.enable = true
-memcached_svc.require = {
-   memcached_pkg:ID(),
+svc = resource.service.new("memcached")
+svc.state = "running"
+svc.enable = true
+svc.require = {
+   pkg:ID(),
    unit_file:ID(),
 }
 
 -- Finally, register the resources to the catalog
-catalog:add(memcached_pkg, unit_dir, unit_file, systemd_reload, memcached_svc)
+catalog:add(pkg, unit_dir, unit_file, systemd_reload, svc)

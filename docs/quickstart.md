@@ -66,8 +66,8 @@ our first resource.
 
 ```lua
 -- Manage the memcached package
-memcached_pkg = resource.package.new("memcached")
-memcached_pkg.state = "present"
+pkg = resource.package.new("memcached")
+pkg.state = "present"
 ```
 
 What we do in the above Lua code is to instantiate a new
@@ -75,7 +75,7 @@ What we do in the above Lua code is to instantiate a new
 by calling the `resource.package.new()` constructor. Each resource has a `new`
 constructor, which accepts one argument - the *resource name*.
 
-The created resource is returned and assigned to the `memcached_pkg`
+The created resource is returned and assigned to the `pkg`
 variable, which we can use to modify resource attributes and also
 register the resource to the catalog, as we will do a bit later.
 
@@ -99,7 +99,7 @@ unit_dir = resource.file.new(systemd_dir)
 unit_dir.state = "present"
 unit_dir.filetype = "directory"
 unit_dir.require = {
-   memcached_pkg:ID(),
+   pkg:ID(),
 }
 ```
 
@@ -165,11 +165,11 @@ service.
 
 ```lua
 -- Manage the memcached service
-memcached_svc = resource.service.new("memcached")
-memcached_svc.state = "running"
-memcached_svc.enable = true
-memcached_svc.require = {
-   memcached_pkg:ID(),
+svc = resource.service.new("memcached")
+svc.state = "running"
+svc.enable = true
+svc.require = {
+   pkg:ID(),
    unit_file:ID(),
 }
 ```
@@ -179,7 +179,7 @@ resources to the catalog, so the next Lua chunk does that.
 
 ```lua
 -- Finally, register the resources to the catalog
-catalog:add(memcached_pkg, unit_dir, unit_file, systemd_reload, memcached_svc)
+catalog:add(pkg, unit_dir, unit_file, systemd_reload, svc)
 ```
 
 With all that we have now created our first module, which should
