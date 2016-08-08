@@ -63,7 +63,9 @@ func execGraphCommand(c *cli.Context) error {
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
+
 	g.AsDot("resources", os.Stdout)
+	g.Reversed().AsDot("reversed", os.Stdout)
 
 	sorted, err := g.Sort()
 	if err == graph.ErrCircularDependency {
