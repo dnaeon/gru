@@ -15,7 +15,7 @@ import (
 func NewGraphCommand() cli.Command {
 	cmd := cli.Command{
 		Name:   "graph",
-		Usage:  "create DOT representation of resources",
+		Usage:  "generate graph representation of resources",
 		Action: execGraphCommand,
 		Flags: []cli.Flag{
 			cli.StringFlag{
@@ -59,17 +59,17 @@ func execGraphCommand(c *cli.Context) error {
 		return cli.NewExitError(err.Error(), 1)
 	}
 
-	collectionGraph, err := collection.DependencyGraph()
+	g, err := collection.DependencyGraph()
 	if err != nil {
 		return cli.NewExitError(err.Error(), 1)
 	}
-	collectionGraph.AsDot("resources", os.Stdout)
+	g.AsDot("resources", os.Stdout)
 
-	collectionSorted, err := collectionGraph.Sort()
+	sorted, err := g.Sort()
 	if err == graph.ErrCircularDependency {
 		circular := graph.New()
-		circular.AddNode(collectionSorted...)
-		circular.AsDot("resources_circular", os.Stdout)
+		circular.AddNode(sorted...)
+		circular.AsDot("circular", os.Stdout)
 		return cli.NewExitError(graph.ErrCircularDependency.Error(), 1)
 	}
 
