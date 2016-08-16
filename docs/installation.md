@@ -1,15 +1,6 @@
 ## Installation
 
-Gru is being built and tested against Golang tip. You will need
-Golang tip in order to build and run Gru.
-
-The easiest way to get the tip version of Golang is by using
-[gimme](https://github.com/travis-ci/gimme), e.g.
-
-```bash
-$ gimme tip
-$ source ~/.gimme/envs/gotip.env
-```
+In order to build Gru you will need Go version 1.7 or later.
 
 [etcd](https://github.com/coreos/etcd) is used for discovery of
 minions and communication between the minions and clients, so before
