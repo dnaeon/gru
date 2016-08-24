@@ -1,3 +1,31 @@
+## 0.4.0 (August 24, 2016)
+
+* Use Go 1.7 as the default stable version used for building and testing
+* Added support for concurrent resource processing (!)
+* Suitable resources are now scheduled for concurrent execution
+* Created [Gitter channel for Gru](https://gitter.im/dnaeon/gru)
+* Created [Codewake channel for Gru](https://www.codewake.com/p/gru)
+* Resources can define their own custom `present` and `absent` states
+* Added new required methods for `Resource` interface -
+  `Validate()`, `IsConcurrent()`, `GetPresentStates()` and `GetAbsentStates()`
+* Renamed `Resource.BaseResource` type as `Resource.Base`
+* Initial implementation of `utils.List` and `utils.String` types used to
+  provide membership test operations
+* The `Update` field of `resource.State` type been renamed to `Outdated`
+* Resource processing logic has been simplified in the `catalog` package
+* Added tests for the `catalog` package
+* Support only direct dependencies by using `require` - `before` and `after` are gone
+* Display status of applied resource after a catalog run
+* During a catalog run resources which have failed dependencies are now skipped
+* `Catalog.Add()` registeres only non-nil resources
+* Added `Mute` field to `resource.Shell` type, which suppresses output from shell commands
+* Be able to set concurrency level when applying configuration with `gructl apply` and `gructl serve`
+* Implemented `Reversed()` method on `graph.Graph` type
+* Added support for shell autocompletion
+* Added support for resource namespaces in Lua
+* `gructl graph` now generates the reversed graph of resources as well
+* Updated documentation
+
 ## 0.3.0 (July 11, 2016)
 
 * [Lua](https://www.lua.org/) has been integrated as the DSL language used by Gru.
