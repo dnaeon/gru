@@ -16,6 +16,18 @@ You can find the latest documentation [here](docs/).
 
 The API documentation is available [here](https://godoc.org/github.com/dnaeon/gru).
 
+## Features
+
+* Written in fast, compiled language - [Go](https://golang.org/)
+* Uses a fast, lightweight, embeddable, scripting
+  language as the DSL - [Lua](https://www.lua.org/)
+* Concurrent execution of idempotent operations
+* Distributed - using [etcd](https://github.com/coreos/etcd) for node
+  discovery and communication and
+  [Git](https://git-scm.com/) for version control and data sync
+* Easy to deploy - comes with a single, statically linked binary
+* Suitable for orchestration and configuration management
+
 ## Status
 
 Gru is in constant development. Consider the API unstable as
@@ -31,3 +43,17 @@ sending patches using pull requests.
 
 Gru is Open Source and licensed under the
 [BSD License](http://opensource.org/licenses/BSD-2-Clause).
+
+## References
+
+References to articles related to this project in one way or another.
+
+* [Extending Lua with Go types](http://dnaeon.github.io/extending-lua-with-go-types/)
+* [Choosing Lua as the data description and configuration language](http://dnaeon.github.io/choosing-lua-as-the-ddl-and-config-language/)
+* [Creating an orchestration framework in Go](http://dnaeon.github.io/gru-orchestration-framework/)
+* [Dependency graph resolution algorithm in Go](http://dnaeon.github.io/dependency-graph-resolution-algorithm-in-go/)
+* [Orchestration made easy with Gru v0.2.0](http://dnaeon.github.io/orchestration-made-easy-with-gru-v0.2.0/)
+* [Membership test in Go](http://dnaeon.github.io/membership-test-in-go/)
+* [Testing HTTP interactions in Go](http://dnaeon.github.io/testing-http-interactions-in-go/)
+* [Concurrent map and slice types in Go](http://dnaeon.github.io/concurrent-maps-and-slices-in-go/)
+* [Lua as a Configuration And Data Exchange Language](https://www.netbsd.org/~mbalmer/lua/lua_config.pdf)
