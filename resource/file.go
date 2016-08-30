@@ -41,7 +41,7 @@ type outdatedFile struct {
 // Example:
 //   foo = resource.file.new("/tmp/foo")
 //   foo.state = "present"
-//   foo.mode = 0600
+//   foo.mode = tonumber("0600", 8)
 //
 // Example:
 //   bar = resource.file.new("/tmp/bar")
