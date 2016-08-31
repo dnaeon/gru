@@ -26,5 +26,8 @@ _testmain.go
 # Ignore Emacs backup files
 *~
 
+# Vim swap files
+*.swp
+
 # Ignore Golang vendor packages
 vendor/
