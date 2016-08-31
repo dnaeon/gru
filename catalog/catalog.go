@@ -191,11 +191,11 @@ func (c *Catalog) Run() error {
 	for _, node := range c.sorted {
 		r := c.collection[node.Name]
 		switch {
-		// Resource is concurrent and has no dependencies
-		case r.IsConcurrent() && len(r.Dependencies()) == 0:
+		// Resource is concurrent and has no forward or reverse dependencies
+		case r.IsConcurrent() && len(r.Dependencies()) == 0 && len(c.reversed.Nodes[r.ID()].Edges) == 0:
 			ch <- r
 			continue
-		// Resource is concurrent and have no reverse dependencies
+		// Resource is concurrent and has no reverse dependencies
 		case r.IsConcurrent() && len(c.reversed.Nodes[r.ID()].Edges) == 0:
 			ch <- r
 			continue
