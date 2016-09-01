@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"path"
@@ -15,7 +16,6 @@ import (
 
 	etcdclient "github.com/coreos/etcd/client"
 	"github.com/pborman/uuid"
-	"golang.org/x/net/context"
 )
 
 // Max number of concurrent requests to be

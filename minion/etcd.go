@@ -2,6 +2,7 @@ package minion
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -22,7 +23,6 @@ import (
 
 	etcdclient "github.com/coreos/etcd/client"
 	"github.com/pborman/uuid"
-	"golang.org/x/net/context"
 )
 
 // ErrNoSiteRepo is returned when the minion is not configured with a site repo
