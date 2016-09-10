@@ -27,7 +27,7 @@ type Service struct {
 }
 
 // NewService creates a new resource for managing services
-// using systemd on a GNU/Linux system
+// on a FreeBSD system.
 func NewService(name string) (Resource, error) {
 	s := &Service{
 		Base: Base{
@@ -46,6 +46,7 @@ func NewService(name string) (Resource, error) {
 	return s, nil
 }
 
+// IsEnabled returns true if service is set to start at boot.
 func (s *Service) isEnabled() bool {
 	if err := exec.Command("service", s.Name, "enabled").Run(); err != nil {
 		return false
@@ -77,17 +78,17 @@ func (s *Service) Evaluate() (State, error) {
 	return state, nil
 }
 
-// Create starts the service unit
+// Create starts the service.
 func (s *Service) Create() error {
 	return exec.Command("service", s.Name, "onestart").Run()
 }
 
-// Delete stops the service unit
+// Delete stops the service.
 func (s *Service) Delete() error {
 	return exec.Command("service", s.Name, "onestop").Run()
 }
 
-// Update updates the service unit state
+// Update updates the service's rcvar.
 func (s *Service) Update() error {
 	if s.RCVar == "" {
 		return nil
