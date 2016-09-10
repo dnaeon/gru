@@ -124,6 +124,7 @@ func NewPackage(name string) (Resource, error) {
 		"/etc/arch-release":   NewPacman,
 		"/etc/centos-release": NewYum,
 		"/etc/redhat-release": NewYum,
+		"/usr/local/sbin/pkg": NewPkgNG,
 	}
 
 	// Do our best to determine the proper provider
@@ -210,6 +211,44 @@ func NewYum(name string) (Resource, error) {
 	return y, nil
 }
 
+// PkgNG type represents the resource for package management on
+// FreeBSD 9.2+ and DragonflyBSD 4.3+ systems.
+//
+// Pkg is not automatically bootstrapped - resource will fail,
+// if pkg is not installed.
+//
+// Example:
+//   pkg = resource.pkgng.new("mc")
+//   pkg.state = "installed"
+type PkgNG struct {
+	BasePackage
+}
+
+// NewPkgNG creates a new resource for managing packages.
+func NewPkgNG(name string) (Resource, error) {
+	p := &PkgNG{
+		BasePackage: BasePackage{
+			Base: Base{
+				Name:          name,
+				Type:          "package",
+				State:         "installed",
+				Require:       make([]string, 0),
+				PresentStates: []string{"present", "installed"},
+				AbsentStates:  []string{"absent", "deinstalled"},
+				Concurrent:    false,
+			},
+			Package:       name,
+			manager:       "/usr/local/sbin/pkg",
+			queryArgs:     []string{"info", "-e"},
+			installArgs:   []string{"install", "-y"},
+			deinstallArgs: []string{"remove", "-y"},
+			updateArgs:    []string{"upgrade", "-y"},
+		},
+	}
+
+	return p, nil
+}
+
 func init() {
 	pkg := RegistryItem{
 		Type:      "package",
@@ -227,5 +266,11 @@ func init() {
 		Namespace: DefaultNamespace,
 	}
 
-	Register(pkg, yum, pacman)
+	pkgng := RegistryItem{
+		Type:      "pkgng",
+		Provider:  NewPkgNG,
+		Namespace: DefaultNamespace,
+	}
+
+	Register(pkg, yum, pacman, pkgng)
 }
