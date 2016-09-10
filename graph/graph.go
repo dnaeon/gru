@@ -114,11 +114,11 @@ func (g *Graph) Sort() ([]*Node, error) {
 // AsDot generates a DOT representation for the graph
 // https://en.wikipedia.org/wiki/DOT_(graph_description_language)
 func (g *Graph) AsDot(name string, w io.Writer) {
-	w.Write([]byte(fmt.Sprintf("digraph %s {\n", name)))
-	w.Write([]byte(fmt.Sprintf("\tlabel = %q;\n", name)))
-	w.Write([]byte("\tnodesep=1.0;\n"))
-	w.Write([]byte("\tnode [shape=box];\n"))
-	w.Write([]byte("\tedge [style=filled];\n"))
+	fmt.Fprintf(w, "digraph %s {\n", name)
+	fmt.Fprintf(w, "\tlabel = %q;\n", name)
+	fmt.Fprintf(w, "\tnodesep=1.0;\n")
+	fmt.Fprintf(w, "\tnode [shape=box];\n")
+	fmt.Fprintf(w, "\tedge [style=filled];\n")
 
 	for _, node := range g.Nodes {
 		var edges []string
@@ -127,13 +127,13 @@ func (g *Graph) AsDot(name string, w io.Writer) {
 		}
 
 		if len(edges) > 0 {
-			w.Write([]byte(fmt.Sprintf("\t%q -> {%s};\n", node.Name, strings.Join(edges, " "))))
+			fmt.Fprintf(w, "\t%q -> {%s};\n", node.Name, strings.Join(edges, " "))
 		} else {
-			w.Write([]byte(fmt.Sprintf("\t%q;\n", node.Name)))
+			fmt.Fprintf(w, "\t%q;\n", node.Name)
 		}
 	}
 
-	w.Write([]byte("}\n"))
+	fmt.Fprintf(w, "}\n")
 }
 
 // Reversed creates the reversed representation of the graph
