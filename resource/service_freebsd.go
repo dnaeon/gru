@@ -8,7 +8,7 @@ import (
 )
 
 // Service type is a resource which manages services on a
-// FreeBSD.
+// FreeBSD system.
 //
 // Example:
 //   svc = resource.service.new("nginx")
@@ -46,7 +46,7 @@ func NewService(name string) (Resource, error) {
 	return s, nil
 }
 
-// IsEnabled returns true if service is set to start at boot.
+// isEnabled returns true if service is set to start at boot.
 func (s *Service) isEnabled() bool {
 	if err := exec.Command("service", s.Name, "enabled").Run(); err != nil {
 		return false
