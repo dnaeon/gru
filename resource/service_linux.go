@@ -141,14 +141,15 @@ func (s *Service) setUnitState() error {
 		return err
 	}
 
+	var action func() error
 	if s.Enable && !enabled {
-		if err := s.enableUnit(); err != nil {
-			return err
-		}
+		action = s.enableUnit
 	} else {
-		if err := s.disableUnit(); err != nil {
-			return err
-		}
+		action = s.disableUnit
+	}
+
+	if err := action(); err != nil {
+		return err
 	}
 
 	return s.daemonReload()
