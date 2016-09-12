@@ -9,6 +9,12 @@ import (
 	"github.com/dnaeon/gru/utils"
 )
 
+// ErrInvalidType error is returned when a resource type is invalid
+var ErrInvalidType = errors.New("Invalid resource type")
+
+// ErrInvalidName error is returned when a resource name is invalid
+var ErrInvalidName = errors.New("Invalid resource name")
+
 // State type represents the current and wanted states of a resource
 type State struct {
 	// Current state of the resource
@@ -123,11 +129,11 @@ func (b *Base) ID() string {
 // Validate validates the resource
 func (b *Base) Validate() error {
 	if b.Type == "" {
-		return errors.New("Invalid resource type")
+		return ErrInvalidType
 	}
 
 	if b.Name == "" {
-		return errors.New("Invalid resource name")
+		return ErrInvalidName
 	}
 
 	states := append(b.PresentStates, b.AbsentStates...)
