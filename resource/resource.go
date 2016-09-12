@@ -15,6 +15,11 @@ var ErrInvalidType = errors.New("Invalid resource type")
 // ErrInvalidName error is returned when a resource name is invalid
 var ErrInvalidName = errors.New("Invalid resource name")
 
+// ErrNotImplemented error is returned when a resource does not
+// implement specific functionality, e.g. the resource is not
+// applicable for a refresh.
+var ErrNotImplemented = errors.New("Not implemented")
+
 // State type represents the current and wanted states of a resource
 type State struct {
 	// Current state of the resource
