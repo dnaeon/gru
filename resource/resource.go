@@ -20,6 +20,9 @@ var ErrInvalidName = errors.New("Invalid resource name")
 // applicable for a refresh.
 var ErrNotImplemented = errors.New("Not implemented")
 
+// ErrInSync error is returned when a resource is in the desired state
+var ErrInSync = errors.New("Resource is in sync")
+
 // State type represents the current and wanted states of a resource
 type State struct {
 	// Current state of the resource
