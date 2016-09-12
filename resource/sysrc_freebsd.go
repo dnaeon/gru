@@ -69,23 +69,24 @@ func (s *SysRC) Evaluate() (State, error) {
 	return state, nil
 }
 
-// Create starts the service.
+// Create adds variable to rc.conf.
 func (s *SysRC) Create() error {
 	return exec.Command("sysrc", s.Name, s.Value).Run()
 }
 
-// Delete stops the service.
+// Delete removes variable from rc.conf.
 func (s *SysRC) Delete() error {
 	return exec.Command("sysrc", "-x", s.Value).Run()
 }
 
-// Update updates the service's rcvar.
+// Update sets variable in rc.conf to s.Value.
 func (s *SysRC) Update() error {
 	return exec.Command("sysrc", s.Name, s.Value).Run()
 }
 
 var sysRCre = regexp.MustCompile("(.*): (.*)")
 
+// ParseSysRCOutput parses output from sysrc command.
 func parseSysRCOutput(out string) (k, v string, err error) {
 	m := sysRCre.FindStringSubmatch(out)
 	if m == nil {
