@@ -166,7 +166,7 @@ func (c *Catalog) Run() error {
 		id := r.ID()
 		err := c.execute(r)
 		c.status.set(id, err)
-		if err != nil {
+		if err != nil && err != resource.ErrInSync {
 			c.config.Logger.Printf("%s %s\n", id, err)
 		}
 	}
