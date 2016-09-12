@@ -210,16 +210,18 @@ func (c *Catalog) Run() error {
 
 	// Print summary report
 	if !c.config.DryRun {
-		failed := 0
-		successful := 0
+		var changed, failed, uptodate int
 		for _, err := range c.status.items {
-			if err != nil {
+			switch err {
+			case nil:
+				changed++
+			case resource.ErrInSync:
+				uptodate++
+			default:
 				failed++
-			} else {
-				successful++
 			}
 		}
-		c.config.Logger.Printf("Applied %d resources, %d of which have failed and %d have succeeded\n", len(c.sorted), failed, successful)
+		c.config.Logger.Printf("Resource summary is %d up-to-date, %d changed, %d failed\n", uptodate, changed, failed)
 	}
 
 	return nil
