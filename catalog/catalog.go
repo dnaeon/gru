@@ -267,13 +267,11 @@ func (c *Catalog) execute(r resource.Resource) error {
 	case state.Outdated:
 		action = r.Update
 		c.config.Logger.Printf("%s is out of date\n", id)
+	default:
+		return resource.ErrInSync
 	}
 
-	if action != nil {
-		return action()
-	}
-
-	return nil
+	return action()
 }
 
 // luaLen returns the number of unsorted resources in catalog.
