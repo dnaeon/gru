@@ -101,14 +101,11 @@ func (s *Service) Update() error {
 	rcValue := "YES"
 	if !s.Enable {
 		rcValue = "NO"
-		if s.RCVar == "sendmail_enable" {
-			// I think sendmail is the only service, that requires NONE to be disabled.
-			rcValue = "NONE"
-		}
 	}
 
-	// TODO: rcvar should probably be deleted from rc.conf, when disabling service (except for sendmail).
-	// Currently we set it to NO.
+	// TODO: rcvar should probably be deleted from rc.conf, when disabling service.
+	// Compare default value (sysrc -D) with requested (rcValue) and if they match, delete rcvar.
+	// Currently we just set it to NO.
 	return exec.Command("sysrc", fmt.Sprintf(`%s="%s"`, s.RCVar, rcValue)).Run()
 }
 
