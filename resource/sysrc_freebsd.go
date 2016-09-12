@@ -26,7 +26,7 @@ func NewSysRC(name string) (Resource, error) {
 		Base: Base{
 			Name:          name,
 			Type:          "sysrc",
-			State:         "absent",
+			State:         "present",
 			Require:       make([]string, 0),
 			PresentStates: []string{"present"},
 			AbsentStates:  []string{"absent"},
