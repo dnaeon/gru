@@ -84,6 +84,15 @@ func (s *status) get(id string) (error, bool) {
 	return err, ok
 }
 
+// hasFailed returns a boolean indicating whether a
+// resource has failed during processing
+func (s *status) hasFailed(id string) bool {
+	s.Lock()
+	defer s.Unlock()
+
+	return s.items[id] != nil && s.items[id] != resource.ErrInSync
+}
+
 // New creates a new empty catalog with the provided configuration
 func New(config *Config) *Catalog {
 	c := &Catalog{
