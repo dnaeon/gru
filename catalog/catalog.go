@@ -93,6 +93,15 @@ func (s *status) isSynced(id string) bool {
 	return s.items[id] == resource.ErrInSync
 }
 
+// hasChanged returns a boolean indicating whether a
+// resource state has changed after processing
+func (s *state) hasChanged(id string) bool {
+	s.Lock()
+	defer s.Unlock()
+
+	return s.items[id] == nil
+}
+
 // hasFailed returns a boolean indicating whether a
 // resource has failed during processing
 func (s *status) hasFailed(id string) bool {
