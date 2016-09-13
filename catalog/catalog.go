@@ -95,7 +95,7 @@ func (s *status) isSynced(id string) bool {
 
 // hasChanged returns a boolean indicating whether a
 // resource state has changed after processing
-func (s *state) hasChanged(id string) bool {
+func (s *status) hasChanged(id string) bool {
 	s.Lock()
 	defer s.Unlock()
 
