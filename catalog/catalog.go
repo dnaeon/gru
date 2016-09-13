@@ -312,7 +312,7 @@ func (c *Catalog) execute(r resource.Resource) error {
 // monitored resource if it's state has changed
 func (c *Catalog) runTriggers(r resource.Resource) {
 	for subscribed, trigger := range r.SubscribedTo() {
-		if c.status.hasFailed(subscribed) {
+		if !c.status.hasChanged(subscribed) {
 			continue
 		}
 
