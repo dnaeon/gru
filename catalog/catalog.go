@@ -84,6 +84,15 @@ func (s *status) get(id string) (error, bool) {
 	return err, ok
 }
 
+// isSynced returns a boolean indicating whether a
+// resource is up to date
+func (s *status) isSynced(id string) bool {
+	s.Lock()
+	defer s.Unlock()
+
+	return s.items[id] == resource.ErrInSync
+}
+
 // hasFailed returns a boolean indicating whether a
 // resource has failed during processing
 func (s *status) hasFailed(id string) bool {
