@@ -297,6 +297,7 @@ func (c *Catalog) execute(r resource.Resource) error {
 		action = r.Update
 		c.config.Logger.Printf("%s is out of date\n", id)
 	default:
+		c.config.Logger.Printf("%s is up to date\n", id)
 		return resource.ErrInSync
 	}
 
