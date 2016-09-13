@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/dnaeon/gru/utils"
+	"github.com/yuin/gopher-lua"
 )
 
 // ErrInvalidType error is returned when a resource type is invalid
@@ -75,6 +76,12 @@ type Resource interface {
 
 	// Log logs events
 	Log(format string, a ...interface{})
+
+	// SubscribedTo returns a map of the resource ids for which the
+	// current resource subscribes for changes to. The keys of the
+	// map are resource ids and their values are the functions to be
+	// executed if the resource state changes.
+	SubscribedTo() map[string]*lua.LFunction
 }
 
 // Config type contains various settings used by the resources
@@ -127,6 +134,16 @@ type Base struct {
 	// Concurrent flag indicates whether multiple instances of the
 	// same resource type can be processed concurrently.
 	Concurrent bool `luar:"-"`
+
+	// Subscribe is map whose keys are resource ids that the
+	// current resource monitors for changes and the values are
+	// functions that will be executed if the monitored
+	// resource state has changed.
+	// Subscribing to changes in other resources also automatically
+	// creates an edge in the dependency graph pointing from the
+	// current resource to the one that is being monitored, so that the
+	// monitored resource is evaluated and processed first.
+	Subscribe map[string]*lua.LFunction `luar:"subscribe"`
 }
 
 // ID returns the unique resource id
@@ -181,4 +198,10 @@ func (b *Base) Log(format string, a ...interface{}) {
 // processed concurrently.
 func (b *Base) IsConcurrent() bool {
 	return b.Concurrent
+}
+
+// SubscribedTo returns a map of resources for which the
+// resource is subscribed for changes to.
+func (b *Base) SubscribedTo() map[string]*lua.LFunction {
+	return b.Subscribe
 }
