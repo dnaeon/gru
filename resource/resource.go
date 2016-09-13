@@ -28,6 +28,11 @@ var ErrInSync = errors.New("Resource is in sync")
 // resource ids for which a resource subscribes for changes to.
 // The keys of the map are Lua functions that would be executed
 // when the resource state has changed.
+//
+// TODO: Improve type in a way to subscribe for
+//       different kinds of changes, e.g. whether a
+//       resource has been created, deleted or updated.
+//
 type TriggerMap map[string]*lua.LFunction
 
 // State type represents the current and wanted states of a resource
