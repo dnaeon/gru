@@ -107,7 +107,7 @@ func NewFile(name string) (Resource, error) {
 			PresentStates: []string{"present"},
 			AbsentStates:  []string{"absent"},
 			Concurrent:    true,
-			Subscribe:     make(map[string]Trigger),
+			Subscribe:     make(TriggerMap),
 		},
 		Path:      name,
 		Mode:      0644,

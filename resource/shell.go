@@ -48,7 +48,7 @@ func NewShell(name string) (Resource, error) {
 			PresentStates: []string{"present"},
 			AbsentStates:  []string{"absent"},
 			Concurrent:    true,
-			Subscribe:     make(map[string]Trigger),
+			Subscribe:     make(TriggerMap),
 		},
 		Command: name,
 		Creates: "",

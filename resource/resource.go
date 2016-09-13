@@ -24,9 +24,11 @@ var ErrNotImplemented = errors.New("Not implemented")
 // ErrInSync error is returned when a resource is in the desired state
 var ErrInSync = errors.New("Resource is in sync")
 
-// Trigger type represents a Lua function that is
-// called when a resource state has changed.
-type Trigger *lua.LFunction
+// TriggerMap type is a map type which keys are
+// resource ids for which a resource subscribes for changes to.
+// The keys of the map are Lua functions that would be executed
+// when the resource state has changed.
+type TriggerMap map[string]*lua.LFunction
 
 // State type represents the current and wanted states of a resource
 type State struct {
@@ -85,7 +87,7 @@ type Resource interface {
 	// current resource subscribes for changes to. The keys of the
 	// map are resource ids and their values are the functions to be
 	// executed if the resource state changes.
-	SubscribedTo() map[string]Trigger
+	SubscribedTo() TriggerMap
 }
 
 // Config type contains various settings used by the resources
@@ -206,6 +208,6 @@ func (b *Base) IsConcurrent() bool {
 
 // SubscribedTo returns a map of resources for which the
 // resource is subscribed for changes to.
-func (b *Base) SubscribedTo() map[string]*lua.LFunction {
+func (b *Base) SubscribedTo() TriggerMap {
 	return b.Subscribe
 }

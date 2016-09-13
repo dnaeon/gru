@@ -47,7 +47,7 @@ func NewService(name string) (Resource, error) {
 			PresentStates: []string{"present", "running"},
 			AbsentStates:  []string{"absent", "stopped"},
 			Concurrent:    true,
-			Subscribe:     make(map[string]Trigger),
+			Subscribe:     make(TriggerMap),
 		},
 		Enable: true,
 		unit:   fmt.Sprintf("%s.service", name),
