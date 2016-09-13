@@ -193,7 +193,7 @@ func (c *Catalog) Run() error {
 		id := r.ID()
 		err := c.execute(r)
 		c.status.set(id, err)
-		if err != nil && err != resource.ErrInSync {
+		if c.status.hasFailed(id) {
 			c.config.Logger.Printf("%s %s\n", id, err)
 		}
 	}
@@ -258,7 +258,7 @@ func (c *Catalog) Run() error {
 func (c *Catalog) execute(r resource.Resource) error {
 	// Check if the resource has failed dependencies
 	for _, dep := range r.Dependencies() {
-		if err, _ := c.status.get(dep); err != nil {
+		if c.status.hasFailed(dep) {
 			return fmt.Errorf("failed dependency for %s", dep)
 		}
 	}
