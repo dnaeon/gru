@@ -38,6 +38,7 @@ func NewService(name string) (Resource, error) {
 			PresentStates: []string{"present", "running"},
 			AbsentStates:  []string{"absent", "stopped"},
 			Concurrent:    false,
+			Subscribe:     make(map[string]Trigger),
 		},
 		Enable: true,
 		RCVar:  fmt.Sprintf("%v_enable", name),

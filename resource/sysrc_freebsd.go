@@ -31,6 +31,7 @@ func NewSysRC(name string) (Resource, error) {
 			PresentStates: []string{"present"},
 			AbsentStates:  []string{"absent"},
 			Concurrent:    false,
+			Subscribe:     make(map[string]Trigger),
 		},
 	}
 
