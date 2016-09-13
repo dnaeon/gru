@@ -239,6 +239,7 @@ func (c *Catalog) Run() error {
 
 	// Print summary report
 	if !c.config.DryRun {
+		c.status.Lock()
 		var changed, failed, uptodate int
 		for _, err := range c.status.items {
 			switch err {
@@ -251,6 +252,7 @@ func (c *Catalog) Run() error {
 			}
 		}
 		c.config.Logger.Printf("Resource summary is %d up-to-date, %d changed, %d failed\n", uptodate, changed, failed)
+		c.status.Unlock()
 	}
 
 	return nil
