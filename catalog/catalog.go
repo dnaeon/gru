@@ -195,7 +195,9 @@ func (c *Catalog) Run() error {
 		c.status.set(id, err)
 		if c.status.hasFailed(id) {
 			c.config.Logger.Printf("%s %s\n", id, err)
+			return
 		}
+		c.runTriggers(r)
 	}
 
 	// Start goroutines for concurrent processing
