@@ -39,9 +39,20 @@ func (c Collection) DependencyGraph() (*graph.Graph, error) {
 
 	// Connect the nodes in the graph
 	for id, r := range c {
+		// Create edges between the nodes and the ones
+		// required by it
 		for _, dep := range r.Dependencies() {
 			if _, ok := c[dep]; !ok {
 				return g, fmt.Errorf("%s wants %s, which does not exist", id, dep)
+			}
+			g.AddEdge(nodes[id], nodes[dep])
+		}
+
+		// Create edges between the nodes and the resources for
+		// which we subscribe for changes to
+		for dep, _ := range r.SubscribedTo() {
+			if _, ok := c[dep]; !ok {
+				return g, fmt.Errorf("%s subscribes to %s, which does not exist", id, dep)
 			}
 			g.AddEdge(nodes[id], nodes[dep])
 		}
