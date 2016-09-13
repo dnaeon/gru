@@ -304,6 +304,22 @@ func (c *Catalog) execute(r resource.Resource) error {
 	return action()
 }
 
+// runTriggers executes the triggers for each
+// monitored resource if it's state has changed
+func (c *Catalog) runTriggers(r resource.Resource) {
+	for subscribed, trigger := range r.SubscribedTo() {
+		if c.status.hasFailed(subscribed) {
+			continue
+		}
+
+		c.config.Logger.Printf("%s running trigger, because %s has changed\n", r.ID(), subscribed)
+		c.config.L.Push(trigger)
+		if err := c.config.L.PCall(0, 0, nil); err != nil {
+			c.config.Logger.Printf("%s trigger exited with an error: %s\n", r.ID(), err)
+		}
+	}
+}
+
 // luaLen returns the number of unsorted resources in catalog.
 // This method is called from Lua.
 func (c *Catalog) luaLen() int {
