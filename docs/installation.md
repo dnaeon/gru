@@ -1,11 +1,25 @@
 ## Installation
 
-In order to build Gru you will need Go version 1.7 or later.
+In order to build Gru you need Go version 1.7 or later.
+
+Building Gru is as easy as executing the commands below.
+
+```bash
+$ git clone https://github.com/dnaeon/gru
+$ cd gru
+$ make
+```
+
+## Optional requirements
+
+The optional requirements listed below are needed if you need to
+orchestrate remote systems. They are not required if you use Gru in
+stand-alone mode.
 
 [etcd](https://github.com/coreos/etcd) is used for discovery of
-minions and communication between the minions and clients, so before
-you can use Gru you need to make sure that you have `etcd` up and
-running.
+minions and communication between the minions and clients, so
+in order to orchestrate remote minions you need to make sure that you
+have `etcd` up and running, so that remote minions can connect to it.
 
 For more information about installing and configuring
 [etcd](https://github.com/coreos/etcd), please refer to the
@@ -14,23 +28,6 @@ For more information about installing and configuring
 [Git](https://git-scm.com/) is used for syncing code and data
 files to the remote minions, so make sure that you have Git
 installed as well.
-
-Once you've got all requirements installed, installing Gru is as
-easy as executing these commands below.
-
-```bash
-$ git clone https://github.com/dnaeon/gru
-$ cd gru
-$ make
-```
-
-## Tests
-
-You can run the tests by executing the command below.
-
-```bash
-$ make test
-```
 
 ## Shell Completion
 
@@ -47,3 +44,11 @@ $ sudo cp contrib/autocomplete/bash_autocomplete /usr/share/bash-completion/comp
 
 Note that you will need to install the `bash-completion`
 package, if you don't have it installed already.
+
+## Tests
+
+You can run the tests by executing the command below.
+
+```bash
+$ make test
+```
