@@ -1,7 +1,7 @@
 PREFIX := /usr/local
 
 build: get
-	go build -o bin/gructl -v
+	go build -ldflags="-s -w" -o bin/gructl -v
 
 get:
 	go get -v -t -d ./...
