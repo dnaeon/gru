@@ -168,3 +168,17 @@ func (d *Datacenter) Evaluate() (State, error) {
 
 	return s, nil
 }
+
+// Create creates a new datacenter
+func (d *Datacenter) Create() error {
+	d.Log("Creating datacenter\n")
+
+	folder, err := d.finder.FolderOrDefault(d.ctx, d.Folder)
+	if err != nil {
+		return err
+	}
+
+	_, err = folder.CreateDatacenter(d.ctx, d.Name)
+
+	return err
+}
