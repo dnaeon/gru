@@ -117,3 +117,29 @@ func (bv *BaseVSphere) Close() error {
 type Datacenter struct {
 	BaseVSphere
 }
+
+// NewDatacenter creates a new resource for managing datacenters in a
+// VMware vSphere environment.
+func NewDatacenter(name string) (Resource, error) {
+	d := &Datacenter{
+		BaseVSphere: BaseVSphere{
+			Base: Base{
+				Name:          name,
+				Type:          "datacenter",
+				State:         "present",
+				Require:       make([]string, 0),
+				PresentStates: []string{"present"},
+				AbsentStates:  []string{"absent"},
+				Concurrent:    true,
+				Subscribe:     make(TriggerMap),
+			},
+			Username: "",
+			Password: "",
+			Endpoint: "",
+			Insecure: false,
+			Folder:   "/",
+		},
+	}
+
+	return d, nil
+}
