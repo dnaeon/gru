@@ -199,3 +199,8 @@ func (d *Datacenter) Delete() error {
 
 	return task.Wait(d.ctx)
 }
+
+// Update is no-op
+func (d *Datacenter) Update() error {
+	return nil
+}
