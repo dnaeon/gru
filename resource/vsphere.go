@@ -182,3 +182,20 @@ func (d *Datacenter) Create() error {
 
 	return err
 }
+
+// Delete removes the datacenter
+func (d *Datacenter) Delete() error {
+	d.Log("Removing datacenter\n")
+
+	dc, err := d.finder.Datacenter(d.ctx, d.Name)
+	if err != nil {
+		return err
+	}
+
+	task, err := dc.Destroy(d.ctx)
+	if err != nil {
+		return err
+	}
+
+	return task.Wait(d.ctx)
+}
