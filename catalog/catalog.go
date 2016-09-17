@@ -271,6 +271,11 @@ func (c *Catalog) execute(r resource.Resource) error {
 		return err
 	}
 
+	if err := r.Initialize(); err != nil {
+		return err
+	}
+	defer r.Close()
+
 	state, err := r.Evaluate()
 	if err != nil {
 		return err
