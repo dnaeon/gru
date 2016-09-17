@@ -95,3 +95,10 @@ func (bv *BaseVSphere) Initialize() error {
 
 	return nil
 }
+
+// Close closes the connection to the remote vSphere API endpoint.
+func (bv *BaseVSphere) Close() error {
+	bv.cancel()
+
+	return bv.client.Logout(bv.ctx)
+}
