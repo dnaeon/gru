@@ -29,6 +29,8 @@ type Service struct {
 
 	// Systemd unit name
 	unit string `luar:"-"`
+
+	conn *dbus.Conn `luar:"-"`
 }
 
 // NewService creates a new resource for managing services
@@ -56,22 +58,9 @@ func NewService(name string) (Resource, error) {
 	return s, nil
 }
 
-// unitProperty retrieves the requested property for the service unit
-func (s *Service) unitProperty(name string) (*dbus.Property, error) {
-	conn, err := dbus.New()
-	if err != nil {
-		return nil, err
-	}
-	defer conn.Close()
-
-	property, err := conn.GetUnitProperty(s.unit, name)
-
-	return property, err
-}
-
 // unitIsEnabled checks if the unit is enabled or disabled
 func (s *Service) unitIsEnabled() (bool, error) {
-	unitState, err := s.unitProperty("UnitFileState")
+	unitState, err := s.conn.GetUnitProperty(s.unit, "UnitFileState")
 	if err != nil {
 		return false, err
 	}
@@ -91,16 +80,10 @@ func (s *Service) unitIsEnabled() (bool, error) {
 
 // enableUnit enables the service unit during boot-time
 func (s *Service) enableUnit() error {
-	conn, err := dbus.New()
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-
 	s.Log("enabling service\n")
 
 	units := []string{s.unit}
-	_, changes, err := conn.EnableUnitFiles(units, false, false)
+	_, changes, err := s.conn.EnableUnitFiles(units, false, false)
 	if err != nil {
 		return err
 	}
@@ -114,16 +97,10 @@ func (s *Service) enableUnit() error {
 
 // disableUnit disables the service unit during boot-time
 func (s *Service) disableUnit() error {
-	conn, err := dbus.New()
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-
 	s.Log("disabling service\n")
 
 	units := []string{s.unit}
-	changes, err := conn.DisableUnitFiles(units, false)
+	changes, err := s.conn.DisableUnitFiles(units, false)
 	if err != nil {
 		return err
 	}
@@ -137,15 +114,12 @@ func (s *Service) disableUnit() error {
 
 // setUnitState enables or disables the unit
 func (s *Service) setUnitState() error {
-	enabled, err := s.unitIsEnabled()
-	if err != nil {
-		return err
-	}
-
 	var action func() error
-	if s.Enable && !enabled {
+
+	switch s.Enable {
+	case true:
 		action = s.enableUnit
-	} else {
+	case false:
 		action = s.disableUnit
 	}
 
@@ -153,18 +127,16 @@ func (s *Service) setUnitState() error {
 		return err
 	}
 
-	return s.daemonReload()
+	return s.conn.Reload()
 }
 
-// daemonReload instructs systemd to reload it's configuration
-func (s *Service) daemonReload() error {
+// Initialize initializes the service resource by establishing a
+// connection the systemd D-BUS API
+func (s *Service) Initialize() error {
 	conn, err := dbus.New()
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
+	s.conn = conn
 
-	return conn.Reload()
+	return err
 }
 
 // Evaluate evaluates the state of the resource
@@ -176,7 +148,7 @@ func (s *Service) Evaluate() (State, error) {
 	}
 
 	// Check if the unit is started/stopped
-	activeState, err := s.unitProperty("ActiveState")
+	activeState, err := s.conn.GetUnitProperty(s.unit, "ActiveState")
 	if err != nil {
 		return state, err
 	}
@@ -205,16 +177,10 @@ func (s *Service) Evaluate() (State, error) {
 
 // Create starts the service unit
 func (s *Service) Create() error {
-	conn, err := dbus.New()
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-
 	s.Log("starting service\n")
 
 	ch := make(chan string)
-	jobID, err := conn.StartUnit(s.unit, "replace", ch)
+	jobID, err := s.conn.StartUnit(s.unit, "replace", ch)
 	if err != nil {
 		return err
 	}
@@ -227,16 +193,10 @@ func (s *Service) Create() error {
 
 // Delete stops the service unit
 func (s *Service) Delete() error {
-	conn, err := dbus.New()
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-
 	s.Log("stopping service\n")
 
 	ch := make(chan string)
-	jobID, err := conn.StopUnit(s.unit, "replace", ch)
+	jobID, err := s.conn.StopUnit(s.unit, "replace", ch)
 	if err != nil {
 		return err
 	}
@@ -250,6 +210,13 @@ func (s *Service) Delete() error {
 // Update updates the service unit state
 func (s *Service) Update() error {
 	return s.setUnitState()
+}
+
+// Close closes the connection to the systemd D-BUS API
+func (s *Service) Close() error {
+	s.conn.Close()
+
+	return nil
 }
 
 func init() {
