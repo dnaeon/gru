@@ -103,7 +103,7 @@ func (bv *BaseVSphere) Close() error {
 	return bv.client.Logout(bv.ctx)
 }
 
-// VSphereDatacenter type is a resource which manages datacenters in a
+// Datacenter type is a resource which manages datacenters in a
 // VMware vSphere environment.
 //
 // Example:
@@ -114,6 +114,6 @@ func (bv *BaseVSphere) Close() error {
 //   dc.insecure = true
 //   dc.state = "present"
 //   dc.folder = "/SomeFolder"
-type VSphereDatacenter struct {
+type Datacenter struct {
 	BaseVSphere
 }
