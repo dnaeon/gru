@@ -79,3 +79,19 @@ func (bv *BaseVSphere) Validate() error {
 
 	return nil
 }
+
+// Initialize establishes a connection to the remote vSphere API endpoint.
+func (bv *BaseVSphere) Initialize() error {
+	bv.ctx, bv.cancel = context.WithCancel(context.Background())
+
+	// Connect and login to the VMWare vSphere API endpoint
+	c, err := govmomi.NewClient(bv.ctx, bv.url, bv.Insecure)
+	if err != nil {
+		return err
+	}
+
+	bv.client = c
+	bv.finder = find.NewFinder(bv.client.Client, true)
+
+	return nil
+}
