@@ -143,3 +143,28 @@ func NewDatacenter(name string) (Resource, error) {
 
 	return d, nil
 }
+
+// Evaluate evaluates the state of the datacenter
+func (d *Datacenter) Evaluate() (State, error) {
+	s := State{
+		Current:  "unknown",
+		Want:     d.State,
+		Outdated: false,
+	}
+
+	_, err := d.finder.Datacenter(d.ctx, d.Name)
+	if err != nil {
+		// Datacenter is absent
+		if _, ok := err.(*find.NotFoundError); ok {
+			s.Current = "absent"
+			return s, nil
+		}
+
+		// Something else happened
+		return s, err
+	}
+
+	s.Current = "present"
+
+	return s, nil
+}
