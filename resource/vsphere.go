@@ -208,3 +208,13 @@ func (d *Datacenter) Delete() error {
 func (d *Datacenter) Update() error {
 	return nil
 }
+
+func init() {
+	datacenter := RegistryItem{
+		Type:      "datacenter",
+		Provider:  NewDatacenter,
+		Namespace: VSphereNamespace,
+	}
+
+	Register(datacenter)
+}
