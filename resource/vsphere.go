@@ -9,6 +9,10 @@ import (
 	"github.com/vmware/govmomi/find"
 )
 
+// VSphereNamespace is the table name in Lua where vSphere resources are
+// being registered to.
+const VSphereNamespace = "vsphere"
+
 // ErrNoUsername error is returned when no username is provided for
 // establishing a connection to the remote VMware vSphere API endpoint.
 var ErrNoUsername = errors.New("No username provided")
