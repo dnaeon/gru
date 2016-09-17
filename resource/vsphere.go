@@ -50,3 +50,32 @@ type BaseVSphere struct {
 	client *govmomi.Client    `luar:"-"`
 	finder *find.Finder       `luar:"-"`
 }
+
+// Validate validates the resource.
+func (bv *BaseVSphere) Validate() error {
+	if err := bv.Base.Validate(); err != nil {
+		return err
+	}
+
+	if bv.Username == "" {
+		return ErrNoUsername
+	}
+
+	if bv.Password == "" {
+		return ErrNoPassword
+	}
+
+	if bv.Endpoint == "" {
+		return ErrNoEndpoint
+	}
+
+	// Validate the URL to the API endpoint and set the username and password info
+	endpoint, err := url.Parse(bv.Endpoint)
+	if err != nil {
+		return err
+	}
+	endpoint.User = url.UserPassword(bv.Username, bv.Password)
+	bv.url = endpoint
+
+	return nil
+}
