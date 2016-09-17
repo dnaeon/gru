@@ -47,6 +47,14 @@ type Resource interface {
 	// ID returns the unique identifier of the resource
 	ID() string
 
+	// Initialize is used to perform any initialization prior the
+	// actual resource processing, e.g. establish connection to a
+	// remote API endpoint.
+	Initialize() error
+
+	// Close performs any cleanup tasks after a resource has been processed.
+	Close() error
+
 	// Validate validates the resource
 	Validate() error
 
@@ -155,6 +163,17 @@ type Base struct {
 // ID returns the unique resource id
 func (b *Base) ID() string {
 	return fmt.Sprintf("%s[%s]", b.Type, b.Name)
+}
+
+// Initialize initializes the resource prior the actual processing, e.g.
+// establishing connection to a remote API endpoint.
+func (b *Base) Initialize() error {
+	return nil
+}
+
+// Close is used to perform cleanup tasks after the resource has been processed.
+func (b *Base) Close() error {
+	return nil
 }
 
 // Validate validates the resource
