@@ -5,9 +5,33 @@ import (
 	"github.com/yuin/gopher-lua"
 )
 
+// functionRegistry contains the functions to be registered in Lua.
+var functionRegistry = make([]FunctionItem, 0)
+
 // DefaultResourceNamespace is the Lua table where resources are being
 // registered to, when using the default namespace.
 const DefaultResourceNamespace = "resource"
+
+// DefaultFunctionNamespace is the Lua table where functions are being
+// registered to, when using the default namespace.
+const DefaultFunctionNamespace = "stdlib"
+
+// FunctionItem type represents a single item from the function registry.
+type FunctionItem struct {
+	// Name of the function to register in Lua
+	Name string
+
+	// Namespace is the Lua table where the function will be registered to
+	Namespace string
+
+	// Function to execute when called from Lua
+	Function interface{}
+}
+
+// RegisterFunction registers a function to the registry.
+func RegisterFunction(items ...FunctionItem) {
+	functionRegistry = append(functionRegistry, items...)
+}
 
 // LuaRegisterBuiltin registers resource providers in Lua
 func LuaRegisterBuiltin(L *lua.LState) {
