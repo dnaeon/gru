@@ -102,7 +102,7 @@ func (bv *BaseVSphere) Initialize() error {
 
 // Close closes the connection to the remote vSphere API endpoint.
 func (bv *BaseVSphere) Close() error {
-	bv.cancel()
+	defer bv.cancel()
 
 	return bv.client.Logout(bv.ctx)
 }
