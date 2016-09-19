@@ -97,11 +97,11 @@ func parseSysRCOutput(out string) (k, v string, err error) {
 }
 
 func init() {
-	sysrc := RegistryItem{
+	sysrc := ProviderItem{
 		Type:      "sysrc",
 		Provider:  NewSysRC,
 		Namespace: DefaultNamespace,
 	}
 
-	Register(sysrc)
+	RegisterProvider(sysrc)
 }

@@ -253,27 +253,27 @@ func NewPkgNG(name string) (Resource, error) {
 }
 
 func init() {
-	pkg := RegistryItem{
+	pkg := ProviderItem{
 		Type:      "package",
 		Provider:  NewPackage,
 		Namespace: DefaultNamespace,
 	}
-	yum := RegistryItem{
+	yum := ProviderItem{
 		Type:      "yum",
 		Provider:  NewYum,
 		Namespace: DefaultNamespace,
 	}
-	pacman := RegistryItem{
+	pacman := ProviderItem{
 		Type:      "pacman",
 		Provider:  NewPacman,
 		Namespace: DefaultNamespace,
 	}
 
-	pkgng := RegistryItem{
+	pkgng := ProviderItem{
 		Type:      "pkgng",
 		Provider:  NewPkgNG,
 		Namespace: DefaultNamespace,
 	}
 
-	Register(pkg, yum, pacman, pkgng)
+	RegisterProvider(pkg, yum, pacman, pkgng)
 }

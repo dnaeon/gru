@@ -114,11 +114,11 @@ func (s *Shell) Update() error {
 }
 
 func init() {
-	item := RegistryItem{
+	item := ProviderItem{
 		Type:      "shell",
 		Provider:  NewShell,
 		Namespace: DefaultNamespace,
 	}
 
-	Register(item)
+	RegisterProvider(item)
 }

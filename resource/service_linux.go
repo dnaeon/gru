@@ -220,11 +220,11 @@ func (s *Service) Close() error {
 }
 
 func init() {
-	item := RegistryItem{
+	item := ProviderItem{
 		Type:      "service",
 		Provider:  NewService,
 		Namespace: DefaultNamespace,
 	}
 
-	Register(item)
+	RegisterProvider(item)
 }

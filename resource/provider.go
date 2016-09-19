@@ -1,14 +1,14 @@
 package resource
 
 // providerRegistry contains the registered providers
-var providerRegistry = make([]RegistryItem, 0)
+var providerRegistry = make([]ProviderItem, 0)
 
 // Provider type is the type which creates new resources
 type Provider func(name string) (Resource, error)
 
-// RegistryItem type represents a single item from the
-// provider registry
-type RegistryItem struct {
+// ProviderItem type represents a single item from the
+// provider registry.
+type ProviderItem struct {
 	// Type name of the provider
 	Type string
 
@@ -20,7 +20,7 @@ type RegistryItem struct {
 	Namespace string
 }
 
-// Register registers a provider to the registry
-func Register(items ...RegistryItem) {
+// RegisterProvider registers a provider to the registry.
+func RegisterProvider(items ...ProviderItem) {
 	providerRegistry = append(providerRegistry, items...)
 }

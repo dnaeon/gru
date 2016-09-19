@@ -210,11 +210,11 @@ func (d *Datacenter) Update() error {
 }
 
 func init() {
-	datacenter := RegistryItem{
+	datacenter := ProviderItem{
 		Type:      "datacenter",
 		Provider:  NewDatacenter,
 		Namespace: VSphereNamespace,
 	}
 
-	Register(datacenter)
+	RegisterProvider(datacenter)
 }
