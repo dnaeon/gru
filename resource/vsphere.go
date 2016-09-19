@@ -3,6 +3,7 @@ package resource
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/url"
 
 	"github.com/vmware/govmomi"
@@ -53,6 +54,11 @@ type BaseVSphere struct {
 	cancel context.CancelFunc `luar:"-"`
 	client *govmomi.Client    `luar:"-"`
 	finder *find.Finder       `luar:"-"`
+}
+
+// ID returns the unique resource id for the resource
+func (bv *BaseVSphere) ID() string {
+	return fmt.Sprintf("%s[%s@%s]", bv.Type, bv.Name, bv.Endpoint)
 }
 
 // Validate validates the resource.
