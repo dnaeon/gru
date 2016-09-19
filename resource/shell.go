@@ -88,7 +88,7 @@ func (s *Shell) Evaluate() (State, error) {
 
 // Create executes the shell command
 func (s *Shell) Create() error {
-	s.Log("executing command\n")
+	Log(s, "executing command\n")
 
 	args := strings.Fields(s.Command)
 	cmd := exec.Command(args[0], args[1:]...)
@@ -96,7 +96,7 @@ func (s *Shell) Create() error {
 
 	if !s.Mute {
 		for _, line := range strings.Split(string(out), "\n") {
-			s.Log("%s\n", line)
+			Log(s, "%s\n", line)
 		}
 	}
 

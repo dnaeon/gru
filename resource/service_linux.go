@@ -80,7 +80,7 @@ func (s *Service) unitIsEnabled() (bool, error) {
 
 // enableUnit enables the service unit during boot-time
 func (s *Service) enableUnit() error {
-	s.Log("enabling service\n")
+	Log(s, "enabling service\n")
 
 	units := []string{s.unit}
 	_, changes, err := s.conn.EnableUnitFiles(units, false, false)
@@ -89,7 +89,7 @@ func (s *Service) enableUnit() error {
 	}
 
 	for _, change := range changes {
-		s.Log("%s %s -> %s\n", change.Type, change.Filename, change.Destination)
+		Log(s, "%s %s -> %s\n", change.Type, change.Filename, change.Destination)
 	}
 
 	return nil
@@ -97,7 +97,7 @@ func (s *Service) enableUnit() error {
 
 // disableUnit disables the service unit during boot-time
 func (s *Service) disableUnit() error {
-	s.Log("disabling service\n")
+	Log(s, "disabling service\n")
 
 	units := []string{s.unit}
 	changes, err := s.conn.DisableUnitFiles(units, false)
@@ -106,7 +106,7 @@ func (s *Service) disableUnit() error {
 	}
 
 	for _, change := range changes {
-		s.Log("%s %s\n", change.Type, change.Filename)
+		Log(s, "%s %s\n", change.Type, change.Filename)
 	}
 
 	return nil
@@ -177,7 +177,7 @@ func (s *Service) Evaluate() (State, error) {
 
 // Create starts the service unit
 func (s *Service) Create() error {
-	s.Log("starting service\n")
+	Log(s, "starting service\n")
 
 	ch := make(chan string)
 	jobID, err := s.conn.StartUnit(s.unit, "replace", ch)
@@ -186,14 +186,14 @@ func (s *Service) Create() error {
 	}
 
 	result := <-ch
-	s.Log("systemd job id %d result: %s\n", jobID, result)
+	Log(s, "systemd job id %d result: %s\n", jobID, result)
 
 	return s.setUnitState()
 }
 
 // Delete stops the service unit
 func (s *Service) Delete() error {
-	s.Log("stopping service\n")
+	Log(s, "stopping service\n")
 
 	ch := make(chan string)
 	jobID, err := s.conn.StopUnit(s.unit, "replace", ch)
@@ -202,7 +202,7 @@ func (s *Service) Delete() error {
 	}
 
 	result := <-ch
-	s.Log("systemd job id %d result: %s\n", jobID, result)
+	Log(s, "systemd job id %d result: %s\n", jobID, result)
 
 	return s.setUnitState()
 }

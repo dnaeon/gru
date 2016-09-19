@@ -213,20 +213,20 @@ func (f *File) Evaluate() (State, error) {
 	// Report on what has been identified as being out of date
 	if f.Purge {
 		for name := range f.extra {
-			f.Log("%s exists, but is not part of source\n", name)
+			Log(f, "%s exists, but is not part of source\n", name)
 			s.Outdated = true
 		}
 	}
 
 	for _, item := range f.outdated {
 		if item.flags&flagOutdatedContent != 0 {
-			f.Log("content of %s is out of date\n", item.dst)
+			Log(f, "content of %s is out of date\n", item.dst)
 		}
 		if item.flags&flagOutdatedPermissions != 0 {
-			f.Log("permissions of %s are out of date\n", item.dst)
+			Log(f, "permissions of %s are out of date\n", item.dst)
 		}
 		if item.flags&flagOutdatedOwner != 0 {
-			f.Log("ownership of %s is out of date\n", item.dst)
+			Log(f, "ownership of %s is out of date\n", item.dst)
 		}
 	}
 
@@ -235,7 +235,7 @@ func (f *File) Evaluate() (State, error) {
 
 // Create creates the file managed by the resource
 func (f *File) Create() error {
-	f.Log("creating resource\n")
+	Log(f, "creating resource\n")
 
 	switch f.FileType {
 	case fileTypeRegular:
@@ -276,7 +276,7 @@ func (f *File) Create() error {
 
 // Delete deletes the file managed by the resource
 func (f *File) Delete() error {
-	f.Log("removing resource\n")
+	Log(f, "removing resource\n")
 
 	if f.Recursive {
 		return os.RemoveAll(f.Path)
@@ -291,7 +291,7 @@ func (f *File) Update() error {
 	if f.Purge {
 		for name := range f.extra {
 			dstFile := utils.NewFileUtil(name)
-			f.Log("purging %s\n", name)
+			Log(f, "purging %s\n", name)
 			if err := dstFile.Remove(); err != nil {
 				return err
 			}
@@ -319,7 +319,7 @@ func (f *File) Update() error {
 				return err
 			}
 
-			f.Log("setting content of %s to md5:%s\n", item.dst, srcMd5)
+			Log(f, "setting content of %s to md5:%s\n", item.dst, srcMd5)
 			if err := dstFile.CopyFrom(item.src, true); err != nil {
 				return err
 			}
@@ -327,7 +327,7 @@ func (f *File) Update() error {
 
 		// Update permissions if needed
 		if item.flags&flagOutdatedPermissions != 0 {
-			f.Log("setting permissions of %s to %#o\n", item.dst, f.Mode)
+			Log(f, "setting permissions of %s to %#o\n", item.dst, f.Mode)
 			if err := dstFile.Chmod(f.Mode); err != nil {
 				return err
 			}
@@ -335,7 +335,7 @@ func (f *File) Update() error {
 
 		// Update ownership if needed
 		if item.flags&flagOutdatedOwner != 0 {
-			f.Log("setting owner of %s to %s:%s\n", item.dst, f.Owner, f.Group)
+			Log(f, "setting owner of %s to %s:%s\n", item.dst, f.Owner, f.Group)
 			if err := dstFile.SetOwner(f.Owner, f.Group); err != nil {
 				return err
 			}

@@ -81,14 +81,14 @@ func (s *Service) Evaluate() (State, error) {
 
 // Create starts the service.
 func (s *Service) Create() error {
-	s.Log("starting service\n")
+	Log(s, "starting service\n")
 
 	return exec.Command("service", s.Name, "onestart").Run()
 }
 
 // Delete stops the service.
 func (s *Service) Delete() error {
-	s.Log("stopping service\n")
+	Log(s, "stopping service\n")
 
 	return exec.Command("service", s.Name, "onestop").Run()
 }

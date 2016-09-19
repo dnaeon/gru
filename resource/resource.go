@@ -88,9 +88,6 @@ type Resource interface {
 	// Updates the resource
 	Update() error
 
-	// Log logs events
-	Log(format string, a ...interface{})
-
 	// SubscribedTo returns a map of the resource ids for which the
 	// current resource subscribes for changes to. The keys of the
 	// map are resource ids and their values are the functions to be
@@ -116,9 +113,11 @@ var DefaultConfig = &Config{
 	Logger: DefaultLogger,
 }
 
-// Log logs an event using the default resource logger
-func Log(format string, a ...interface{}) {
-	DefaultConfig.Logger.Printf(format, a...)
+// Log writes an event to the default logger and prepends the
+// resource id to the output
+func Log(r Resource, format string, a ...interface{}) {
+	f := fmt.Sprintf("%s %s", r.ID(), format)
+	DefaultConfig.Logger.Printf(f, a...)
 }
 
 // Base is the base resource type for all resources
@@ -209,13 +208,6 @@ func (b *Base) GetPresentStates() []string {
 // resource is considered to be absent
 func (b *Base) GetAbsentStates() []string {
 	return b.AbsentStates
-}
-
-// Log writes to the default config writer object and
-// prepends the resource id to the output
-func (b *Base) Log(format string, a ...interface{}) {
-	f := fmt.Sprintf("%s %s", b.ID(), format)
-	Log(f, a...)
 }
 
 // IsConcurrent returns a boolean indicating whether
