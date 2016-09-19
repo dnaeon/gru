@@ -114,7 +114,7 @@ func init() {
 	service := ProviderItem{
 		Type:      "service",
 		Provider:  NewService,
-		Namespace: DefaultNamespace,
+		Namespace: DefaultResourceNamespace,
 	}
 
 	RegisterProvider(service)

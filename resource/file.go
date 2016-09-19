@@ -583,7 +583,7 @@ func init() {
 	item := ProviderItem{
 		Type:      "file",
 		Provider:  NewFile,
-		Namespace: DefaultNamespace,
+		Namespace: DefaultResourceNamespace,
 	}
 
 	RegisterProvider(item)

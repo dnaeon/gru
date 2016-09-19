@@ -256,23 +256,23 @@ func init() {
 	pkg := ProviderItem{
 		Type:      "package",
 		Provider:  NewPackage,
-		Namespace: DefaultNamespace,
+		Namespace: DefaultResourceNamespace,
 	}
 	yum := ProviderItem{
 		Type:      "yum",
 		Provider:  NewYum,
-		Namespace: DefaultNamespace,
+		Namespace: DefaultResourceNamespace,
 	}
 	pacman := ProviderItem{
 		Type:      "pacman",
 		Provider:  NewPacman,
-		Namespace: DefaultNamespace,
+		Namespace: DefaultResourceNamespace,
 	}
 
 	pkgng := ProviderItem{
 		Type:      "pkgng",
 		Provider:  NewPkgNG,
-		Namespace: DefaultNamespace,
+		Namespace: DefaultResourceNamespace,
 	}
 
 	RegisterProvider(pkg, yum, pacman, pkgng)

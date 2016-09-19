@@ -5,9 +5,9 @@ import (
 	"github.com/yuin/gopher-lua"
 )
 
-// DefaultNamespace is the Lua table where resources are being
+// DefaultResourceNamespace is the Lua table where resources are being
 // registered to, when using the default namespace.
-const DefaultNamespace = "resource"
+const DefaultResourceNamespace = "resource"
 
 // LuaRegisterBuiltin registers resource providers in Lua
 func LuaRegisterBuiltin(L *lua.LState) {

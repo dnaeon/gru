@@ -117,7 +117,7 @@ func init() {
 	item := ProviderItem{
 		Type:      "shell",
 		Provider:  NewShell,
-		Namespace: DefaultNamespace,
+		Namespace: DefaultResourceNamespace,
 	}
 
 	RegisterProvider(item)

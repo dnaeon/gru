@@ -100,7 +100,7 @@ func init() {
 	sysrc := ProviderItem{
 		Type:      "sysrc",
 		Provider:  NewSysRC,
-		Namespace: DefaultNamespace,
+		Namespace: DefaultResourceNamespace,
 	}
 
 	RegisterProvider(sysrc)
