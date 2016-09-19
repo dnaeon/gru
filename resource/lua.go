@@ -33,16 +33,16 @@ func RegisterFunction(items ...FunctionItem) {
 	functionRegistry = append(functionRegistry, items...)
 }
 
-// LuaRegisterBuiltin registers resource providers in Lua
+// LuaRegisterBuiltin registers resource providers and functions in Lua.
 func LuaRegisterBuiltin(L *lua.LState) {
-	// Go functions registered in Lua
-	builtins := map[string]interface{}{
-		"log": Log,
-	}
-
 	// Register functions in Lua
-	for name, fn := range builtins {
-		L.SetGlobal(name, luar.New(L, fn))
+	for _, item := range functionRegistry {
+		namespace := L.GetGlobal(item.Namespace)
+		if lua.LVIsFalse(namespace) {
+			namespace = L.NewTable()
+			L.SetGlobal(item.Namespace, namespace)
+		}
+		L.SetField(namespace, item.Name, luar.New(L, item.Function))
 	}
 
 	// Register resource providers in Lua
