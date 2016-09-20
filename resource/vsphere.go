@@ -301,7 +301,7 @@ func (c *Cluster) Create() error {
 func (c *Cluster) Delete() error {
 	Log(c, "removing cluster\n")
 
-	cluster, err := c.finder.ClusterComputeResource(c.ctx, c.Name)
+	cluster, err := c.finder.ClusterComputeResource(c.ctx, path.Join(c.Folder, c.Name))
 	if err != nil {
 		return err
 	}
