@@ -325,5 +325,11 @@ func init() {
 		Namespace: VSphereNamespace,
 	}
 
-	RegisterProvider(datacenter)
+	cluster := ProviderItem{
+		Type:      "cluster",
+		Provider:  NewCluster,
+		Namespace: VSphereNamespace,
+	}
+
+	RegisterProvider(datacenter, cluster)
 }
