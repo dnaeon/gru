@@ -296,6 +296,23 @@ func (c *Cluster) Create() error {
 	return err
 }
 
+// Delete removes the cluster.
+func (c *Cluster) Delete() error {
+	Log(c, "removing cluster\n")
+
+	cluster, err := c.finder.ClusterComputeResource(c.ctx, c.Name)
+	if err != nil {
+		return err
+	}
+
+	task, err := cluster.Destroy()
+	if err != nil {
+		return err
+	}
+
+	return task.Wait()
+}
+
 func init() {
 	datacenter := ProviderItem{
 		Type:      "datacenter",
