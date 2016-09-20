@@ -8,6 +8,7 @@ import (
 
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
+	"github.com/vmware/govmomi/vim25/types"
 )
 
 // VSphereNamespace is the table name in Lua where vSphere resources are
@@ -279,6 +280,20 @@ func (c *Cluster) Evaluate() (State, error) {
 	state.Current = "present"
 
 	return state, nil
+}
+
+// Create creates a new cluster.
+func (c *Cluster) Create() error {
+	Log(c, "creating cluster\n")
+
+	folder, err := c.finder.FolderOrDefault(c.ctx, c.Folder)
+	if err != nil {
+		return err
+	}
+
+	_, err := folder.CreateCluster(c.ctx, c.Name, types.ClusterConfigSpecEx{})
+
+	return err
 }
 
 func init() {
