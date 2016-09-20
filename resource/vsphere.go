@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"path"
 
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
@@ -265,7 +266,7 @@ func (c *Cluster) Evaluate() (State, error) {
 		Outdated: false,
 	}
 
-	_, err := c.finder.ClusterComputeResource(c.ctx, c.Name)
+	_, err := c.finder.ClusterComputeResource(c.ctx, path.Join(c.Folder, c.Name))
 	if err != nil {
 		// Cluster is absent
 		if _, ok := err.(*find.NotFoundError); ok {
