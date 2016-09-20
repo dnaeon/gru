@@ -234,7 +234,7 @@ type Cluster struct {
 // NewCluster creates a new resource for managing clusters in a
 // VMware vSphere environment.
 func NewCluster(name string) (Resource, error) {
-	c = &Cluster{
+	c := &Cluster{
 		BaseVSphere: BaseVSphere{
 			Base: Base{
 				Name:          name,
@@ -270,7 +270,7 @@ func (c *Cluster) Evaluate() (State, error) {
 		// Cluster is absent
 		if _, ok := err.(*find.NotFoundError); ok {
 			state.Current = "absent"
-			return s, nil
+			return state, nil
 		}
 
 		// Something else happened
@@ -291,7 +291,7 @@ func (c *Cluster) Create() error {
 		return err
 	}
 
-	_, err := folder.CreateCluster(c.ctx, c.Name, types.ClusterConfigSpecEx{})
+	_, err = folder.CreateCluster(c.ctx, c.Name, types.ClusterConfigSpecEx{})
 
 	return err
 }
@@ -305,12 +305,12 @@ func (c *Cluster) Delete() error {
 		return err
 	}
 
-	task, err := cluster.Destroy()
+	task, err := cluster.Destroy(c.ctx)
 	if err != nil {
 		return err
 	}
 
-	return task.Wait()
+	return task.Wait(c.ctx)
 }
 
 // Update is a no-op
