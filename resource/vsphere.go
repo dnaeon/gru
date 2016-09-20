@@ -256,6 +256,31 @@ func NewCluster(name string) (Resource, error) {
 	return c, nil
 }
 
+// Evaluate evalutes the state of the cluster.
+func (c *Cluster) Evaluate() (State, error) {
+	state := State{
+		Current:  "unknown",
+		Want:     c.State,
+		Outdated: false,
+	}
+
+	_, err := c.finder.ClusterComputeResource(c.ctx, c.Name)
+	if err != nil {
+		// Cluster is absent
+		if _, ok := err.(*find.NotFoundError); ok {
+			state.Current = "absent"
+			return s, nil
+		}
+
+		// Something else happened
+		return state, err
+	}
+
+	state.Current = "present"
+
+	return state, nil
+}
+
 func init() {
 	datacenter := ProviderItem{
 		Type:      "datacenter",
