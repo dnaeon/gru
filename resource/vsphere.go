@@ -227,7 +227,7 @@ func (d *Datacenter) Update() error {
 //   cluster.password = "myp4ssw0rd"
 //   cluster.insecure = true
 //   cluster.state = "present"
-//   cluster.folder = "/SomeFolder"
+//   cluster.folder = "/MyDatacenter/host"
 type Cluster struct {
 	BaseVSphere
 }
