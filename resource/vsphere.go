@@ -118,9 +118,9 @@ func (bv *BaseVSphere) Close() error {
 //
 // Example:
 //   dc = vsphere.datacenter.new("my-datacenter")
+//   dc.endpoint = "https://vc01.example.org/sdk"
 //   dc.username = "root"
 //   dc.password = "myp4ssw0rd"
-//   dc.endpoint = "https://vc01.example.org/sdk"
 //   dc.insecure = true
 //   dc.state = "present"
 //   dc.folder = "/SomeFolder"
@@ -213,6 +213,47 @@ func (d *Datacenter) Delete() error {
 // Update is no-op
 func (d *Datacenter) Update() error {
 	return nil
+}
+
+// Cluster type is a resource which manages clusters in a
+// VMware vSphere environment.
+//
+// Example:
+//   cluster = vsphere.cluster.new("my-cluster")
+//   cluster.endpoint = "https://vc01.example.org/sdk"
+//   cluster.username = "root"
+//   cluster.password = "myp4ssw0rd"
+//   cluster.insecure = true
+//   cluster.state = "present"
+//   cluster.folder = "/SomeFolder"
+type Cluster struct {
+	BaseVSphere
+}
+
+// NewCluster creates a new resource for managing clusters in a
+// VMware vSphere environment.
+func NewCluster(name string) (Resource, error) {
+	c = &Cluster{
+		BaseVSphere: BaseVSphere{
+			Base: Base{
+				Name:          name,
+				Type:          "cluster",
+				State:         "present",
+				Require:       make([]string, 0),
+				PresentStates: []string{"present"},
+				AbsentStates:  []string{"absent"},
+				Concurrent:    true,
+				Subscribe:     make(TriggerMap),
+			},
+			Username: "",
+			Password: "",
+			Endpoint: "",
+			Insecure: false,
+			Folder:   "/",
+		},
+	}
+
+	return c, nil
 }
 
 func init() {
