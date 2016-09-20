@@ -313,6 +313,11 @@ func (c *Cluster) Delete() error {
 	return task.Wait()
 }
 
+// Update is a no-op
+func (c *Cluster) Update() error {
+	return nil
+}
+
 func init() {
 	datacenter := ProviderItem{
 		Type:      "datacenter",
