@@ -240,7 +240,8 @@ type Cluster struct {
 	// Refer to the official VMware vSphere API documentation for explanation on
 	// each of these settings.
 	// This setting makes sense only if DRSEnable is set to true.
-	DRSBehavior string `luar:"drs_behavior"`
+	// Defaults to "fullyAutomated".
+	DRSBehavior types.DrsBehavior `luar:"drs_behavior"`
 
 	// DRSEnable flag specifies whether or not to enable the DRS service.
 	// Defaults to false.
@@ -268,6 +269,8 @@ func NewCluster(name string) (Resource, error) {
 			Insecure: false,
 			Folder:   "/",
 		},
+		DRSEnable:   false,
+		DRSBehavior: types.DrsBehaviorFullyAutomated,
 	}
 
 	return c, nil
