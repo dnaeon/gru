@@ -232,6 +232,8 @@ func (d *Datacenter) Update() error {
 //   cluster.insecure = true
 //   cluster.state = "present"
 //   cluster.folder = "/MyDatacenter/host"
+//   cluster.drs_enable = true
+//   cluster.drs_behavior = "fullyAutomated"
 type Cluster struct {
 	BaseVSphere
 
