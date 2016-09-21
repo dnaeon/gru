@@ -339,12 +339,12 @@ func (c *Cluster) Create() error {
 func (c *Cluster) Delete() error {
 	Log(c, "removing cluster\n")
 
-	cluster, err := c.finder.ClusterComputeResource(c.ctx, path.Join(c.Folder, c.Name))
+	obj, err := c.finder.ClusterComputeResource(c.ctx, path.Join(c.Folder, c.Name))
 	if err != nil {
 		return err
 	}
 
-	task, err := cluster.Destroy(c.ctx)
+	task, err := obj.Destroy(c.ctx)
 	if err != nil {
 		return err
 	}
@@ -352,9 +352,28 @@ func (c *Cluster) Delete() error {
 	return task.Wait(c.ctx)
 }
 
-// Update is a no-op
+// Update updates the cluster settings.
 func (c *Cluster) Update() error {
-	return nil
+	Log(c, "reconfiguring cluster\n")
+
+	spec := types.ClusterConfigSpec{
+		DrsConfig: &types.ClusterDrsConfigInfo{
+			Enabled:           &c.DrsEnable,
+			DefaultVmBehavior: types.DrsBehavior(c.DrsBehavior),
+		},
+	}
+
+	obj, err := c.finder.ClusterComputeResource(c.ctx, path.Join(c.Folder, c.Name))
+	if err != nil {
+		return err
+	}
+
+	task, err := obj.ReconfigureCluster(c.ctx, spec)
+	if err != nil {
+		return err
+	}
+
+	return task.Wait(c.ctx)
 }
 
 func init() {
