@@ -35,20 +35,23 @@ var ErrNotVC = errors.New("Not a VMware vCenter endpoint")
 type BaseVSphere struct {
 	Base
 
-	// Username to use when connecting to the vSphere endpoint
+	// Username to use when connecting to the vSphere endpoint.
+	// Defaults to an empty string.
 	Username string `luar:"username"`
 
-	// Password to use when connecting to the vSphere endpoint
+	// Password to use when connecting to the vSphere endpoint.
+	// Defaults to an empty string.
 	Password string `luar:"password"`
 
-	// Endpoint to the VMware vSphere API
+	// Endpoint to the VMware vSphere API. Defaults to an empty string.
 	Endpoint string `luar:"endpoint"`
 
-	// Folder to use when creating the object managed by the resource
+	// Folder to use when creating the object managed by the resource.
+	// Defaults to "/".
 	Folder string `luar:"folder"`
 
 	// If set to true then allow connecting to vSphere API endpoints with
-	// self-signed certificates.
+	// self-signed certificates. Defaults to false.
 	Insecure bool `luar:"insecure"`
 
 	url    *url.URL           `luar:"-"`
