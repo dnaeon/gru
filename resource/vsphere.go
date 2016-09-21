@@ -233,6 +233,18 @@ func (d *Datacenter) Update() error {
 //   cluster.folder = "/MyDatacenter/host"
 type Cluster struct {
 	BaseVSphere
+
+	// DRSBehavior specifies the cluster-wide default DRS behavior for
+	// virtual machines.
+	// Valid values are "fullyAutomated", "manual" and "partiallyAutomated".
+	// Refer to the official VMware vSphere API documentation for explanation on
+	// each of these settings.
+	// This setting makes sense only if DRSEnable is set to true.
+	DRSBehavior string `luar:"drs_behavior"`
+
+	// DRSEnable flag specifies whether or not to enable the DRS service.
+	// Defaults to false.
+	DRSEnable bool `luar:"drs_enable"`
 }
 
 // NewCluster creates a new resource for managing clusters in a
