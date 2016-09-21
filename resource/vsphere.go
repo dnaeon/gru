@@ -318,12 +318,19 @@ func (c *Cluster) Evaluate() (State, error) {
 func (c *Cluster) Create() error {
 	Log(c, "creating cluster\n")
 
+	spec := types.ClusterConfigSpecEx{
+		DrsConfig: &types.ClusterDrsConfigInfo{
+			Enabled:           &c.DrsEnable,
+			DefaultVmBehavior: types.DrsBehavior(c.DrsBehavior),
+		},
+	}
+
 	folder, err := c.finder.FolderOrDefault(c.ctx, c.Folder)
 	if err != nil {
 		return err
 	}
 
-	_, err = folder.CreateCluster(c.ctx, c.Name, types.ClusterConfigSpecEx{})
+	_, err = folder.CreateCluster(c.ctx, c.Name, spec)
 
 	return err
 }
