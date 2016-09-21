@@ -303,7 +303,7 @@ func (c *Cluster) Evaluate() (State, error) {
 		return state, err
 	}
 
-	if c.DrsEnable != ccr.Configuration.DrsConfig.Enabled {
+	if c.DrsEnable != *ccr.Configuration.DrsConfig.Enabled {
 		state.Outdated = true
 	}
 
