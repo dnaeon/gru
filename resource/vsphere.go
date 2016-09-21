@@ -9,6 +9,7 @@ import (
 
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
+	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
 )
 
@@ -238,14 +239,12 @@ type Cluster struct {
 	// virtual machines.
 	// Valid values are "fullyAutomated", "manual" and "partiallyAutomated".
 	// Refer to the official VMware vSphere API documentation for explanation on
-	// each of these settings.
-	// This setting makes sense only if DRSEnable is set to true.
-	// Defaults to "fullyAutomated".
-	DRSBehavior types.DrsBehavior `luar:"drs_behavior"`
+	// each of these settings. Defaults to "fullyAutomated".
+	DrsBehavior types.DrsBehavior `luar:"drs_behavior"`
 
 	// DRSEnable flag specifies whether or not to enable the DRS service.
 	// Defaults to false.
-	DRSEnable bool `luar:"drs_enable"`
+	DrsEnable bool `luar:"drs_enable"`
 }
 
 // NewCluster creates a new resource for managing clusters in a
@@ -269,8 +268,8 @@ func NewCluster(name string) (Resource, error) {
 			Insecure: false,
 			Folder:   "/",
 		},
-		DRSEnable:   false,
-		DRSBehavior: types.DrsBehaviorFullyAutomated,
+		DrsEnable:   false,
+		DrsBehavior: types.DrsBehaviorFullyAutomated,
 	}
 
 	return c, nil
@@ -284,7 +283,7 @@ func (c *Cluster) Evaluate() (State, error) {
 		Outdated: false,
 	}
 
-	_, err := c.finder.ClusterComputeResource(c.ctx, path.Join(c.Folder, c.Name))
+	obj, err := c.finder.ClusterComputeResource(c.ctx, path.Join(c.Folder, c.Name))
 	if err != nil {
 		// Cluster is absent
 		if _, ok := err.(*find.NotFoundError); ok {
@@ -297,6 +296,20 @@ func (c *Cluster) Evaluate() (State, error) {
 	}
 
 	state.Current = "present"
+
+	// Check DRS settings
+	var ccr mo.ClusterComputeResource
+	if err := obj.Properties(c.ctx, obj.Reference(), []string{"configuration"}, &ccr); err != nil {
+		return state, err
+	}
+
+	if c.DrsEnable != ccr.Configuration.DrsConfig.Enabled {
+		state.Outdated = true
+	}
+
+	if types.DrsBehavior(c.DrsBehavior) != ccr.Configuration.DrsConfig.DefaultVmBehavior {
+		state.Outdated = true
+	}
 
 	return state, nil
 }
