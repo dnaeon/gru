@@ -402,6 +402,34 @@ type ClusterHost struct {
 	EsxiPassword string `luar:"esxi_password"`
 }
 
+// NewClusterHost creates a new resource for managing hosts in a
+// VMware vSphere cluster.
+func NewClusterHost(name string) (Resource, error) {
+	ch := &ClusterHost{
+		BaseVSphere: BaseVSphere{
+			Base: Base{
+				Name:          name,
+				Type:          "cluster_host",
+				State:         "present",
+				Require:       make([]string, 0),
+				PresentStates: []string{"present"},
+				AbsentStates:  []string{"absent"},
+				Concurrent:    true,
+				Subscribe:     make(TriggerMap),
+			},
+			Username: "",
+			Password: "",
+			Endpoint: "",
+			Insecure: false,
+			Folder:   "/",
+		},
+		EsxiUsername: "",
+		EsxiPassword: "",
+	}
+
+	return ch, nil
+}
+
 func init() {
 	datacenter := ProviderItem{
 		Type:      "datacenter",
