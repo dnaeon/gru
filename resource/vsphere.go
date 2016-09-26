@@ -378,6 +378,30 @@ func (c *Cluster) Update() error {
 	return task.Wait(c.ctx)
 }
 
+// ClusterHost type is a resource which manages hosts in a
+// VMware vSphere cluster.
+//
+// Example:
+//   host = vsphere.cluster_host.new("esxi01.example.org")
+//   host.endpoint = "https://vc01.example.org/sdk"
+//   host.username = "root"
+//   host.password = "myp4ssw0rd"
+//   host.state = "present"
+//   host.folder = "/MyDatacenter/MyCluster/host"
+//   host.esxi_username = "root"
+//   host.esxi_password = "esxip4ssw0rd"
+type ClusterHost struct {
+	BaseVSphere
+
+	// EsxiUsername is the username used to connect to the
+	// remote ESXi host.
+	EsxiUsername string `luar:"esxi_username"`
+
+	// EsxiPassword is the password used to connect to the
+	// remote ESXi host.
+	EsxiPassword string `luar:"esxi_password"`
+}
+
 func init() {
 	datacenter := ProviderItem{
 		Type:      "datacenter",
