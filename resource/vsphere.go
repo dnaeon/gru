@@ -495,6 +495,33 @@ func (ch *ClusterHost) Evaluate() (State, error) {
 	return state, nil
 }
 
+// Create adds the host to the cluster.
+func (ch *ClusterHost) Create() error {
+	Log(ch, "adding host to cluster\n")
+
+	obj, err := ch.finder.ClusterComputeResource(ch.ctx, ch.Folder)
+	if err != nil {
+		return err
+	}
+
+	spec := types.HostConnectSpec{
+		HostName:      ch.Name,
+		Port:          ch.Port,
+		SslThumbprint: ch.SslThumbprint,
+		UserName:      ch.EsxiUsername,
+		Password:      ch.EsxiPassword,
+		Force:         ch.Force,
+		LockdownMode:  types.HostLockdownMode(ch.LockdownMode),
+	}
+
+	task, err := obj.AddHost(ch.ctx, spec, true, &ch.License, nil)
+	if err != nil {
+		return err
+	}
+
+	return task.Wait(ch.ctx)
+}
+
 func init() {
 	datacenter := ProviderItem{
 		Type:      "datacenter",
