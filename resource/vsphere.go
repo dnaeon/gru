@@ -531,12 +531,12 @@ func (ch *ClusterHost) Delete() error {
 		return err
 	}
 
-	task, err := obj.Disconnect()
+	task, err := obj.Disconnect(ch.ctx)
 	if err != nil {
 		return err
 	}
 
-	return task.Wait()
+	return task.Wait(ch.ctx)
 }
 
 // Update is a no-op.
