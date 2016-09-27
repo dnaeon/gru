@@ -539,6 +539,11 @@ func (ch *ClusterHost) Delete() error {
 	return task.Wait()
 }
 
+// Update is a no-op.
+func (ch *ClusterHost) Update() error {
+	return nil
+}
+
 func init() {
 	datacenter := ProviderItem{
 		Type:      "datacenter",
