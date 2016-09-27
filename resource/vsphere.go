@@ -522,6 +522,23 @@ func (ch *ClusterHost) Create() error {
 	return task.Wait(ch.ctx)
 }
 
+// Delete disconnects the host.
+func (ch *ClusterHost) Delete() error {
+	Log(ch, "disconnecting host\n")
+
+	obj, err := ch.finder.HostSystem(ch.ctx, path.Join(ch.Folder, ch.Name))
+	if err != nil {
+		return err
+	}
+
+	task, err := obj.Disconnect()
+	if err != nil {
+		return err
+	}
+
+	return task.Wait()
+}
+
 func init() {
 	datacenter := ProviderItem{
 		Type:      "datacenter",
