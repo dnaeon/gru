@@ -387,7 +387,7 @@ func (c *Cluster) Update() error {
 //   host.username = "root"
 //   host.password = "myp4ssw0rd"
 //   host.state = "present"
-//   host.folder = "/MyDatacenter/MyCluster/host"
+//   host.folder = "/MyDatacenter/host/MyCluster"
 //   host.esxi_username = "root"
 //   host.esxi_password = "esxip4ssw0rd"
 type ClusterHost struct {
