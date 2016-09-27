@@ -480,7 +480,7 @@ func (ch *ClusterHost) Evaluate() (State, error) {
 		Outdated: false,
 	}
 
-	_, err := ch.finder.HostSystem(ch.ctx, path.Join(ch.Folder, ch.Name))
+	obj, err := ch.finder.HostSystem(ch.ctx, path.Join(ch.Folder, ch.Name))
 	if err != nil {
 		// Host is absent
 		if _, ok := err.(*find.NotFoundError); ok {
@@ -493,6 +493,16 @@ func (ch *ClusterHost) Evaluate() (State, error) {
 	}
 
 	state.Current = "present"
+
+	// Check lockdown mode settings
+	var host mo.HostSystem
+	if err := obj.Properties(ch.ctx, obj.Reference(), []string{"config"}, &host); err != nil {
+		return state, err
+	}
+
+	if ch.LockdownMode != host.Config.LockdownMode {
+		state.Outdated = true
+	}
 
 	return state, nil
 }
