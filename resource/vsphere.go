@@ -478,7 +478,7 @@ func (ch *ClusterHost) Evaluate() (State, error) {
 		Outdated: false,
 	}
 
-	obj, err := ch.finder.HostSystem(ch.ctx, path.Join(ch.Folder, ch.Name))
+	_, err := ch.finder.HostSystem(ch.ctx, path.Join(ch.Folder, ch.Name))
 	if err != nil {
 		// Host is absent
 		if _, ok := err.(*find.NotFoundError); ok {
