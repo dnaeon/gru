@@ -9,6 +9,7 @@ import (
 
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
+	"github.com/vmware/govmomi/vim25/methods"
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
 )
@@ -551,8 +552,41 @@ func (ch *ClusterHost) Delete() error {
 	return task.Wait(ch.ctx)
 }
 
-// Update is a no-op.
+// setLockdownMode sets the lockdown mode for the ESXi host.
+// This feature is available only for ESXi 6.0 or above.
+func (ch *ClusterHost) setLockdownMode() error {
+	Log(ch, "setting lockdown mode to %s\n", ch.LockdownMode)
+	obj, err := ch.finder.HostSystem(ch.ctx, path.Join(ch.Folder, ch.Name))
+	if err != nil {
+		return err
+	}
+
+	var host mo.HostSystem
+	if err := obj.Properties(ch.ctx, obj.Reference(), []string{"configManager.hostAccessManager"}, &host); err != nil {
+		return err
+	}
+
+	var accessManager mo.HostAccessManager
+	if err := obj.Properties(ch.ctx, *host.ConfigManager.HostAccessManager, nil, &accessManager); err != nil {
+		return err
+	}
+
+	req := &types.ChangeLockdownMode{
+		This: accessManager.Reference(),
+		Mode: ch.LockdownMode,
+	}
+
+	_, err = methods.ChangeLockdownMode(ch.ctx, ch.client, req)
+
+	return err
+}
+
+// Update updates the state of the host.
 func (ch *ClusterHost) Update() error {
+	if err := ch.setLockdownMode(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
