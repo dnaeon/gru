@@ -430,6 +430,22 @@ func NewClusterHost(name string) (Resource, error) {
 	return ch, nil
 }
 
+func (ch *ClusterHost) Validate() error {
+	if err := ch.BaseVSphere.Validate(); err != nil {
+		return err
+	}
+
+	if ch.EsxiUsername == "" {
+		return ErrNoUsername
+	}
+
+	if ch.EsxiPassword == "" {
+		return ErrNoPassword
+	}
+
+	return nil
+}
+
 func init() {
 	datacenter := ProviderItem{
 		Type:      "datacenter",
