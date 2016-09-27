@@ -394,12 +394,30 @@ type ClusterHost struct {
 	BaseVSphere
 
 	// EsxiUsername is the username used to connect to the
-	// remote ESXi host.
+	// remote ESXi host. Defaults to an empty string.
 	EsxiUsername string `luar:"esxi_username"`
 
 	// EsxiPassword is the password used to connect to the
-	// remote ESXi host.
+	// remote ESXi host. Defaults to an empty string.
 	EsxiPassword string `luar:"esxi_password"`
+
+	// SSL thumbprint of the host. Defaults to an empty string.
+	SslThumbprint string `luar:"ssl_thumbprint"`
+
+	// Force flag specifies whether or not to forcefully add the
+	// host to the cluster, possibly disconnecting it from any other
+	// connected vCenter servers. Defaults to false.
+	Force bool `luar:"force"`
+
+	// LockdownMode flag specifies whether to enable or
+	// disable lockdown mode of the host. Defaults to lockdownDisabled.
+	LockdownMode types.HostLockdownMode `luar:"lockdown_mode"`
+
+	// Port to connect to on the remote ESXi host. Defaults to 443.
+	Port int32 `luar:"port"`
+
+	// License to attach to the host. Defaults to an empty string.
+	License string `luar:"license"`
 }
 
 // NewClusterHost creates a new resource for managing hosts in a
@@ -423,8 +441,13 @@ func NewClusterHost(name string) (Resource, error) {
 			Insecure: false,
 			Folder:   "/",
 		},
-		EsxiUsername: "",
-		EsxiPassword: "",
+		EsxiUsername:  "",
+		EsxiPassword:  "",
+		SslThumbprint: "",
+		Force:         false,
+		LockdownMode:  types.HostLockdownModeLockdownDisabled,
+		Port:          443,
+		License:       "",
 	}
 
 	return ch, nil
