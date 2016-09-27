@@ -309,7 +309,7 @@ func (c *Cluster) Evaluate() (State, error) {
 		state.Outdated = true
 	}
 
-	if types.DrsBehavior(c.DrsBehavior) != ccr.Configuration.DrsConfig.DefaultVmBehavior {
+	if c.DrsBehavior != ccr.Configuration.DrsConfig.DefaultVmBehavior {
 		state.Outdated = true
 	}
 
@@ -410,7 +410,9 @@ type ClusterHost struct {
 	Force bool `luar:"force"`
 
 	// LockdownMode flag specifies whether to enable or
-	// disable lockdown mode of the host. Defaults to lockdownDisabled.
+	// disable lockdown mode of the host.
+	// This feature is available only on ESXi 6.0 or above.
+	// Defaults to lockdownDisabled.
 	LockdownMode types.HostLockdownMode `luar:"lockdown_mode"`
 
 	// Port to connect to on the remote ESXi host. Defaults to 443.
