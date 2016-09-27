@@ -430,6 +430,7 @@ func NewClusterHost(name string) (Resource, error) {
 	return ch, nil
 }
 
+// Validate validates the resource.
 func (ch *ClusterHost) Validate() error {
 	if err := ch.BaseVSphere.Validate(); err != nil {
 		return err
@@ -444,6 +445,31 @@ func (ch *ClusterHost) Validate() error {
 	}
 
 	return nil
+}
+
+// Evaluate evaluates the state of the host in the cluster.
+func (ch *ClusterHost) Evaluate() (State, error) {
+	state := State{
+		Current:  "unknown",
+		Want:     ch.State,
+		Outdated: false,
+	}
+
+	obj, err := ch.finder.HostSystem(ch.ctx, path.Join(ch.Folder, ch.Name))
+	if err != nil {
+		// Host is absent
+		if _, ok := err.(*find.NotFoundError); ok {
+			state.Current = "absent"
+			return state, nil
+		}
+
+		// Something else happened
+		return state, err
+	}
+
+	state.Current = "present"
+
+	return state, nil
 }
 
 func init() {
