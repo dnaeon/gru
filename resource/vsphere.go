@@ -579,37 +579,6 @@ func (ch *ClusterHost) Delete() error {
 	return destroyTask.Wait(ch.ctx)
 }
 
-// setLockdownMode sets the lockdown mode for the ESXi host.
-// This feature is available only for ESXi 6.0 or above.
-func (ch *ClusterHost) setLockdownMode() error {
-	// TODO: Check if the host is version 6.0 or above
-
-	Log(ch, "setting lockdown mode to %s\n", ch.LockdownMode)
-	obj, err := ch.finder.HostSystem(ch.ctx, path.Join(ch.Folder, ch.Name))
-	if err != nil {
-		return err
-	}
-
-	var host mo.HostSystem
-	if err := obj.Properties(ch.ctx, obj.Reference(), []string{"configManager.hostAccessManager"}, &host); err != nil {
-		return err
-	}
-
-	var accessManager mo.HostAccessManager
-	if err := obj.Properties(ch.ctx, *host.ConfigManager.HostAccessManager, nil, &accessManager); err != nil {
-		return err
-	}
-
-	req := &types.ChangeLockdownMode{
-		This: accessManager.Reference(),
-		Mode: ch.LockdownMode,
-	}
-
-	_, err = methods.ChangeLockdownMode(ch.ctx, ch.client, req)
-
-	return err
-}
-
 // Update updates the state of the host.
 func (ch *ClusterHost) Update() error {
 	if err := ch.setLockdownMode(); err != nil {
