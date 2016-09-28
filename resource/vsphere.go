@@ -652,7 +652,12 @@ func (h *Host) Delete() error {
 	return removeHostSystem(h.ctx, obj)
 }
 
+// Update updates the settings of the ESXi host.
 func (h *Host) Update() error {
+	if err := h.setLockdownMode(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
