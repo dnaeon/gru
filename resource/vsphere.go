@@ -235,6 +235,7 @@ func (d *Datacenter) Update() error {
 //   cluster.folder = "/MyDatacenter/host"
 //   cluster.enable_drs = true
 //   cluster.drs_behavior = "fullyAutomated"
+//   cluster.enable_ha = true
 type Cluster struct {
 	BaseVSphere
 
@@ -319,6 +320,11 @@ func (c *Cluster) Evaluate() (State, error) {
 		state.Outdated = true
 	}
 
+	// Check HA settings
+	if c.EnableHA != *ccr.Configuration.DasConfig.Enabled {
+		state.Outdated = true
+	}
+
 	return state, nil
 }
 
@@ -327,6 +333,9 @@ func (c *Cluster) Create() error {
 	Log(c, "creating cluster\n")
 
 	spec := types.ClusterConfigSpecEx{
+		DasConfig: &types.ClusterDasConfigInfo{
+			Enabled: &c.EnableHA,
+		},
 		DrsConfig: &types.ClusterDrsConfigInfo{
 			Enabled:           &c.EnableDrs,
 			DefaultVmBehavior: types.DrsBehavior(c.DrsBehavior),
@@ -365,6 +374,9 @@ func (c *Cluster) Update() error {
 	Log(c, "reconfiguring cluster\n")
 
 	spec := types.ClusterConfigSpec{
+		DasConfig: &types.ClusterDasConfigInfo{
+			Enabled: &c.EnableHA,
+		},
 		DrsConfig: &types.ClusterDrsConfigInfo{
 			Enabled:           &c.EnableDrs,
 			DefaultVmBehavior: types.DrsBehavior(c.DrsBehavior),
