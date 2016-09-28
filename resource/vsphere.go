@@ -619,6 +619,26 @@ func (ch *ClusterHost) Update() error {
 	return nil
 }
 
+// Host type is a resource which manages settings of the
+// ESXi hosts in a VMware vSphere environment.
+//
+// Example:
+//   host = vsphere.host.new("esxi01.example.org")
+//   host.endpoint = "https://vc01.example.org/sdk"
+//   host.username = "root"
+//   host.password = "myp4ssw0rd"
+//   host.state = "present"
+//   host.folder = "/MyDatacenter/host/MyCluster"
+type Host struct {
+	BaseVSphere
+
+	// LockdownMode flag specifies whether to enable or
+	// disable lockdown mode of the host.
+	// This feature is available only on ESXi 6.0 or above.
+	// Defaults to lockdownDisabled.
+	LockdownMode types.HostLockdownMode `luar:"lockdown_mode"`
+}
+
 func init() {
 	datacenter := ProviderItem{
 		Type:      "datacenter",
