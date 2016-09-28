@@ -598,7 +598,7 @@ func NewHost(name string) (Resource, error) {
 
 func (h *Host) Evaluate() (State, error) {
 	state := State{
-		Current:  "unknown",
+		Current:  "present",
 		Want:     h.State,
 		Outdated: false,
 	}
@@ -614,8 +614,6 @@ func (h *Host) Evaluate() (State, error) {
 		// Something else happened
 		return state, err
 	}
-
-	state.Current = "present"
 
 	// Check lockdown mode settings
 	var host mo.HostSystem
