@@ -541,7 +541,7 @@ func (ch *ClusterHost) Create() error {
 		UserName:      ch.EsxiUsername,
 		Password:      ch.EsxiPassword,
 		Force:         ch.Force,
-		LockdownMode:  types.HostLockdownMode(ch.LockdownMode),
+		LockdownMode:  ch.LockdownMode,
 	}
 
 	task, err := obj.AddHost(ch.ctx, spec, true, &ch.License, nil)
@@ -552,7 +552,7 @@ func (ch *ClusterHost) Create() error {
 	return task.Wait(ch.ctx)
 }
 
-// Delete disconnects the host.
+// Delete disconnects the host and then removes it.
 func (ch *ClusterHost) Delete() error {
 	Log(ch, "disconnecting host\n")
 
@@ -561,17 +561,29 @@ func (ch *ClusterHost) Delete() error {
 		return err
 	}
 
-	task, err := obj.Disconnect(ch.ctx)
+	disconnectTask, err := obj.Disconnect(ch.ctx)
 	if err != nil {
 		return err
 	}
 
-	return task.Wait(ch.ctx)
+	if err := disconnectTask.Wait(ch.ctx); err != nil {
+		return err
+	}
+
+	Log(ch, "removing host\n")
+	destroyTask, err := obj.Destroy(ch.ctx)
+	if err != nil {
+		return err
+	}
+
+	return destroyTask.Wait(ch.ctx)
 }
 
 // setLockdownMode sets the lockdown mode for the ESXi host.
 // This feature is available only for ESXi 6.0 or above.
 func (ch *ClusterHost) setLockdownMode() error {
+	// TODO: Check if the host is version 6.0 or above
+
 	Log(ch, "setting lockdown mode to %s\n", ch.LockdownMode)
 	obj, err := ch.finder.HostSystem(ch.ctx, path.Join(ch.Folder, ch.Name))
 	if err != nil {
