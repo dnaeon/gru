@@ -233,21 +233,25 @@ func (d *Datacenter) Update() error {
 //   cluster.insecure = true
 //   cluster.state = "present"
 //   cluster.folder = "/MyDatacenter/host"
-//   cluster.drs_enable = true
+//   cluster.enable_drs = true
 //   cluster.drs_behavior = "fullyAutomated"
 type Cluster struct {
 	BaseVSphere
 
-	// DRSBehavior specifies the cluster-wide default DRS behavior for
+	// DrsBehavior specifies the cluster-wide default DRS behavior for
 	// virtual machines.
 	// Valid values are "fullyAutomated", "manual" and "partiallyAutomated".
 	// Refer to the official VMware vSphere API documentation for explanation on
 	// each of these settings. Defaults to "fullyAutomated".
 	DrsBehavior types.DrsBehavior `luar:"drs_behavior"`
 
-	// DRSEnable flag specifies whether or not to enable the DRS service.
+	// EnableDrs flag specifies whether or not to enable the DRS service.
 	// Defaults to false.
-	DrsEnable bool `luar:"drs_enable"`
+	EnableDrs bool `luar:"enable_drs"`
+
+	// EnableHA flag specifies whether or not to enable the HA service.
+	// Defaults to false.
+	EnableHA bool `luar:"enable_ha"`
 }
 
 // NewCluster creates a new resource for managing clusters in a
@@ -271,8 +275,9 @@ func NewCluster(name string) (Resource, error) {
 			Insecure: false,
 			Folder:   "/",
 		},
-		DrsEnable:   false,
+		EnableDrs:   false,
 		DrsBehavior: types.DrsBehaviorFullyAutomated,
+		EnableHA:    false,
 	}
 
 	return c, nil
@@ -306,7 +311,7 @@ func (c *Cluster) Evaluate() (State, error) {
 		return state, err
 	}
 
-	if c.DrsEnable != *ccr.Configuration.DrsConfig.Enabled {
+	if c.EnableDrs != *ccr.Configuration.DrsConfig.Enabled {
 		state.Outdated = true
 	}
 
@@ -323,7 +328,7 @@ func (c *Cluster) Create() error {
 
 	spec := types.ClusterConfigSpecEx{
 		DrsConfig: &types.ClusterDrsConfigInfo{
-			Enabled:           &c.DrsEnable,
+			Enabled:           &c.EnableDrs,
 			DefaultVmBehavior: types.DrsBehavior(c.DrsBehavior),
 		},
 	}
@@ -361,7 +366,7 @@ func (c *Cluster) Update() error {
 
 	spec := types.ClusterConfigSpec{
 		DrsConfig: &types.ClusterDrsConfigInfo{
-			Enabled:           &c.DrsEnable,
+			Enabled:           &c.EnableDrs,
 			DefaultVmBehavior: types.DrsBehavior(c.DrsBehavior),
 		},
 	}
