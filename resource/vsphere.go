@@ -613,6 +613,40 @@ func NewHost(name string) (Resource, error) {
 	return h, nil
 }
 
+func (h *Host) Evaluate() (State, error) {
+	state := State{
+		Current:  "unknown",
+		Want:     h.State,
+		Outdated: false,
+	}
+
+	obj, err := h.finder.HostSystem(h.ctx, path.Join(h.Folder, h.Name))
+	if err != nil {
+		// Host is absent
+		if _, ok := err.(*find.NotFoundError); ok {
+			state.Current = "absent"
+			return state, nil
+		}
+
+		// Something else happened
+		return state, err
+	}
+
+	state.Current = "present"
+
+	// Check lockdown mode settings
+	var host mo.HostSystem
+	if err := obj.Properties(h.ctx, obj.Reference(), []string{"config"}, &host); err != nil {
+		return state, err
+	}
+
+	if h.LockdownMode != host.Config.LockdownMode {
+		state.Outdated = true
+	}
+
+	return state, nil
+}
+
 // setLockdownMode sets the lockdown mode for the ESXi host.
 // This feature is available only for ESXi 6.0 or above.
 func (h *Host) setLockdownMode() error {
