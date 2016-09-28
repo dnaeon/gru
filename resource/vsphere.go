@@ -630,6 +630,8 @@ func (h *Host) Evaluate() (State, error) {
 	return state, nil
 }
 
+// Create is a no-op. Adding hosts to the VMware vCenter server is
+// done by using the ClusterHost resource type.
 func (h *Host) Create() error {
 	return nil
 }
