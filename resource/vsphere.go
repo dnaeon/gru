@@ -9,6 +9,7 @@ import (
 
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
+	"github.com/vmware/govmomi/object"
 	"github.com/vmware/govmomi/vim25/methods"
 	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
@@ -518,31 +519,36 @@ func (ch *ClusterHost) Create() error {
 	return task.Wait(ch.ctx)
 }
 
+// removeHostSystem disconnects an ESXi host from the
+// vCenter server and then removes it.
+func removeHostSystem(ctx context.Context, obj *object.HostSystem) error {
+	disconnectTask, err := obj.Disconnect(ctx)
+	if err != nil {
+		return err
+	}
+
+	if err := disconnectTask.Wait(ctx); err != nil {
+		return err
+	}
+
+	destroyTask, err := obj.Destroy(ctx)
+	if err != nil {
+		return err
+	}
+
+	return destroyTask.Wait(ctx)
+}
+
 // Delete disconnects the host and then removes it.
 func (ch *ClusterHost) Delete() error {
-	Log(ch, "disconnecting host\n")
+	Log(ch, "removing host\n")
 
 	obj, err := ch.finder.HostSystem(ch.ctx, path.Join(ch.Folder, ch.Name))
 	if err != nil {
 		return err
 	}
 
-	disconnectTask, err := obj.Disconnect(ch.ctx)
-	if err != nil {
-		return err
-	}
-
-	if err := disconnectTask.Wait(ch.ctx); err != nil {
-		return err
-	}
-
-	Log(ch, "removing host\n")
-	destroyTask, err := obj.Destroy(ch.ctx)
-	if err != nil {
-		return err
-	}
-
-	return destroyTask.Wait(ch.ctx)
+	return removeHostSystem(ch.ctx, obj)
 }
 
 // Update is a no-op.
