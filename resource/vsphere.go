@@ -427,12 +427,6 @@ type ClusterHost struct {
 	// connected vCenter servers. Defaults to false.
 	Force bool `luar:"force"`
 
-	// LockdownMode flag specifies whether to enable or
-	// disable lockdown mode of the host.
-	// This feature is available only on ESXi 6.0 or above.
-	// Defaults to lockdownDisabled.
-	LockdownMode types.HostLockdownMode `luar:"lockdown_mode"`
-
 	// Port to connect to on the remote ESXi host. Defaults to 443.
 	Port int32 `luar:"port"`
 
@@ -465,7 +459,6 @@ func NewClusterHost(name string) (Resource, error) {
 		EsxiPassword:  "",
 		SslThumbprint: "",
 		Force:         false,
-		LockdownMode:  types.HostLockdownModeLockdownDisabled,
 		Port:          443,
 		License:       "",
 	}
@@ -512,16 +505,6 @@ func (ch *ClusterHost) Evaluate() (State, error) {
 
 	state.Current = "present"
 
-	// Check lockdown mode settings
-	var host mo.HostSystem
-	if err := obj.Properties(ch.ctx, obj.Reference(), []string{"config"}, &host); err != nil {
-		return state, err
-	}
-
-	if ch.LockdownMode != host.Config.LockdownMode {
-		state.Outdated = true
-	}
-
 	return state, nil
 }
 
@@ -541,7 +524,7 @@ func (ch *ClusterHost) Create() error {
 		UserName:      ch.EsxiUsername,
 		Password:      ch.EsxiPassword,
 		Force:         ch.Force,
-		LockdownMode:  ch.LockdownMode,
+		LockdownMode:  types.HostLockdownModeLockdownDisabled,
 	}
 
 	task, err := obj.AddHost(ch.ctx, spec, true, &ch.License, nil)
@@ -579,12 +562,8 @@ func (ch *ClusterHost) Delete() error {
 	return destroyTask.Wait(ch.ctx)
 }
 
-// Update updates the state of the host.
+// Update is a no-op.
 func (ch *ClusterHost) Update() error {
-	if err := ch.setLockdownMode(); err != nil {
-		return err
-	}
-
 	return nil
 }
 
@@ -632,6 +611,37 @@ func NewHost(name string) (Resource, error) {
 	}
 
 	return h, nil
+}
+
+// setLockdownMode sets the lockdown mode for the ESXi host.
+// This feature is available only for ESXi 6.0 or above.
+func (h *Host) setLockdownMode() error {
+	/// TODO: Check if the host is version 6.0 or above
+
+	Log(ch, "setting lockdown mode to %s\n", h.LockdownMode)
+	obj, err := ch.finder.HostSystem(h.ctx, path.Join(h.Folder, h.Name))
+	if err != nil {
+		return err
+	}
+
+	var host mo.HostSystem
+	if err := obj.Properties(h.ctx, obj.Reference(), []string{"configManager.hostAccessManager"}, &host); err != nil {
+		return err
+	}
+
+	var accessManager mo.HostAccessManager
+	if err := obj.Properties(h.ctx, *host.ConfigManager.HostAccessManager, nil, &accessManager); err != nil {
+		return err
+	}
+
+	req := &types.ChangeLockdownMode{
+		This: accessManager.Reference(),
+		Mode: h.LockdownMode,
+	}
+
+	_, err = methods.ChangeLockdownMode(h.ctx, h.client, req)
+
+	return err
 }
 
 func init() {
