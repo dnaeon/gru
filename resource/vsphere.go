@@ -647,6 +647,18 @@ func (h *Host) Evaluate() (State, error) {
 	return state, nil
 }
 
+func (h *Host) Create() error {
+	return nil
+}
+
+func (h *Host) Delete() error {
+	return nil
+}
+
+func (h *Host) Update() error {
+	return nil
+}
+
 // setLockdownMode sets the lockdown mode for the ESXi host.
 // This feature is available only for ESXi 6.0 or above.
 func (h *Host) setLockdownMode() error {
