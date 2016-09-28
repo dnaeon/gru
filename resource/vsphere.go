@@ -667,7 +667,10 @@ func (h *Host) Update() error {
 func (h *Host) setLockdownMode() error {
 	// Setting lockdown mode is supported starting from vSphere API 6.0
 	// Ensure that the ESXi host is at least at version 6.0.0
-	minVersion := semver.Make("6.0.0")
+	minVersion, err := semver.Make("6.0.0")
+	if err != nil {
+		return err
+	}
 
 	Log(h, "setting lockdown mode to %s\n", h.LockdownMode)
 	obj, err := h.finder.HostSystem(h.ctx, path.Join(h.Folder, h.Name))
@@ -680,11 +683,13 @@ func (h *Host) setLockdownMode() error {
 		return err
 	}
 
-	productVersion := semver.Make(host.Config.Product.Version)
+	productVersion, err := semver.Make(host.Config.Product.Version)
+	if err != nil {
+		return err
+	}
+
 	if productVersion.LT(minVersion) {
-		Log(h, "is at version %s\n", host.Config.Product.Version)
-		Log(h, "cannot set lockdown mode via the API\n")
-		return nil
+		return fmt.Errorf("host is at version %s, setting lockdown requires %s or above", host.Config.Product.Version, minVersion)
 	}
 
 	var accessManager mo.HostAccessManager
