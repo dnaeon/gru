@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"path"
 
+	"github.com/blang/semver"
 	"github.com/vmware/govmomi"
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/object"
@@ -564,8 +565,8 @@ func (ch *ClusterHost) Update() error {
 //   host.endpoint = "https://vc01.example.org/sdk"
 //   host.username = "root"
 //   host.password = "myp4ssw0rd"
-//   host.state = "present"
 //   host.folder = "/MyDatacenter/host/MyCluster"
+//   host.lockdown_mode = "lockdownNormal"
 type Host struct {
 	BaseVSphere
 
@@ -664,7 +665,9 @@ func (h *Host) Update() error {
 // setLockdownMode sets the lockdown mode for the ESXi host.
 // This feature is available only for ESXi 6.0 or above.
 func (h *Host) setLockdownMode() error {
-	/// TODO: Check if the host is version 6.0 or above
+	// Setting lockdown mode is supported starting from vSphere API 6.0
+	// Ensure that the ESXi host is at least at version 6.0.0
+	minVersion := semver.Make("6.0.0")
 
 	Log(h, "setting lockdown mode to %s\n", h.LockdownMode)
 	obj, err := h.finder.HostSystem(h.ctx, path.Join(h.Folder, h.Name))
@@ -673,8 +676,15 @@ func (h *Host) setLockdownMode() error {
 	}
 
 	var host mo.HostSystem
-	if err := obj.Properties(h.ctx, obj.Reference(), []string{"configManager.hostAccessManager"}, &host); err != nil {
+	if err := obj.Properties(h.ctx, obj.Reference(), []string{"config", "configManager.hostAccessManager"}, &host); err != nil {
 		return err
+	}
+
+	productVersion := semver.Make(host.Config.Product.Version)
+	if productVersion.LT(minVersion) {
+		Log(h, "is at version %s\n", host.Config.Product.Version)
+		Log(h, "cannot set lockdown mode via the API\n")
+		return nil
 	}
 
 	var accessManager mo.HostAccessManager
