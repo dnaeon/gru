@@ -34,6 +34,26 @@ var ErrNoEndpoint = errors.New("No endpoint provided")
 // ErrNotVC error is returned when the remote endpoint is not a vCenter system.
 var ErrNotVC = errors.New("Not a VMware vCenter endpoint")
 
+// removeHostSystem disconnects an ESXi host from the
+// vCenter server and then removes it.
+func removeHostSystem(ctx context.Context, obj *object.HostSystem) error {
+	disconnectTask, err := obj.Disconnect(ctx)
+	if err != nil {
+		return err
+	}
+
+	if err := disconnectTask.Wait(ctx); err != nil {
+		return err
+	}
+
+	destroyTask, err := obj.Destroy(ctx)
+	if err != nil {
+		return err
+	}
+
+	return destroyTask.Wait(ctx)
+}
+
 // BaseVSphere type is the base type for all vSphere related resources.
 type BaseVSphere struct {
 	Base
@@ -475,7 +495,7 @@ func (ch *ClusterHost) Evaluate() (State, error) {
 		Outdated: false,
 	}
 
-	obj, err := ch.finder.HostSystem(ch.ctx, path.Join(ch.Folder, ch.Name))
+	_, err := ch.finder.HostSystem(ch.ctx, path.Join(ch.Folder, ch.Name))
 	if err != nil {
 		// Host is absent
 		if _, ok := err.(*find.NotFoundError); ok {
@@ -517,26 +537,6 @@ func (ch *ClusterHost) Create() error {
 	}
 
 	return task.Wait(ch.ctx)
-}
-
-// removeHostSystem disconnects an ESXi host from the
-// vCenter server and then removes it.
-func removeHostSystem(ctx context.Context, obj *object.HostSystem) error {
-	disconnectTask, err := obj.Disconnect(ctx)
-	if err != nil {
-		return err
-	}
-
-	if err := disconnectTask.Wait(ctx); err != nil {
-		return err
-	}
-
-	destroyTask, err := obj.Destroy(ctx)
-	if err != nil {
-		return err
-	}
-
-	return destroyTask.Wait(ctx)
 }
 
 // Delete disconnects the host and then removes it.
@@ -640,8 +640,16 @@ func (h *Host) Create() error {
 	return nil
 }
 
+// Delete disconnects the host and then removes it.
 func (h *Host) Delete() error {
-	return nil
+	Log(h, "removing host\n")
+
+	obj, err := h.finder.HostSystem(h.ctx, path.Join(h.Folder, h.Name))
+	if err != nil {
+		return err
+	}
+
+	return removeHostSystem(h.ctx, obj)
 }
 
 func (h *Host) Update() error {
@@ -653,8 +661,8 @@ func (h *Host) Update() error {
 func (h *Host) setLockdownMode() error {
 	/// TODO: Check if the host is version 6.0 or above
 
-	Log(ch, "setting lockdown mode to %s\n", h.LockdownMode)
-	obj, err := ch.finder.HostSystem(h.ctx, path.Join(h.Folder, h.Name))
+	Log(h, "setting lockdown mode to %s\n", h.LockdownMode)
+	obj, err := h.finder.HostSystem(h.ctx, path.Join(h.Folder, h.Name))
 	if err != nil {
 		return err
 	}
