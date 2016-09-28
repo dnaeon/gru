@@ -466,23 +466,6 @@ func NewClusterHost(name string) (Resource, error) {
 	return ch, nil
 }
 
-// Validate validates the resource.
-func (ch *ClusterHost) Validate() error {
-	if err := ch.BaseVSphere.Validate(); err != nil {
-		return err
-	}
-
-	if ch.EsxiUsername == "" {
-		return ErrNoUsername
-	}
-
-	if ch.EsxiPassword == "" {
-		return ErrNoPassword
-	}
-
-	return nil
-}
-
 // Evaluate evaluates the state of the host in the cluster.
 func (ch *ClusterHost) Evaluate() (State, error) {
 	state := State{
