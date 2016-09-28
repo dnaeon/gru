@@ -608,6 +608,32 @@ type Host struct {
 	LockdownMode types.HostLockdownMode `luar:"lockdown_mode"`
 }
 
+// NewHost creates a new resource for managing ESXi host settings.
+func NewHost(name string) (Resource, error) {
+	h := &Host{
+		BaseVSphere: BaseVSphere{
+			Base: Base{
+				Name:          name,
+				Type:          "host",
+				State:         "present",
+				Require:       make([]string, 0),
+				PresentStates: []string{"present"},
+				AbsentStates:  []string{"absent"},
+				Concurrent:    true,
+				Subscribe:     make(TriggerMap),
+			},
+			Username: "",
+			Password: "",
+			Endpoint: "",
+			Insecure: false,
+			Folder:   "/",
+		},
+		LockdownMode: types.HostLockdownModeLockdownDisabled,
+	}
+
+	return h, nil
+}
+
 func init() {
 	datacenter := ProviderItem{
 		Type:      "datacenter",
