@@ -689,7 +689,7 @@ func (h *Host) setLockdownMode() error {
 	}
 
 	if productVersion.LT(minVersion) {
-		return fmt.Errorf("host is at version %s, setting lockdown requires %s or above", host.Config.Product.Version, minVersion)
+		return fmt.Errorf("host is at version %s, setting lockdown requires %s or above", productVersion, minVersion)
 	}
 
 	var accessManager mo.HostAccessManager
