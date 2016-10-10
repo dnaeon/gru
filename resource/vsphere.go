@@ -529,7 +529,7 @@ func (ch *ClusterHost) Create() error {
 		UserName:      ch.EsxiUsername,
 		Password:      ch.EsxiPassword,
 		Force:         ch.Force,
-		LockdownMode:  types.HostLockdownModeLockdownDisabled,
+		LockdownMode:  "",
 	}
 
 	task, err := obj.AddHost(ch.ctx, spec, true, &ch.License, nil)
@@ -573,7 +573,10 @@ type Host struct {
 	// LockdownMode flag specifies whether to enable or
 	// disable lockdown mode of the host.
 	// This feature is available only on ESXi 6.0 or above.
-	// Defaults to lockdownDisabled.
+	// Valid values that can be set are "lockdownDisabled",
+	// "lockdownNormal" and "lockdownStrict". Refer to the
+	// official VMware vSphere API reference for more details and
+	// explanation of each setting. Defaults to an empty string.
 	LockdownMode types.HostLockdownMode `luar:"lockdown_mode"`
 }
 
@@ -597,7 +600,7 @@ func NewHost(name string) (Resource, error) {
 			Insecure: false,
 			Folder:   "/",
 		},
-		LockdownMode: types.HostLockdownModeLockdownDisabled,
+		LockdownMode: "",
 	}
 
 	return h, nil
@@ -610,7 +613,7 @@ func (h *Host) Evaluate() (State, error) {
 		Outdated: false,
 	}
 
-	obj, err := h.finder.HostSystem(h.ctx, path.Join(h.Folder, h.Name))
+	_, err := h.finder.HostSystem(h.ctx, path.Join(h.Folder, h.Name))
 	if err != nil {
 		// Host is absent
 		if _, ok := err.(*find.NotFoundError); ok {
@@ -623,13 +626,15 @@ func (h *Host) Evaluate() (State, error) {
 	}
 
 	// Check lockdown mode settings
-	var host mo.HostSystem
-	if err := obj.Properties(h.ctx, obj.Reference(), []string{"config"}, &host); err != nil {
-		return state, err
-	}
+	if h.LockdownMode != "" {
+		outdated, err := h.isLockdownInSync()
+		if err != nil {
+			return state, err
+		}
 
-	if h.LockdownMode != host.Config.LockdownMode {
-		state.Outdated = true
+		if outdated {
+			state.Outdated = true
+		}
 	}
 
 	return state, nil
@@ -655,11 +660,36 @@ func (h *Host) Delete() error {
 
 // Update updates the settings of the ESXi host.
 func (h *Host) Update() error {
-	if err := h.setLockdownMode(); err != nil {
-		return err
+	// Set lockdown mode settings
+	if h.LockdownMode != "" {
+		if err := h.setLockdownMode(); err != nil {
+			return err
+		}
 	}
 
 	return nil
+}
+
+// isLockdownInSync returns a boolean indicating whether the
+// lockdown mode of the ESXi host is in sync.
+func (h *Host) isLockdownInSync() (bool, error) {
+	outdated := false
+
+	obj, err := h.finder.HostSystem(h.ctx, path.Join(h.Folder, h.Name))
+	if err != nil {
+		return outdated, err
+	}
+
+	var host mo.HostSystem
+	if err := obj.Properties(h.ctx, obj.Reference(), []string{"config"}, &host); err != nil {
+		return outdated, err
+	}
+
+	if h.LockdownMode != host.Config.LockdownMode {
+		outdated = true
+	}
+
+	return outdated, nil
 }
 
 // setLockdownMode sets the lockdown mode for the ESXi host.
