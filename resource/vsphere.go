@@ -578,6 +578,29 @@ type Host struct {
 	// official VMware vSphere API reference for more details and
 	// explanation of each setting. Defaults to an empty string.
 	LockdownMode types.HostLockdownMode `luar:"lockdown_mode"`
+
+	// Dns configuration settings for the host.
+	Dns *HostDnsConfig `luar:"dns"`
+}
+
+// HostDnsConfig type provides information about the DNS settings
+// used by the ESXi host.
+type HostDnsConfig struct {
+	// DHCP flag is used to indicate whether or not DHCP is used to
+	// determine DNS settings.
+	DHCP bool `luar:"dhcp"`
+
+	// Servers is the list of DNS servers to use.
+	Servers []string `luar:"servers"`
+
+	// Domain name portion of the DNS name.
+	Domain string `luar:"domain"`
+
+	// Hostname portion of the DNS name.
+	Hostname string `luar:"hostname"`
+
+	// Search list for hostname lookup.
+	Search []string `luar:"search"`
 }
 
 // NewHost creates a new resource for managing ESXi host settings.
@@ -601,6 +624,7 @@ func NewHost(name string) (Resource, error) {
 			Folder:   "/",
 		},
 		LockdownMode: "",
+		Dns:          new(HostDnsConfig),
 	}
 
 	return h, nil
