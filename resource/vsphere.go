@@ -675,21 +675,16 @@ func (h *Host) Update() error {
 func (h *Host) isLockdownInSync() (bool, error) {
 	outdated := false
 
-	obj, err := h.finder.HostSystem(h.ctx, path.Join(h.Folder, h.Name))
+	host, err := h.properties([]string{"config"})
 	if err != nil {
-		return outdated, err
-	}
-
-	var host mo.HostSystem
-	if err := obj.Properties(h.ctx, obj.Reference(), []string{"config"}, &host); err != nil {
-		return outdated, err
+		return false, err
 	}
 
 	if h.LockdownMode != host.Config.LockdownMode {
-		outdated = true
+		return true, nil
 	}
 
-	return outdated, nil
+	return false, nil
 }
 
 // properties is a helper which retrieves properties for the
