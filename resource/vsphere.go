@@ -673,8 +673,6 @@ func (h *Host) Update() error {
 // isLockdownInSync returns a boolean indicating whether the
 // lockdown mode of the ESXi host is in sync.
 func (h *Host) isLockdownInSync() (bool, error) {
-	outdated := false
-
 	host, err := h.properties([]string{"config"})
 	if err != nil {
 		return false, err
@@ -715,13 +713,14 @@ func (h *Host) setLockdownMode() error {
 	}
 
 	Log(h, "setting lockdown mode to %s\n", h.LockdownMode)
+
 	obj, err := h.finder.HostSystem(h.ctx, path.Join(h.Folder, h.Name))
 	if err != nil {
 		return err
 	}
 
-	var host mo.HostSystem
-	if err := obj.Properties(h.ctx, obj.Reference(), []string{"config", "configManager.hostAccessManager"}, &host); err != nil {
+	host, err := h.properties([]string{"config", "configManager"})
+	if err != nil {
 		return err
 	}
 
