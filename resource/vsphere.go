@@ -692,6 +692,23 @@ func (h *Host) isLockdownInSync() (bool, error) {
 	return outdated, nil
 }
 
+// hostSystemProperties is a helper which retrieves properties for the
+// ESXi host managed by the resource.
+func (h *Host) hostSystemProperties(ps []string) (mo.HostSystem, error) {
+	var host mo.HostSystem
+
+	obj, err := h.finder.HostSystem(h.ctx, path.Join(h.Folder, h.Name))
+	if err != nil {
+		return host, err
+	}
+
+	if err := obj.Properties(h.ctx, obj.Reference(), ps, &host); err != nil {
+		return host, err
+	}
+
+	return host, nil
+}
+
 // setLockdownMode sets the lockdown mode for the ESXi host.
 // This feature is available only for ESXi 6.0 or above.
 func (h *Host) setLockdownMode() error {
