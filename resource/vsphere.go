@@ -692,9 +692,9 @@ func (h *Host) isLockdownInSync() (bool, error) {
 	return outdated, nil
 }
 
-// hostSystemProperties is a helper which retrieves properties for the
+// properties is a helper which retrieves properties for the
 // ESXi host managed by the resource.
-func (h *Host) hostSystemProperties(ps []string) (mo.HostSystem, error) {
+func (h *Host) properties(ps []string) (mo.HostSystem, error) {
 	var host mo.HostSystem
 
 	obj, err := h.finder.HostSystem(h.ctx, path.Join(h.Folder, h.Name))
