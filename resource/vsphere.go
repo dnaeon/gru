@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"path"
+	"reflect"
 
 	"github.com/blang/semver"
 	"github.com/vmware/govmomi"
@@ -567,6 +568,12 @@ func (ch *ClusterHost) Update() error {
 //   host.password = "myp4ssw0rd"
 //   host.folder = "/MyDatacenter/host/MyCluster"
 //   host.lockdown_mode = "lockdownNormal"
+//   host.dns = {
+//      servers = { "1.2.3.4", "2.3.4.5" },
+//      domain = "example.org",
+//      hostname = "esxi01",
+//      search = { "example.org" },
+//   }
 type Host struct {
 	BaseVSphere
 
@@ -661,6 +668,15 @@ func (h *Host) Evaluate() (State, error) {
 		}
 	}
 
+	outdated, err := h.isDnsServersInSync()
+	if err != nil {
+		return state, err
+	}
+
+	if !outdated {
+		state.Outdated = true
+	}
+
 	return state, nil
 }
 
@@ -691,6 +707,10 @@ func (h *Host) Update() error {
 		}
 	}
 
+	if err := h.setDnsConfig(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -707,6 +727,69 @@ func (h *Host) isLockdownInSync() (bool, error) {
 	}
 
 	return false, nil
+}
+
+// setDnsConfig configures the DNS settings on the ESXi host.
+func (h *Host) setDnsConfig() error {
+	obj, err := h.finder.HostSystem(h.ctx, path.Join(h.Folder, h.Name))
+	if err != nil {
+		return err
+	}
+
+	networkSystem, err := obj.ConfigManager().NetworkSystem(h.ctx)
+	if err != nil {
+		return err
+	}
+
+	config := &types.HostDnsConfig{
+		Dhcp:         h.Dns.DHCP,
+		HostName:     h.Dns.Hostname,
+		DomainName:   h.Dns.Domain,
+		Address:      h.Dns.Servers,
+		SearchDomain: h.Dns.Search,
+	}
+
+	return networkSystem.UpdateDnsConfig(h.ctx, config)
+}
+
+// isDnsServersInSync returns a boolean indicating whether the list of
+// DNS servers on the ESXi host are in sync.
+// TODO: Move this as a property of the resource
+func (h *Host) isDnsServersInSync() (bool, error) {
+	host, err := h.properties([]string{"config"})
+	if err != nil {
+		return false, err
+	}
+
+	dnsConfig := host.Config.Network.DnsConfig.GetHostDnsConfig()
+
+	// If DHCP is enabled we consider the settings to be correct
+	if dnsConfig.Dhcp {
+		return true, nil
+	}
+
+	// TODO: Compare the DNS server slices without using reflect
+	if !reflect.DeepEqual(dnsConfig.Address, h.Dns.Servers) {
+		Log(h, "DNS servers are out of date\n")
+		return false, nil
+	}
+
+	if dnsConfig.DomainName != h.Dns.Domain {
+		Log(h, "Domain name is out of date\n")
+		return false, nil
+	}
+
+	if dnsConfig.HostName != h.Dns.Hostname {
+		Log(h, "Hostname is out of date\n")
+		return false, nil
+	}
+
+	if !reflect.DeepEqual(dnsConfig.SearchDomain, h.Dns.Search) {
+		Log(h, "DNS search-list is out of date\n")
+		return false, nil
+	}
+
+	return true, nil
 }
 
 // properties is a helper which retrieves properties for the
