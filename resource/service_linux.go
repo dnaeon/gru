@@ -24,8 +24,9 @@ var ErrNoSystemd = errors.New("No systemd support found")
 type Service struct {
 	Base
 
-	// If true then enable the service during boot-time
-	Enable bool `luar:"enable"`
+	// EnableProperty specifies whether to enable or disable the
+	// service during boot-time. Defaults to true.
+	EnableProperty bool `luar:"enable"`
 
 	// Systemd unit name
 	unit string `luar:"-"`
@@ -51,31 +52,94 @@ func NewService(name string) (Resource, error) {
 			Concurrent:    true,
 			Subscribe:     make(TriggerMap),
 		},
-		Enable: true,
-		unit:   fmt.Sprintf("%s.service", name),
+		EnableProperty: true,
+		unit:           fmt.Sprintf("%s.service", name),
+	}
+
+	// Set resource properties
+	s.Properties = []Property{
+		Property{
+			Name:     "enable",
+			Set:      s.setEnableProperty,
+			IsSynced: s.isEnablePropertySynced,
+		},
 	}
 
 	return s, nil
 }
 
-// unitIsEnabled checks if the unit is enabled or disabled
-func (s *Service) unitIsEnabled() (bool, error) {
-	unitState, err := s.conn.GetUnitProperty(s.unit, "UnitFileState")
-	if err != nil {
-		return false, err
+// Initialize initializes the service resource by establishing a
+// connection the systemd D-BUS API
+func (s *Service) Initialize() error {
+	conn, err := dbus.New()
+	s.conn = conn
+
+	return err
+}
+
+// Evaluate evaluates the state of the resource
+func (s *Service) Evaluate() (State, error) {
+	state := State{
+		Current: "unknown",
+		Want:    s.State,
 	}
 
-	value := unitState.Value.Value().(string)
-	switch value {
-	case "enabled", "static", "enabled-runtime", "linked", "linked-runtime":
-		return true, nil
-	case "disabled", "masked", "masked-runtime":
-		return false, nil
-	case "invalid":
-		fallthrough
-	default:
-		return false, errors.New("Invalid unit state")
+	// Check if the unit is started/stopped
+	activeState, err := s.conn.GetUnitProperty(s.unit, "ActiveState")
+	if err != nil {
+		return state, err
 	}
+
+	// TODO: Handle cases where the unit is not found
+
+	value := activeState.Value.Value().(string)
+	switch value {
+	case "active", "reloading", "activating":
+		state.Current = "running"
+	case "inactive", "failed", "deactivating":
+		state.Current = "stopped"
+	}
+
+	return state, nil
+}
+
+// Create starts the service.
+func (s *Service) Create() error {
+	Log(s, "starting service\n")
+
+	ch := make(chan string)
+	jobID, err := s.conn.StartUnit(s.unit, "replace", ch)
+	if err != nil {
+		return err
+	}
+
+	result := <-ch
+	Log(s, "systemd job id %d result: %s\n", jobID, result)
+
+	return nil
+}
+
+// Delete stops the service.
+func (s *Service) Delete() error {
+	Log(s, "stopping service\n")
+
+	ch := make(chan string)
+	jobID, err := s.conn.StopUnit(s.unit, "replace", ch)
+	if err != nil {
+		return err
+	}
+
+	result := <-ch
+	Log(s, "systemd job id %d result: %s\n", jobID, result)
+
+	return nil
+}
+
+// Close closes the connection to the systemd D-BUS API
+func (s *Service) Close() error {
+	s.conn.Close()
+
+	return nil
 }
 
 // enableUnit enables the service unit during boot-time
@@ -112,11 +176,34 @@ func (s *Service) disableUnit() error {
 	return nil
 }
 
-// setUnitState enables or disables the unit
-func (s *Service) setUnitState() error {
+// isEnablePropertySynced determines whether the property is synced.
+func (s *Service) isEnablePropertySynced() (bool, error) {
+	unitState, err := s.conn.GetUnitProperty(s.unit, "UnitFileState")
+	if err != nil {
+		return false, err
+	}
+
+	var enabled bool
+	value := unitState.Value.Value().(string)
+	switch value {
+	case "enabled", "static", "enabled-runtime", "linked", "linked-runtime":
+		enabled = true
+	case "disabled", "masked", "masked-runtime":
+		enabled = false
+	case "invalid":
+		fallthrough
+	default:
+		return false, errors.New("Invalid unit state")
+	}
+
+	return s.EnableProperty == enabled, nil
+}
+
+// setEnableProperty sets the property to it's desired state.
+func (s *Service) setEnableProperty() error {
 	var action func() error
 
-	switch s.Enable {
+	switch s.EnableProperty {
 	case true:
 		action = s.enableUnit
 	case false:
@@ -128,95 +215,6 @@ func (s *Service) setUnitState() error {
 	}
 
 	return s.conn.Reload()
-}
-
-// Initialize initializes the service resource by establishing a
-// connection the systemd D-BUS API
-func (s *Service) Initialize() error {
-	conn, err := dbus.New()
-	s.conn = conn
-
-	return err
-}
-
-// Evaluate evaluates the state of the resource
-func (s *Service) Evaluate() (State, error) {
-	state := State{
-		Current:  "unknown",
-		Want:     s.State,
-		Outdated: false,
-	}
-
-	// Check if the unit is started/stopped
-	activeState, err := s.conn.GetUnitProperty(s.unit, "ActiveState")
-	if err != nil {
-		return state, err
-	}
-
-	// TODO: Handle cases where the unit is not found
-
-	value := activeState.Value.Value().(string)
-	switch value {
-	case "active", "reloading", "activating":
-		state.Current = "running"
-	case "inactive", "failed", "deactivating":
-		state.Current = "stopped"
-	}
-
-	enabled, err := s.unitIsEnabled()
-	if err != nil {
-		return state, err
-	}
-
-	if s.Enable != enabled {
-		state.Outdated = true
-	}
-
-	return state, nil
-}
-
-// Create starts the service unit
-func (s *Service) Create() error {
-	Log(s, "starting service\n")
-
-	ch := make(chan string)
-	jobID, err := s.conn.StartUnit(s.unit, "replace", ch)
-	if err != nil {
-		return err
-	}
-
-	result := <-ch
-	Log(s, "systemd job id %d result: %s\n", jobID, result)
-
-	return s.setUnitState()
-}
-
-// Delete stops the service unit
-func (s *Service) Delete() error {
-	Log(s, "stopping service\n")
-
-	ch := make(chan string)
-	jobID, err := s.conn.StopUnit(s.unit, "replace", ch)
-	if err != nil {
-		return err
-	}
-
-	result := <-ch
-	Log(s, "systemd job id %d result: %s\n", jobID, result)
-
-	return s.setUnitState()
-}
-
-// Update updates the service unit state
-func (s *Service) Update() error {
-	return s.setUnitState()
-}
-
-// Close closes the connection to the systemd D-BUS API
-func (s *Service) Close() error {
-	s.conn.Close()
-
-	return nil
 }
 
 func init() {
