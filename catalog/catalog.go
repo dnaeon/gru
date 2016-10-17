@@ -293,6 +293,7 @@ func (c *Catalog) execute(r resource.Resource) error {
 	present := utils.NewList(r.GetPresentStates()...)
 	absent := utils.NewList(r.GetAbsentStates()...)
 
+	// Process resource
 	id := r.ID()
 	var action func() error
 	switch {
@@ -302,15 +303,36 @@ func (c *Catalog) execute(r resource.Resource) error {
 	case want.IsInList(absent) && current.IsInList(present):
 		action = r.Delete
 		c.config.Logger.Printf("%s is %s, should be %s\n", id, current, want)
-	case state.Outdated:
-		action = r.Update
-		c.config.Logger.Printf("%s is out of date\n", id)
-	default:
-		c.config.Logger.Printf("%s is up to date\n", id)
-		return resource.ErrInSync
 	}
 
-	return action()
+	if action != nil {
+		if err := action(); err != nil {
+			return err
+		}
+	}
+
+	// Process resource properties
+	for _, p := range r.GetProperties() {
+		synced, err := p.IsSynced()
+		if err != nil {
+			// Some properties make no sense if the resource is absent, e.g.
+			// setting up file permissions requires that the file managed by the
+			// resource is present, therefore we ignore errors for properties
+			// which make no sense if the resource is absent.
+			if err == resource.ErrResourceAbsent {
+				continue
+			}
+			return fmt.Errorf("unable to evaluate property %s: %s\n", p.Name, err)
+		}
+
+		if !synced {
+			if err := p.Set(); err != nil {
+				return fmt.Errorf("unable to set property %s: %s\n", p.Name, err)
+			}
+		}
+	}
+
+	return nil
 }
 
 // runTriggers executes the triggers for each
