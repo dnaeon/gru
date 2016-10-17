@@ -42,7 +42,28 @@ type State struct {
 	Outdated bool
 }
 
-// Resource is the interface type for resources
+// PropertySetFunc is the type of the function that is called when
+// setting a resource property to it's desired state.
+type PropertySetFunc func() error
+
+// PropertyIsSyncedFunc is the type of the function that is called when
+// determining whether a resource property is in the desired state.
+type PropertyIsSyncedFunc func() (bool, error)
+
+// Property type represents a property of a resource.
+type Property struct {
+	// Name is the name of the resource property.
+	Name string
+
+	// Set is the function used to set the property to it's desired state.
+	Set PropertySetFunc
+
+	// IsSynced is the function used to check if the property is in the
+	// desired state.
+	IsSynced PropertyIsSyncedFunc
+}
+
+// Resource is the interface type for resources.
 type Resource interface {
 	// ID returns the unique identifier of the resource
 	ID() string
