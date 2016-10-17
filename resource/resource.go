@@ -106,8 +106,8 @@ type Resource interface {
 	// Deletes the resource
 	Delete() error
 
-	// Updates the resource
-	Update() error
+	// GetProperties returns the list of properties for the resource.
+	GetProperties() []Property
 
 	// SubscribedTo returns a map of the resource ids for which the
 	// current resource subscribes for changes to. The keys of the
@@ -168,6 +168,9 @@ type Base struct {
 	// Concurrent flag indicates whether multiple instances of the
 	// same resource type can be processed concurrently.
 	Concurrent bool `luar:"-"`
+
+	// Properties contains the resource properties.
+	Properties []Property
 
 	// Subscribe is map whose keys are resource ids that the
 	// current resource monitors for changes and the values are
@@ -242,4 +245,9 @@ func (b *Base) IsConcurrent() bool {
 // resource is subscribed for changes to.
 func (b *Base) SubscribedTo() TriggerMap {
 	return b.Subscribe
+}
+
+// GetProperties returns the properties for the resource.
+func (b *Base) GetProperties() []Property {
+	return b.Properties
 }
