@@ -24,6 +24,12 @@ var ErrNotImplemented = errors.New("Not implemented")
 // ErrInSync error is returned when a resource is in the desired state
 var ErrInSync = errors.New("Resource is in sync")
 
+// ErrResourceAbsent error is returned by properties in situations where
+// setting up a property makes no sense if the resource is absent, e.g.
+// setting up file permissions makes no sense if the file resource is in
+// absent state.
+var ErrResourceAbsent = errors.New("Resource is absent")
+
 // TriggerMap type is a map type which keys are
 // resource ids for which a resource subscribes for changes to.
 // The keys of the map are Lua functions that would be executed
