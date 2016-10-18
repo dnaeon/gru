@@ -29,7 +29,7 @@ type Catalog struct {
 	reversed *graph.Graph `luar:"-"`
 
 	// Status contains status information about resources
-	status *status `luar:"-"`
+	status *Status `luar:"-"`
 
 	// Configuration settings
 	config *Config `luar:"-"`
@@ -57,58 +57,23 @@ type Config struct {
 	Concurrency int
 }
 
-// status type contains status information about processed resources
-type status struct {
+// Status type contains status information about processed resources.
+type Status struct {
 	sync.RWMutex
 
-	// Items contain the result of resource processing and any
-	// errors that might have occurred during processing.
-	// Keys of the map are the resource ids and their
-	// values are the errors returned by resources.
-	items map[string]error
+	// Items contain the status for resources after being processed.
+	Items map[string]*StatusItem
 }
 
-// set sets the status for a resource
-func (s *status) set(id string, err error) {
-	s.Lock()
-	defer s.Unlock()
-	s.items[id] = err
-}
+// StatusItem type represents a single item for a processed resource.
+type StatusItem struct {
+	// StateChanged field specifies whether or not a resource has changed
+	// after being evaluated and processed.
+	StateChanged bool
 
-// get retrieves the status of a resource
-func (s *status) get(id string) (error, bool) {
-	s.Lock()
-	defer s.Unlock()
-	err, ok := s.items[id]
-
-	return err, ok
-}
-
-// isSynced returns a boolean indicating whether a
-// resource is up to date
-func (s *status) isSynced(id string) bool {
-	s.Lock()
-	defer s.Unlock()
-
-	return s.items[id] == resource.ErrInSync
-}
-
-// hasChanged returns a boolean indicating whether a
-// resource state has changed after processing
-func (s *status) hasChanged(id string) bool {
-	s.Lock()
-	defer s.Unlock()
-
-	return s.items[id] == nil
-}
-
-// hasFailed returns a boolean indicating whether a
-// resource has failed during processing
-func (s *status) hasFailed(id string) bool {
-	s.Lock()
-	defer s.Unlock()
-
-	return s.items[id] != nil && s.items[id] != resource.ErrInSync
+	// Err contains any errors that were encountered during resource
+	// evaluation and processing.
+	Err error
 }
 
 // New creates a new empty catalog with the provided configuration
@@ -118,8 +83,8 @@ func New(config *Config) *Catalog {
 		collection: make(resource.Collection),
 		sorted:     make([]*graph.Node, 0),
 		reversed:   graph.New(),
-		status: &status{
-			items: make(map[string]error),
+		status: &Status{
+			Items: make(map[string]*StatusItem),
 		},
 		Unsorted: make([]resource.Resource, 0),
 	}
@@ -187,17 +152,17 @@ func (c *Catalog) Load() error {
 }
 
 // Run processes the resources from catalog
-func (c *Catalog) Run() error {
+func (c *Catalog) Run() *Status {
 	// process executes a single resource
 	process := func(r resource.Resource) {
 		id := r.ID()
-		err := c.execute(r)
-		c.status.set(id, err)
-		if c.status.hasFailed(id) {
-			c.config.Logger.Printf("%s %s\n", id, err)
-			return
+		item := c.execute(r)
+		c.status.Lock()
+		defer c.status.Unlock()
+		c.status.Items[id] = item
+		if item.Err != nil {
+			c.config.Logger.Printf("%s %s\n", id, item.Err)
 		}
-		c.runTriggers(r)
 	}
 
 	// Start goroutines for concurrent processing
@@ -237,52 +202,31 @@ func (c *Catalog) Run() error {
 	close(ch)
 	wg.Wait()
 
-	// Print summary report
-	if !c.config.DryRun {
-		c.status.Lock()
-		var changed, failed, uptodate int
-		for _, err := range c.status.items {
-			switch err {
-			case nil:
-				changed++
-			case resource.ErrInSync:
-				uptodate++
-			default:
-				failed++
-			}
-		}
-		c.config.Logger.Printf("Resource summary is %d up-to-date, %d changed, %d failed\n", uptodate, changed, failed)
-		c.status.Unlock()
-	}
-
-	return nil
+	return c.status
 }
 
 // execute processes a single resource
-func (c *Catalog) execute(r resource.Resource) error {
-	// Check if the resource has failed dependencies
-	for _, dep := range r.Dependencies() {
-		if c.status.hasFailed(dep) {
-			return fmt.Errorf("failed dependency for %s", dep)
-		}
+func (c *Catalog) execute(r resource.Resource) *StatusItem {
+	if err := c.hasFailedDependencies(r); err != nil {
+		return &StatusItem{Err: err}
 	}
 
 	if err := r.Validate(); err != nil {
-		return err
+		return &StatusItem{Err: err}
 	}
 
 	if err := r.Initialize(); err != nil {
-		return err
+		return &StatusItem{Err: err}
 	}
 	defer r.Close()
 
 	state, err := r.Evaluate()
 	if err != nil {
-		return err
+		return &StatusItem{Err: err}
 	}
 
 	if c.config.DryRun {
-		return nil
+		return &StatusItem{}
 	}
 
 	// Current and wanted states for the resource
@@ -303,11 +247,15 @@ func (c *Catalog) execute(r resource.Resource) error {
 	case want.IsInList(absent) && current.IsInList(present):
 		action = r.Delete
 		c.config.Logger.Printf("%s is %s, should be %s\n", id, current, want)
+	default:
+		// No-op: resource is in sync
 	}
 
+	stateChanged := false
 	if action != nil {
+		stateChanged = true
 		if err := action(); err != nil {
-			return err
+			return &StatusItem{StateChanged: true, Err: err}
 		}
 	}
 
@@ -322,24 +270,35 @@ func (c *Catalog) execute(r resource.Resource) error {
 			if err == resource.ErrResourceAbsent {
 				continue
 			}
-			return fmt.Errorf("unable to evaluate property %s: %s\n", p.Name, err)
+			e := fmt.Errorf("unable to evaluate property %s: %s\n", p.Name, err)
+			return &StatusItem{StateChanged: true, Err: e}
 		}
 
 		if !synced {
+			stateChanged = true
 			if err := p.Set(); err != nil {
-				return fmt.Errorf("unable to set property %s: %s\n", p.Name, err)
+				e := fmt.Errorf("unable to set property %s: %s\n", p.Name, err)
+				return &StatusItem{StateChanged: true, Err: e}
 			}
 		}
 	}
 
-	return nil
+	if err := c.runTriggers(r); err != nil {
+		return &StatusItem{StateChanged: stateChanged, Err: err}
+	}
+
+	return &StatusItem{StateChanged: stateChanged, Err: nil}
 }
 
 // runTriggers executes the triggers for each
 // monitored resource if it's state has changed
-func (c *Catalog) runTriggers(r resource.Resource) {
+func (c *Catalog) runTriggers(r resource.Resource) error {
+	c.status.Lock()
+	defer c.status.Unlock()
+
 	for subscribed, trigger := range r.SubscribedTo() {
-		if !c.status.hasChanged(subscribed) {
+		item := c.status.Items[subscribed]
+		if !item.StateChanged {
 			continue
 		}
 
@@ -347,8 +306,26 @@ func (c *Catalog) runTriggers(r resource.Resource) {
 		c.config.L.Push(trigger)
 		if err := c.config.L.PCall(0, 0, nil); err != nil {
 			c.config.Logger.Printf("%s trigger exited with an error: %s\n", r.ID(), err)
+			return err
 		}
 	}
+
+	return nil
+}
+
+// hasFailedDependencies checks if a resource has failed dependencies.
+func (c *Catalog) hasFailedDependencies(r resource.Resource) error {
+	c.status.Lock()
+	defer c.status.Unlock()
+
+	for _, dep := range r.Dependencies() {
+		item := c.status.Items[dep]
+		if item.Err != nil {
+			return fmt.Errorf("failed dependency for %s", dep)
+		}
+	}
+
+	return nil
 }
 
 // luaLen returns the number of unsorted resources in catalog.
