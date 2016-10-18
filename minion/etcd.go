@@ -229,16 +229,13 @@ func (m *etcdMinion) processTask(t *task.Task) error {
 		return err
 	}
 
-	err = katalog.Run()
+	status := katalog.Run()
+	status.Summary(config.Logger)
+
 	t.Result = buf.String()
+	t.State = task.TaskStateSuccess
 
-	if err != nil {
-		t.State = task.TaskStateFailed
-	} else {
-		t.State = task.TaskStateSuccess
-	}
-
-	return err
+	return nil
 }
 
 // Classifies the minion

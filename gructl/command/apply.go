@@ -67,9 +67,8 @@ func execApplyCommand(c *cli.Context) error {
 		}
 	}
 
-	if err := katalog.Run(); err != nil {
-		return cli.NewExitError(err.Error(), 1)
-	}
+	status := katalog.Run()
+	status.Summary(resource.DefaultLogger)
 
 	return nil
 }
