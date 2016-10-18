@@ -44,24 +44,23 @@ func NewService(name string) (Resource, error) {
 		RCVar:  fmt.Sprintf("%v_enable", name),
 	}
 
-	return s, nil
-}
-
-// isEnabled returns true if service is set to start at boot.
-func (s *Service) isEnabled() bool {
-	if err := exec.Command("service", s.Name, "enabled").Run(); err != nil {
-		return false
+	// Set resource properties
+	s.Properties = []Property{
+		Property{
+			Name:     "enable",
+			Set:      s.setEnable,
+			IsSynced: s.isEnableSynced,
+		},
 	}
 
-	return true
+	return s, nil
 }
 
 // Evaluate evaluates the state of the resource.
 func (s *Service) Evaluate() (State, error) {
 	state := State{
-		Current:  "unknown",
-		Want:     s.State,
-		Outdated: false,
+		Current: "unknown",
+		Want:    s.State,
 	}
 
 	// TODO: handle non existent service
@@ -70,10 +69,6 @@ func (s *Service) Evaluate() (State, error) {
 		state.Current = "stopped"
 	} else {
 		state.Current = "running"
-	}
-
-	if s.Enable != s.isEnabled() {
-		state.Outdated = true
 	}
 
 	return state, nil
@@ -93,14 +88,32 @@ func (s *Service) Delete() error {
 	return exec.Command("service", s.Name, "onestop").Run()
 }
 
-// Update updates the service's rcvar.
-func (s *Service) Update() error {
+// isEnableSynced checks whether the service is in the desired state.
+func (s *Service) isEnableSynced() (bool, error) {
+	var enabled bool
+
+	err := exec.Command("service", s.Name, "enabled").Run()
+	switch err {
+	case nil:
+		enabled = true
+	default:
+		enabled = false
+	}
+
+	return enabled != s.Enable
+}
+
+// setEnable enables or disables the service during boot-time.
+func (s *Service) setEnable() error {
 	if s.RCVar == "" {
 		return nil
 	}
 
-	rcValue := "YES"
-	if !s.Enable {
+	var rcValue string
+	switch s.Enable {
+	case true:
+		rcValue = "YES"
+	case false:
 		rcValue = "NO"
 	}
 
