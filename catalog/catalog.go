@@ -76,6 +76,26 @@ type StatusItem struct {
 	Err error
 }
 
+// Summary displays a summary of the resource status.
+func (s *Status) Summary(l *log.Logger) {
+	s.Lock()
+	defer s.Unlock()
+
+	var changed, failed, uptodate int
+	for _, item := range s.Items {
+		switch {
+		case item.StateChanged == true && item.Err == nil:
+			changed++
+		case item.StateChanged == false && item.Err == nil:
+			uptodate++
+		default:
+			failed++
+		}
+	}
+
+	l.Printf("%d up-to-date, %d changed, %d failed\n", uptodate, changed, failed)
+}
+
 // New creates a new empty catalog with the provided configuration
 func New(config *Config) *Catalog {
 	c := &Catalog{
