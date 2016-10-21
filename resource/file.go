@@ -1,59 +1,28 @@
 package resource
 
 import (
+	"crypto/md5"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/user"
 	"path/filepath"
-	"strings"
 
 	"github.com/dnaeon/gru/utils"
 )
 
-// The file types we manage
-const (
-	fileTypeRegular   = "regular"
-	fileTypeDirectory = "directory"
-)
-
-// Flags used to indicate what has changed on a file
-const (
-	flagOutdatedContent     = 0x01
-	flagOutdatedPermissions = 0x02
-	flagOutdatedOwner       = 0x04
-)
-
-// outdatedFile type describes a file which
-// has been identified as being out of date
-type outdatedFile struct {
-	// Source file to use when reconstructing file's content
-	src string
-
-	// Destination file which is identified as being out of date
-	dst string
-
-	// Flags used to indicate what has changed on the file
-	flags int
-}
-
-// File resource manages files and directories.
-//
-// Example:
-//   foo = resource.file.new("/tmp/foo")
-//   foo.state = "present"
-//   foo.mode = tonumber("0600", 8)
-//
-// Example:
-//   bar = resource.file.new("/tmp/bar")
-//   bar.state = "present"
-//   bar.filetype = "directory"
-type File struct {
+// BaseFile type is the base type which is embedded by
+// File, Directory and Link resources.
+type BaseFile struct {
 	Base
 
 	// Path to the file. Defaults to the resource name.
 	Path string `luar:"-"`
 
-	// Permission bits to set on the file. Defaults to 0644.
+	// Permission bits to set on the file.
+	// For regular files defaults to 0644.
+	// For directories defaults to 0755.
 	Mode os.FileMode `luar:"mode"`
 
 	// Owner of the file. Defaults to the currently running user.
@@ -62,29 +31,103 @@ type File struct {
 	// Group of the file.
 	// Defaults to the group of the currently running user.
 	Group string `luar:"group"`
-
-	// Source file to use when creating/updating the file
-	Source string `luar:"source"`
-
-	// The file type we manage.
-	FileType string `luar:"filetype"`
-
-	// Recursively manage the directory if set to true.
-	// Defaults to false.
-	Recursive bool `luar:"recursive"`
-
-	// Purge extra files in the target directory if set to true.
-	// Defaults to false.
-	Purge bool `luar:"purge"`
-
-	// Files identified as being out of date
-	outdated []*outdatedFile `luar:"-"`
-
-	// Extra files found in the target directory
-	extra map[string]struct{} `luar:"-"`
 }
 
-// NewFile creates a resource for managing files and directories
+// isModeSynced returns a boolean indicating whether the
+// permissions of the file managed by the resource are in sync.
+func (bf *BaseFile) isModeSynced() (bool, error) {
+	dst := utils.NewFileUtil(bf.Path)
+
+	if !dst.Exists() {
+		return false, ErrResourceAbsent
+	}
+
+	mode, err := dst.Mode()
+	if err != nil {
+		return false, err
+	}
+
+	return mode == bf.Mode, nil
+}
+
+// setMode sets the permissions on the file managed by the resource.
+func (bf *BaseFile) setMode() error {
+	dst := utils.NewFileUtil(bf.Path)
+
+	return dst.Chmod(bf.Mode)
+}
+
+// isOwnerSynced checks whether the file ownership is correct.
+func (bf *BaseFile) isOwnerSynced() (bool, error) {
+	dst := utils.NewFileUtil(bf.Path)
+
+	if !dst.Exists() {
+		return false, ErrResourceAbsent
+	}
+
+	owner, err := dst.Owner()
+	if err != nil {
+		return false, err
+	}
+
+	return owner.User.Username == bf.Owner && owner.Group.Name == bf.Group, nil
+}
+
+// setOwner sets the ownership of the file.
+func (bf *BaseFile) setOwner() error {
+	dst := utils.NewFileUtil(bf.Path)
+
+	return dst.SetOwner(bf.Owner, bf.Group)
+}
+
+// File resource manages files.
+//
+// Example:
+//   foo = resource.file.new("/tmp/foo")
+//   foo.state = "present"
+//   foo.mode = tonumber("0600", 8)
+//   foo.owner = "root"
+//   foo.group = "wheel"
+//   foo.content = "content of file foo"
+type File struct {
+	BaseFile
+
+	// Content of file to set.
+	Content []byte `luar:"content"`
+
+	// Source file to use for the file content.
+	Source string `luar:"source"`
+}
+
+// isContentSynced checks if the file content is in sync with the
+// given content.
+func (f *File) isContentSynced() (bool, error) {
+	// We don't have a content, assume content is correct
+	if f.Content == nil {
+		return true, nil
+	}
+
+	dst := utils.NewFileUtil(f.Path)
+	if !dst.Exists() {
+		return false, ErrResourceAbsent
+	}
+
+	dstMd5, err := dst.Md5()
+	if err != nil {
+		return false, err
+	}
+
+	srcMd5 := fmt.Sprintf("%x", md5.Sum(f.Content))
+
+	return srcMd5 == dstMd5, nil
+}
+
+// setContent sets the content of the file.
+func (f *File) setContent() error {
+	return ioutil.WriteFile(f.Path, f.Content, f.Mode)
+}
+
+// NewFile creates a resource for managing regular files.
 func NewFile(name string) (Resource, error) {
 	// Defaults for owner and group
 	currentUser, err := user.Current()
@@ -99,492 +142,229 @@ func NewFile(name string) (Resource, error) {
 
 	// Resource defaults
 	f := &File{
-		Base: Base{
-			Name:          name,
-			Type:          "file",
-			State:         "present",
-			Require:       make([]string, 0),
-			PresentStates: []string{"present"},
-			AbsentStates:  []string{"absent"},
-			Concurrent:    true,
-			Subscribe:     make(TriggerMap),
+		BaseFile: BaseFile{
+			Base: Base{
+				Name:          name,
+				Type:          "file",
+				State:         "present",
+				Require:       make([]string, 0),
+				PresentStates: []string{"present"},
+				AbsentStates:  []string{"absent"},
+				Concurrent:    true,
+				Subscribe:     make(TriggerMap),
+			},
+			Path:  name,
+			Mode:  0644,
+			Owner: currentUser.Username,
+			Group: currentGroup.Name,
 		},
-		Path:      name,
-		Mode:      0644,
-		Owner:     currentUser.Username,
-		Group:     currentGroup.Name,
-		FileType:  fileTypeRegular,
-		Recursive: false,
-		Purge:     false,
-		outdated:  make([]*outdatedFile, 0),
-		extra:     make(map[string]struct{}),
+		Content: nil,
+		Source:  "",
+	}
+
+	// Set resource properties
+	f.Properties = []Property{
+		Property{
+			Name:     "mode",
+			Set:      f.setMode,
+			IsSynced: f.isModeSynced,
+		},
+		Property{
+			Name:     "ownership",
+			Set:      f.setOwner,
+			IsSynced: f.isOwnerSynced,
+		},
+		Property{
+			Name:     "content",
+			Set:      f.setContent,
+			IsSynced: f.isContentSynced,
+		},
 	}
 
 	return f, nil
 }
 
-// Validate validates the resource
+// Validate validates the file resource.
 func (f *File) Validate() error {
 	if err := f.Base.Validate(); err != nil {
 		return err
 	}
 
-	// Validate that we have a valid file type
-	if f.FileType != fileTypeRegular && f.FileType != fileTypeDirectory {
-		return fmt.Errorf("Invalid file type '%s'", f.FileType)
-	}
-
-	// If we have a source, ensure that it exists
-	if f.Source != "" {
-		dst := utils.NewFileUtil(filepath.Join(DefaultConfig.SiteRepo, f.Source))
-		if !dst.Exists() {
-			return fmt.Errorf("source file '%s' does not exist", f.Source)
-		}
+	if f.Source != "" && f.Content != nil {
+		return errors.New("cannot use both 'source' and 'content'")
 	}
 
 	return nil
 }
 
-// Evaluate evaluates the file resource
-func (f *File) Evaluate() (State, error) {
-	s := State{
-		Current:  "unknown",
-		Want:     f.State,
-		Outdated: false,
+// Initialize initializes the file resource.
+func (f *File) Initialize() error {
+	// Set file content from the given source file if any.
+	// TODO: Currenly this works only for files in the site repo.
+	// TODO: Implement a generic file content fetcher.
+	if f.Source != "" {
+		src := filepath.Join(DefaultConfig.SiteRepo, f.Source)
+		content, err := ioutil.ReadFile(src)
+		if err != nil {
+			return err
+		}
+		f.Content = content
 	}
 
-	// Check for file presence
+	return nil
+}
+
+// Evaluate evaluates the state of the file resource.
+func (f *File) Evaluate() (State, error) {
+	state := State{
+		Current: "unknown",
+		Want:    f.State,
+	}
+
 	fi, err := os.Stat(f.Path)
 	if os.IsNotExist(err) {
-		s.Current = "absent"
-		return s, nil
+		state.Current = "absent"
+		return state, nil
 	}
 
-	s.Current = "present"
+	state.Current = "present"
 
-	// Check the file(s) content, permissions and ownership
-	switch f.FileType {
-	case fileTypeRegular:
-		if !fi.Mode().IsRegular() {
-			return s, fmt.Errorf("%s exists, but is not a regular file", f.Path)
-		}
-
-		outdated, err := f.isRegularFileContentOutdated()
-		if err != nil {
-			return s, err
-		}
-
-		if outdated {
-			s.Outdated = true
-		}
-	case fileTypeDirectory:
-		if !fi.IsDir() {
-			return s, fmt.Errorf("%s exists, but is not a directory", f.Path)
-		}
-
-		outdated, err := f.isDirectoryContentOutdated()
-		if err != nil {
-			return s, err
-		}
-
-		if outdated {
-			s.Outdated = true
-		}
+	if !fi.Mode().IsRegular() {
+		return state, errors.New("path exists, but is not a regular file")
 	}
 
-	outdated, err := f.isPermissionsOutdated()
-	if err != nil {
-		return s, err
-	}
-
-	if outdated {
-		s.Outdated = true
-	}
-
-	outdated, err = f.isOwnerOutdated()
-	if err != nil {
-		return s, err
-	}
-
-	if outdated {
-		s.Outdated = true
-	}
-
-	// Report on what has been identified as being out of date
-	if f.Purge {
-		for name := range f.extra {
-			Log(f, "%s exists, but is not part of source\n", name)
-			s.Outdated = true
-		}
-	}
-
-	for _, item := range f.outdated {
-		if item.flags&flagOutdatedContent != 0 {
-			Log(f, "content of %s is out of date\n", item.dst)
-		}
-		if item.flags&flagOutdatedPermissions != 0 {
-			Log(f, "permissions of %s are out of date\n", item.dst)
-		}
-		if item.flags&flagOutdatedOwner != 0 {
-			Log(f, "ownership of %s is out of date\n", item.dst)
-		}
-	}
-
-	return s, nil
+	return state, nil
 }
 
-// Create creates the file managed by the resource
+// Create creates the file managed by the resource.
 func (f *File) Create() error {
-	Log(f, "creating resource\n")
-
-	switch f.FileType {
-	case fileTypeRegular:
-		if err := f.createRegularFile(); err != nil {
-			return err
-		}
-
-		dst := utils.NewFileUtil(f.Path)
-		if err := dst.Chmod(f.Mode); err != nil {
-			return err
-		}
-		if err := dst.SetOwner(f.Owner, f.Group); err != nil {
-			return err
-		}
-	case fileTypeDirectory:
-		if err := f.createDirectory(); err != nil {
-			return err
-		}
-
-		dstRegistry, err := directoryFileRegistry(f.Path, []string{})
-		if err != nil {
-			return err
-		}
-
-		for _, path := range dstRegistry {
-			dst := utils.NewFileUtil(path)
-			if err := dst.Chmod(f.Mode); err != nil {
-				return err
-			}
-			if err := dst.SetOwner(f.Owner, f.Group); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
+	return ioutil.WriteFile(f.Path, f.Content, f.Mode)
 }
 
-// Delete deletes the file managed by the resource
+// Delete deletes the file managed by the resource.
 func (f *File) Delete() error {
-	Log(f, "removing resource\n")
-
-	if f.Recursive {
-		return os.RemoveAll(f.Path)
-	}
-
 	return os.Remove(f.Path)
 }
 
-// Update updates the files managed by the resource
-func (f *File) Update() error {
-	// Purge extra files
-	if f.Purge {
-		for name := range f.extra {
-			dstFile := utils.NewFileUtil(name)
-			Log(f, "purging %s\n", name)
-			if err := dstFile.Remove(); err != nil {
-				return err
-			}
-		}
-	}
+// Directory resource manages directories.
+//
+// Example:
+//   bar = resource.directory.new("/tmp/bar")
+//   bar.state = "present"
+//   bar.mode = tonumber("0700", 8)
+//   bar.owner = "root"
+//   bar.group = "wheel"
+type Directory struct {
+	BaseFile
 
-	// Fix outdated files
-	for _, item := range f.outdated {
-		dstFile := utils.NewFileUtil(item.dst)
-
-		// Update file content if needed
-		if item.flags&flagOutdatedContent != 0 {
-			// Create parent directory for file if missing
-			dstDir := filepath.Dir(item.dst)
-			_, err := os.Stat(dstDir)
-			if os.IsNotExist(err) {
-				if err := os.MkdirAll(dstDir, 0755); err != nil {
-					return err
-				}
-			}
-
-			srcFile := utils.NewFileUtil(item.src)
-			srcMd5, err := srcFile.Md5()
-			if err != nil {
-				return err
-			}
-
-			Log(f, "setting content of %s to md5:%s\n", item.dst, srcMd5)
-			if err := dstFile.CopyFrom(item.src, true); err != nil {
-				return err
-			}
-		}
-
-		// Update permissions if needed
-		if item.flags&flagOutdatedPermissions != 0 {
-			Log(f, "setting permissions of %s to %#o\n", item.dst, f.Mode)
-			if err := dstFile.Chmod(f.Mode); err != nil {
-				return err
-			}
-		}
-
-		// Update ownership if needed
-		if item.flags&flagOutdatedOwner != 0 {
-			Log(f, "setting owner of %s to %s:%s\n", item.dst, f.Owner, f.Group)
-			if err := dstFile.SetOwner(f.Owner, f.Group); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
+	// Parents flag specifies whether or not to create/delete
+	// parent directories. Defaults to false.
+	Parents bool `luar:"parents"`
 }
 
-// directoryFileRegistry creates a map of all files found in a
-// given directory. The keys of the map are the file names with the
-// leading source path trimmed and the values are the
-// full path to the discovered files.
-func directoryFileRegistry(path string, skip []string) (map[string]string, error) {
-	registry := make(map[string]string)
-
-	found, err := utils.WalkPath(path, skip)
+// NewDirectory creates a resource for managing directories.
+func NewDirectory(name string) (Resource, error) {
+	// Defaults for owner and group
+	currentUser, err := user.Current()
 	if err != nil {
-		return registry, err
+		return nil, err
 	}
 
-	for _, name := range found {
-		fi, err := os.Stat(name)
-		if err != nil {
-			return registry, err
-		}
-
-		if fi.Mode().IsRegular() {
-			trimmed := strings.TrimPrefix(name, path+"/")
-			registry[trimmed] = name
-		}
-	}
-
-	return registry, nil
-}
-
-// createRegularFile creates the file and content managed by the resource
-func (f *File) createRegularFile() error {
-	dst := utils.NewFileUtil(f.Path)
-
-	switch {
-	case f.Source != "":
-		// We have a source file, use it
-		srcPath := filepath.Join(DefaultConfig.SiteRepo, f.Source)
-		if err := dst.CopyFrom(srcPath, false); err != nil {
-			return err
-		}
-	case f.Source == "" && dst.Exists():
-		// We have no source, do nothing
-		break
-	case f.Source == "" && !dst.Exists():
-		// Create an empty file
-		if _, err := os.Create(f.Path); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// createDirectory creates the directory and content managed by the resource
-func (f *File) createDirectory() error {
-	switch {
-	case !f.Recursive:
-		return os.Mkdir(f.Path, 0755)
-	case f.Recursive && f.Source != "":
-		srcPath := filepath.Join(DefaultConfig.SiteRepo, f.Source)
-		return utils.CopyDir(srcPath, f.Path)
-	case f.Recursive && f.Source == "":
-		return os.MkdirAll(f.Path, 0755)
-	}
-
-	// Not reached
-	return nil
-}
-
-// isRegularFileContentOutdated returns a boolean indicating whether the
-// content managed by the resource is outdated compared to the source
-// file defined by the resource.
-// If the file is identified as being out of date it will be appended to the
-// list of outdated files for the resource, so it can be further
-// processed if needed.
-func (f *File) isRegularFileContentOutdated() (bool, error) {
-	if f.Source != "" {
-		srcPath := filepath.Join(DefaultConfig.SiteRepo, f.Source)
-		same, err := utils.SameContent(srcPath, f.Path)
-		if err != nil {
-			return false, err
-		}
-
-		if !same {
-			item := &outdatedFile{
-				src: srcPath,
-				dst: f.Path,
-			}
-			item.flags |= flagOutdatedContent
-			f.outdated = append(f.outdated, item)
-			return true, nil
-		}
-	}
-
-	return false, nil
-}
-
-// isDirectoryContentOutdated returns a boolean indicating whether the
-// content of the directory managed by the resource is outdated
-// compared to the source directory defined by the resource.
-// The files identified as being out of date will be appended to the
-// list of outdated files for the resource, so they can be further
-// processed if needed.
-func (f *File) isDirectoryContentOutdated() (bool, error) {
-	isOutdated := false
-	if f.Source != "" && f.Recursive {
-		srcPath := filepath.Join(DefaultConfig.SiteRepo, f.Source)
-
-		// Exclude the ".git" repo directory from the source path,
-		// since our source files reside in a git repo
-		srcRegistry, err := directoryFileRegistry(srcPath, []string{".git"})
-		if err != nil {
-			return false, err
-		}
-
-		dstRegistry, err := directoryFileRegistry(f.Path, []string{})
-		if err != nil {
-			return false, err
-		}
-
-		// Check source and destination files' content
-		for name := range srcRegistry {
-			item := &outdatedFile{
-				src: srcRegistry[name],
-				dst: dstRegistry[name],
-			}
-			item.flags |= flagOutdatedContent
-
-			// File is missing
-			if _, ok := dstRegistry[name]; !ok {
-				item.dst = filepath.Join(f.Path, name)
-				f.outdated = append(f.outdated, item)
-				isOutdated = true
-				continue
-			}
-
-			// Check if content has changed
-			same, err := utils.SameContent(srcRegistry[name], dstRegistry[name])
-			if err != nil {
-				return false, err
-			}
-
-			if !same {
-				f.outdated = append(f.outdated, item)
-				isOutdated = true
-			}
-		}
-
-		// Check for extra files in the managed directory
-		for name := range dstRegistry {
-			if _, ok := srcRegistry[name]; !ok {
-				f.extra[dstRegistry[name]] = struct{}{}
-			}
-		}
-	}
-
-	return isOutdated, nil
-}
-
-// isPermissionsOutdated returns a boolean indicating whether the
-// file's permissions managed by the resource are outdated compared
-// to the ones defined by the resource.
-// Each file identified as being out of date will be appended to the
-// list of outdated files for the resource, so they can be further
-// processed if needed.
-func (f *File) isPermissionsOutdated() (bool, error) {
-	dstRegistry, err := directoryFileRegistry(f.Path, []string{})
+	currentGroup, err := user.LookupGroupId(currentUser.Gid)
 	if err != nil {
-		return false, err
+		return nil, err
 	}
 
-	isOutdated := false
-	for name := range dstRegistry {
-		// Skip extra files
-		if _, ok := f.extra[dstRegistry[name]]; ok {
-			continue
-		}
-
-		item := &outdatedFile{
-			dst: dstRegistry[name],
-		}
-		item.flags |= flagOutdatedPermissions
-
-		dst := utils.NewFileUtil(dstRegistry[name])
-		mode, err := dst.Mode()
-		if err != nil {
-			return false, err
-		}
-
-		if mode.Perm() != f.Mode {
-			f.outdated = append(f.outdated, item)
-			isOutdated = true
-		}
+	// Resource defaults
+	d := &Directory{
+		BaseFile: BaseFile{
+			Base: Base{
+				Name:          name,
+				Type:          "directory",
+				State:         "present",
+				Require:       make([]string, 0),
+				PresentStates: []string{"present"},
+				AbsentStates:  []string{"absent"},
+				Concurrent:    true,
+				Subscribe:     make(TriggerMap),
+			},
+			Path:  name,
+			Mode:  0755,
+			Owner: currentUser.Username,
+			Group: currentGroup.Name,
+		},
+		Parents: false,
 	}
 
-	return isOutdated, nil
+	// Set resource properties
+	d.Properties = []Property{
+		Property{
+			Name:     "mode",
+			Set:      d.setMode,
+			IsSynced: d.isModeSynced,
+		},
+		Property{
+			Name:     "ownership",
+			Set:      d.setOwner,
+			IsSynced: d.isOwnerSynced,
+		},
+	}
+
+	return d, nil
 }
 
-// isOwnerOutdated returns a boolean indicating whether the
-// file's owner managed by the resource is outdated compared to the
-// ones defined by the resource.
-// Each file identified as being out of date will be appended to the
-// list of outdated files for the resource, so they can be further
-// processed if needed.
-func (f *File) isOwnerOutdated() (bool, error) {
-	dstRegistry, err := directoryFileRegistry(f.Path, []string{})
-	if err != nil {
-		return false, err
+// Evaluate evaluates the state of the directory.
+func (d *Directory) Evaluate() (State, error) {
+	state := State{
+		Current: "unknown",
+		Want:    d.State,
 	}
 
-	isOutdated := false
-	for name := range dstRegistry {
-		// Skip extra files
-		if _, ok := f.extra[dstRegistry[name]]; ok {
-			continue
-		}
-
-		item := &outdatedFile{
-			dst: dstRegistry[name],
-		}
-		item.flags |= flagOutdatedOwner
-		dst := utils.NewFileUtil(dstRegistry[name])
-		owner, err := dst.Owner()
-		if err != nil {
-			return false, err
-		}
-
-		if f.Owner != owner.User.Username || f.Group != owner.Group.Name {
-			f.outdated = append(f.outdated, item)
-			isOutdated = true
-		}
+	fi, err := os.Stat(d.Path)
+	if os.IsNotExist(err) {
+		state.Current = "absent"
+		return state, nil
 	}
 
-	return isOutdated, nil
+	state.Current = "present"
+
+	if !fi.Mode().IsDir() {
+		return state, errors.New("path exists, but is not a directory")
+	}
+
+	return state, nil
+}
+
+// Create creates the directory.
+func (d *Directory) Create() error {
+	if d.Parents {
+		return os.MkdirAll(d.Path, d.Mode)
+	}
+
+	return os.Mkdir(d.Path, d.Mode)
+}
+
+// Delete removes the directory.
+func (d *Directory) Delete() error {
+	if d.Parents {
+		return os.RemoveAll(d.Path)
+	}
+
+	return os.Remove(d.Path)
 }
 
 func init() {
-	item := ProviderItem{
+	file := ProviderItem{
 		Type:      "file",
 		Provider:  NewFile,
 		Namespace: DefaultResourceNamespace,
 	}
 
-	RegisterProvider(item)
+	dir := ProviderItem{
+		Type:      "directory",
+		Provider:  NewDirectory,
+		Namespace: DefaultResourceNamespace,
+	}
+
+	RegisterProvider(file, dir)
 }
