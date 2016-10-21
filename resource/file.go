@@ -353,6 +353,97 @@ func (d *Directory) Delete() error {
 	return os.Remove(d.Path)
 }
 
+// Link resource manages links between files.
+//
+// Example:
+//   baz = resource.link.new("/tmp/baz")
+//   baz.state = "present"
+//   baz.source = "/tmp/qux"
+type Link struct {
+	BaseFile
+
+	// Source file points to the file the link will be set to.
+	Source string `luar:"source"`
+
+	// Hard flag specifies whether or not to create a hard link to the file.
+	// Defaults to false.
+	Hard bool `luar:"hard"`
+}
+
+// NewLink creates a new resource for managing links between files.
+func NewLink(name string) (Resource, error) {
+	l := &Link{
+		BaseFile: BaseFile{
+			Base: Base{
+				Name:          name,
+				Type:          "link",
+				State:         "present",
+				Require:       make([]string, 0),
+				PresentStates: []string{"present"},
+				AbsentStates:  []string{"absent"},
+				Concurrent:    true,
+				Subscribe:     make(TriggerMap),
+			},
+			Path: name,
+		},
+		Source: "",
+		Hard:   false,
+	}
+
+	return l, nil
+}
+
+// Validate validates the link resource.
+func (l *Link) Validate() error {
+	if l.Source == "" {
+		return errors.New("must provide source file")
+	}
+
+	src := utils.NewFileUtil(l.Source)
+	if !src.Exists() {
+		return fmt.Errorf("source file %s does not exist", l.Source)
+	}
+
+	return nil
+}
+
+// Evaluate evaluates the state of the link.
+func (l *Link) Evaluate() (State, error) {
+	state := State{
+		Current: "unknown",
+		Want:    l.State,
+	}
+
+	_, err := os.Stat(l.Path)
+	if os.IsNotExist(err) {
+		state.Current = "absent"
+		return state, nil
+	}
+
+	state.Current = "present"
+
+	_, err = os.Readlink(l.Path)
+	if err != nil {
+		return state, fmt.Errorf("path exists, but is not a link: %s\n", err)
+	}
+
+	return state, nil
+}
+
+// Create creates the link.
+func (l *Link) Create() error {
+	if l.Hard {
+		return os.Link(l.Source, l.Path)
+	}
+
+	return os.Symlink(l.Source, l.Path)
+}
+
+// Delete removes the link.
+func (l *Link) Delete() error {
+	return os.Remove(l.Path)
+}
+
 func init() {
 	file := ProviderItem{
 		Type:      "file",
@@ -366,5 +457,11 @@ func init() {
 		Namespace: DefaultResourceNamespace,
 	}
 
-	RegisterProvider(file, dir)
+	link := ProviderItem{
+		Type:      "link",
+		Provider:  NewLink,
+		Namespace: DefaultResourceNamespace,
+	}
+
+	RegisterProvider(file, dir, link)
 }
