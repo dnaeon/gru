@@ -47,7 +47,7 @@ func (bf *BaseFile) isModeSynced() (bool, error) {
 		return false, err
 	}
 
-	return mode == bf.Mode, nil
+	return mode.Perm() == bf.Mode, nil
 }
 
 // setMode sets the permissions on the file managed by the resource.
