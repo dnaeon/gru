@@ -48,27 +48,6 @@ type State struct {
 	Outdated bool
 }
 
-// PropertySetFunc is the type of the function that is called when
-// setting a resource property to it's desired state.
-type PropertySetFunc func() error
-
-// PropertyIsSyncedFunc is the type of the function that is called when
-// determining whether a resource property is in the desired state.
-type PropertyIsSyncedFunc func() (bool, error)
-
-// Property type represents a property of a resource.
-type Property struct {
-	// Name is the name of the resource property.
-	Name string
-
-	// Set is the function used to set the property to it's desired state.
-	Set PropertySetFunc
-
-	// IsSynced is the function used to check if the property is in the
-	// desired state.
-	IsSynced PropertyIsSyncedFunc
-}
-
 // Resource is the interface type for resources.
 type Resource interface {
 	// ID returns the unique identifier of the resource
@@ -112,8 +91,8 @@ type Resource interface {
 	// Deletes the resource
 	Delete() error
 
-	// GetProperties returns the list of properties for the resource.
-	GetProperties() []Property
+	// Properties returns the list of properties for the resource.
+	Properties() []Property
 
 	// SubscribedTo returns a map of the resource ids for which the
 	// current resource subscribes for changes to. The keys of the
@@ -175,8 +154,8 @@ type Base struct {
 	// same resource type can be processed concurrently.
 	Concurrent bool `luar:"-"`
 
-	// Properties contains the resource properties.
-	Properties []Property
+	// PropertyList contains the resource properties.
+	PropertyList []Property `luar:"-"`
 
 	// Subscribe is map whose keys are resource ids that the
 	// current resource monitors for changes and the values are
@@ -253,7 +232,7 @@ func (b *Base) SubscribedTo() TriggerMap {
 	return b.Subscribe
 }
 
-// GetProperties returns the properties for the resource.
-func (b *Base) GetProperties() []Property {
-	return b.Properties
+// Properties returns the list of properties for the resource.
+func (b *Base) Properties() []Property {
+	return b.PropertyList
 }
