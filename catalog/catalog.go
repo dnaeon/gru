@@ -280,7 +280,7 @@ func (c *Catalog) execute(r resource.Resource) *StatusItem {
 	}
 
 	// Process resource properties
-	for _, p := range r.GetProperties() {
+	for _, p := range r.Properties() {
 		synced, err := p.IsSynced()
 		if err != nil {
 			// Some properties make no sense if the resource is absent, e.g.
@@ -296,6 +296,7 @@ func (c *Catalog) execute(r resource.Resource) *StatusItem {
 
 		if !synced {
 			stateChanged = true
+			c.config.Logger.Printf("%s property '%s' is out of date\n", id, p.Name())
 			if err := p.Set(); err != nil {
 				e := fmt.Errorf("unable to set property %s: %s\n", p.Name, err)
 				return &StatusItem{StateChanged: true, Err: e}
