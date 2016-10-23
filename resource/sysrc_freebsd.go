@@ -24,14 +24,14 @@ type SysRC struct {
 func NewSysRC(name string) (Resource, error) {
 	s := &SysRC{
 		Base: Base{
-			Name:          name,
-			Type:          "sysrc",
-			State:         "present",
-			Require:       make([]string, 0),
-			PresentStates: []string{"present"},
-			AbsentStates:  []string{"absent"},
-			Concurrent:    false,
-			Subscribe:     make(TriggerMap),
+			Name:              name,
+			Type:              "sysrc",
+			State:             "present",
+			Require:           make([]string, 0),
+			PresentStatesList: []string{"present"},
+			AbsentStatesList:  []string{"absent"},
+			Concurrent:        false,
+			Subscribe:         make(TriggerMap),
 		},
 	}
 

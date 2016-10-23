@@ -43,14 +43,14 @@ func NewService(name string) (Resource, error) {
 
 	s := &Service{
 		Base: Base{
-			Name:          name,
-			Type:          "service",
-			State:         "running",
-			Require:       make([]string, 0),
-			PresentStates: []string{"present", "running"},
-			AbsentStates:  []string{"absent", "stopped"},
-			Concurrent:    true,
-			Subscribe:     make(TriggerMap),
+			Name:              name,
+			Type:              "service",
+			State:             "running",
+			Require:           make([]string, 0),
+			PresentStatesList: []string{"present", "running"},
+			AbsentStatesList:  []string{"absent", "stopped"},
+			Concurrent:        true,
+			Subscribe:         make(TriggerMap),
 		},
 		Enable: true,
 		unit:   fmt.Sprintf("%s.service", name),

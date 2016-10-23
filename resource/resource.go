@@ -69,13 +69,13 @@ type Resource interface {
 	// resource id for each dependency.
 	Dependencies() []string
 
-	// GetPresentStates returns the list of states, for which the
+	// PresentStates returns the list of states, for which the
 	// resource is considered to be present
-	GetPresentStates() []string
+	PresentStates() []string
 
-	// GetAbsentStates returns the list of states, for which the
+	// AbsentStates returns the list of states, for which the
 	// resource is considered to be absent
-	GetAbsentStates() []string
+	AbsentStates() []string
 
 	// IsConcurrent returns a boolean, which indicates whether
 	// multiple instances of the same resource type can be
@@ -142,13 +142,13 @@ type Base struct {
 	// Require contains the resource dependencies
 	Require []string `luar:"require"`
 
-	// PresentStates contains the list of states, for which the
+	// PresentStatesList contains the list of states, for which the
 	// resource is considered to be present
-	PresentStates []string `luar:"-"`
+	PresentStatesList []string `luar:"-"`
 
 	// AbsentStates contains the list of states, for which the
 	// resource is considered to be absent
-	AbsentStates []string `luar:"-"`
+	AbsentStatesList []string `luar:"-"`
 
 	// Concurrent flag indicates whether multiple instances of the
 	// same resource type can be processed concurrently.
@@ -194,7 +194,7 @@ func (b *Base) Validate() error {
 		return ErrInvalidName
 	}
 
-	states := append(b.PresentStates, b.AbsentStates...)
+	states := append(b.PresentStatesList, b.AbsentStatesList...)
 	if !utils.NewList(states...).Contains(b.State) {
 		return fmt.Errorf("Invalid state '%s'", b.State)
 	}
@@ -207,16 +207,16 @@ func (b *Base) Dependencies() []string {
 	return b.Require
 }
 
-// GetPresentStates returns the list of states, for which the
+// PresentStates returns the list of states, for which the
 // resource is considered to be present
-func (b *Base) GetPresentStates() []string {
-	return b.PresentStates
+func (b *Base) PresentStates() []string {
+	return b.PresentStatesList
 }
 
-// GetAbsentStates returns the list of states, for which the
+// AbsentStates returns the list of states, for which the
 // resource is considered to be absent
-func (b *Base) GetAbsentStates() []string {
-	return b.AbsentStates
+func (b *Base) AbsentStates() []string {
+	return b.AbsentStatesList
 }
 
 // IsConcurrent returns a boolean indicating whether

@@ -254,8 +254,8 @@ func (c *Catalog) execute(r resource.Resource) *StatusItem {
 	current := utils.NewString(state.Current)
 
 	// The list of present and absent states for the resource
-	present := utils.NewList(r.GetPresentStates()...)
-	absent := utils.NewList(r.GetAbsentStates()...)
+	present := utils.NewList(r.PresentStates()...)
+	absent := utils.NewList(r.AbsentStates()...)
 
 	// Process resource
 	id := r.ID()

@@ -41,14 +41,14 @@ type Shell struct {
 func NewShell(name string) (Resource, error) {
 	s := &Shell{
 		Base: Base{
-			Name:          name,
-			Type:          "shell",
-			State:         "present",
-			Require:       make([]string, 0),
-			PresentStates: []string{"present"},
-			AbsentStates:  []string{"absent"},
-			Concurrent:    true,
-			Subscribe:     make(TriggerMap),
+			Name:              name,
+			Type:              "shell",
+			State:             "present",
+			Require:           make([]string, 0),
+			PresentStatesList: []string{"present"},
+			AbsentStatesList:  []string{"absent"},
+			Concurrent:        true,
+			Subscribe:         make(TriggerMap),
 		},
 		Command: name,
 		Creates: "",
