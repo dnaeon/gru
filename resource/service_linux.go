@@ -24,9 +24,9 @@ var ErrNoSystemd = errors.New("No systemd support found")
 type Service struct {
 	Base
 
-	// EnableProperty specifies whether to enable or disable the
+	// Enable specifies whether to enable or disable the
 	// service during boot-time. Defaults to true.
-	EnableProperty bool `luar:"enable"`
+	Enable bool `luar:"enable"`
 
 	// Systemd unit name
 	unit string `luar:"-"`
@@ -52,16 +52,16 @@ func NewService(name string) (Resource, error) {
 			Concurrent:    true,
 			Subscribe:     make(TriggerMap),
 		},
-		EnableProperty: true,
-		unit:           fmt.Sprintf("%s.service", name),
+		Enable: true,
+		unit:   fmt.Sprintf("%s.service", name),
 	}
 
 	// Set resource properties
-	s.Properties = []Property{
-		Property{
-			Name:     "enable",
-			Set:      s.setEnableProperty,
-			IsSynced: s.isEnablePropertySynced,
+	s.PropertyList = []Property{
+		&ResourceProperty{
+			PropertyName:         "enable",
+			PropertySetFunc:      s.setEnable,
+			PropertyIsSyncedFunc: s.isEnableSynced,
 		},
 	}
 
@@ -176,8 +176,8 @@ func (s *Service) disableUnit() error {
 	return nil
 }
 
-// isEnablePropertySynced determines whether the property is synced.
-func (s *Service) isEnablePropertySynced() (bool, error) {
+// isEnableSynced determines whether the property is synced.
+func (s *Service) isEnableSynced() (bool, error) {
 	unitState, err := s.conn.GetUnitProperty(s.unit, "UnitFileState")
 	if err != nil {
 		return false, err
@@ -196,14 +196,14 @@ func (s *Service) isEnablePropertySynced() (bool, error) {
 		return false, errors.New("Invalid unit state")
 	}
 
-	return s.EnableProperty == enabled, nil
+	return s.Enable == enabled, nil
 }
 
-// setEnableProperty sets the property to it's desired state.
-func (s *Service) setEnableProperty() error {
+// setEnable sets the property to it's desired state.
+func (s *Service) setEnable() error {
 	var action func() error
 
-	switch s.EnableProperty {
+	switch s.Enable {
 	case true:
 		action = s.enableUnit
 	case false:
