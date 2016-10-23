@@ -45,11 +45,11 @@ func NewService(name string) (Resource, error) {
 	}
 
 	// Set resource properties
-	s.Properties = []Property{
-		Property{
-			Name:     "enable",
-			Set:      s.setEnable,
-			IsSynced: s.isEnableSynced,
+	s.PropertyList = []Property{
+		&ResourceProperty{
+			PropertyName:         "enable",
+			PropertySetFunc:      s.setEnable,
+			PropertyIsSyncedFunc: s.isEnableSynced,
 		},
 	}
 
@@ -100,7 +100,7 @@ func (s *Service) isEnableSynced() (bool, error) {
 		enabled = false
 	}
 
-	return enabled != s.Enable
+	return enabled == s.Enable, nil
 }
 
 // setEnable enables or disables the service during boot-time.
@@ -120,7 +120,9 @@ func (s *Service) setEnable() error {
 	// TODO: rcvar should probably be deleted from rc.conf, when disabling service.
 	// Compare default value (sysrc -D) with requested (rcValue) and if they match, delete rcvar.
 	// Currently we just set it to NO.
-	return exec.Command("sysrc", fmt.Sprintf(`%s="%s"`, s.RCVar, rcValue)).Run()
+	err := exec.Command("sysrc", fmt.Sprintf(`%s="%s"`, s.RCVar, rcValue)).Run()
+
+	return err
 }
 
 func init() {
