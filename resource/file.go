@@ -163,21 +163,21 @@ func NewFile(name string) (Resource, error) {
 	}
 
 	// Set resource properties
-	f.Properties = []Property{
-		Property{
-			Name:     "mode",
-			Set:      f.setMode,
-			IsSynced: f.isModeSynced,
+	f.PropertyList = []Property{
+		&ResourceProperty{
+			PropertyName:         "mode",
+			PropertySetFunc:      f.setMode,
+			PropertyIsSyncedFunc: f.isModeSynced,
 		},
-		Property{
-			Name:     "ownership",
-			Set:      f.setOwner,
-			IsSynced: f.isOwnerSynced,
+		&ResourceProperty{
+			PropertyName:         "ownership",
+			PropertySetFunc:      f.setOwner,
+			PropertyIsSyncedFunc: f.isOwnerSynced,
 		},
-		Property{
-			Name:     "content",
-			Set:      f.setContent,
-			IsSynced: f.isContentSynced,
+		&ResourceProperty{
+			PropertyName:         "content",
+			PropertySetFunc:      f.setContent,
+			PropertyIsSyncedFunc: f.isContentSynced,
 		},
 	}
 
@@ -297,16 +297,16 @@ func NewDirectory(name string) (Resource, error) {
 	}
 
 	// Set resource properties
-	d.Properties = []Property{
-		Property{
-			Name:     "mode",
-			Set:      d.setMode,
-			IsSynced: d.isModeSynced,
+	d.PropertyList = []Property{
+		&ResourceProperty{
+			PropertyName:         "mode",
+			PropertySetFunc:      d.setMode,
+			PropertyIsSyncedFunc: d.isModeSynced,
 		},
-		Property{
-			Name:     "ownership",
-			Set:      d.setOwner,
-			IsSynced: d.isOwnerSynced,
+		&ResourceProperty{
+			PropertyName:         "ownership",
+			PropertySetFunc:      d.setOwner,
+			PropertyIsSyncedFunc: d.isOwnerSynced,
 		},
 	}
 
