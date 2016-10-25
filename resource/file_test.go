@@ -54,3 +54,28 @@ func TestDirectory(t *testing.T) {
 	errorIfNotEqual(t, os.FileMode(0755), bar.Mode)
 	errorIfNotEqual(t, false, bar.Parents)
 }
+
+func TestLink(t *testing.T) {
+	L := newLuaState()
+	defer L.Close()
+
+	const code = `
+	qux = resource.link.new("/tmp/qux")
+	qux.source = "/tmp/foo"
+	`
+
+	if err := L.DoString(code); err != nil {
+		t.Fatal(err)
+	}
+
+	qux := luaResource(L, "qux").(*Link)
+	errorIfNotEqual(t, "link", qux.Type)
+	errorIfNotEqual(t, "/tmp/qux", qux.Name)
+	errorIfNotEqual(t, "present", qux.State)
+	errorIfNotEqual(t, []string{}, qux.Require)
+	errorIfNotEqual(t, []string{"present"}, qux.PresentStatesList)
+	errorIfNotEqual(t, []string{"absent"}, qux.AbsentStatesList)
+	errorIfNotEqual(t, true, qux.Concurrent)
+	errorIfNotEqual(t, "/tmp/foo", qux.Source)
+	errorIfNotEqual(t, false, qux.Hard)
+}
