@@ -29,8 +29,8 @@ func TestService(t *testing.T) {
 	errorIfNotEqual(t, "nginx", svc.Name)
 	errorIfNotEqual(t, "running", svc.State)
 	errorIfNotEqual(t, []string{}, svc.Require)
-	errorIfNotEqual(t, []string{"present", "running"}, svc.PresentStates)
-	errorIfNotEqual(t, []string{"absent", "stopped"}, svc.AbsentStates)
+	errorIfNotEqual(t, []string{"present", "running"}, svc.PresentStatesList)
+	errorIfNotEqual(t, []string{"absent", "stopped"}, svc.AbsentStatesList)
 	errorIfNotEqual(t, true, svc.Concurrent)
 	errorIfNotEqual(t, true, svc.Enable)
 }
