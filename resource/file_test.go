@@ -29,3 +29,28 @@ func TestFile(t *testing.T) {
 	errorIfNotEqual(t, os.FileMode(0644), foo.Mode)
 	errorIfNotEqual(t, "", foo.Source)
 }
+
+func TestDirectory(t *testing.T) {
+	L := newLuaState()
+	defer L.Close()
+
+	const code = `
+	bar = resource.directory.new("/tmp/bar")
+	`
+
+	if err := L.DoString(code); err != nil {
+		t.Fatal(err)
+	}
+
+	bar := luaResource(L, "bar").(*Directory)
+	errorIfNotEqual(t, "directory", bar.Type)
+	errorIfNotEqual(t, "/tmp/bar", bar.Name)
+	errorIfNotEqual(t, "present", bar.State)
+	errorIfNotEqual(t, []string{}, bar.Require)
+	errorIfNotEqual(t, []string{"present"}, bar.PresentStatesList)
+	errorIfNotEqual(t, []string{"absent"}, bar.AbsentStatesList)
+	errorIfNotEqual(t, true, bar.Concurrent)
+	errorIfNotEqual(t, "/tmp/bar", bar.Path)
+	errorIfNotEqual(t, os.FileMode(0755), bar.Mode)
+	errorIfNotEqual(t, false, bar.Parents)
+}
