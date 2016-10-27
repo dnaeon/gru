@@ -24,7 +24,7 @@ func mustNewTestClient(cassette string) *testClient {
 
 	cfg := etcdclient.Config{
 		Endpoints:               []string{"http://127.0.0.1:2379"},
-		Transport:               r.Transport, // Inject our transport!
+		Transport:               r, // Inject our transport!
 		HeaderTimeoutPerRequest: etcdclient.DefaultRequestTimeout,
 	}
 
