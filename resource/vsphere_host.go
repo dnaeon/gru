@@ -126,6 +126,8 @@ func (h *Host) isDnsConfigSynced() (bool, error) {
 
 // setDnsConfig configures the DNS settings on the ESXi host.
 func (h *Host) setDnsConfig() error {
+	Logf("%s configuring dns settings\n", h.ID())
+
 	obj, err := h.finder.HostSystem(h.ctx, path.Join(h.Path, h.Name))
 	if err != nil {
 		return err
@@ -193,6 +195,8 @@ func (h *Host) setLockdown() error {
 	if productVersion.LT(minVersion) {
 		return fmt.Errorf("host is at version %s, setting lockdown requires %s or above", productVersion, minVersion)
 	}
+
+	Logf("%s setting lockdown mode to %s\n", h.ID(), h.LockdownMode)
 
 	var accessManager mo.HostAccessManager
 	if err := obj.Properties(h.ctx, *host.ConfigManager.HostAccessManager, nil, &accessManager); err != nil {
@@ -281,6 +285,8 @@ func (h *Host) Create() error {
 
 // Delete disconnects the host and then removes it.
 func (h *Host) Delete() error {
+	Logf("%s removing host from %s\n", h.ID(), h.Path)
+
 	obj, err := h.finder.HostSystem(h.ctx, path.Join(h.Path, h.Name))
 	if err != nil {
 		return err
