@@ -68,14 +68,14 @@ func (bp *BasePackage) Evaluate() (State, error) {
 
 // Create installs the package
 func (bp *BasePackage) Create() error {
-	Log(bp, "installing package\n")
+	Logf("%s installing package\n", bp.ID())
 
 	bp.installArgs = append(bp.installArgs, bp.Package)
 	cmd := exec.Command(bp.manager, bp.installArgs...)
 	out, err := cmd.CombinedOutput()
 
 	for _, line := range strings.Split(string(out), "\n") {
-		Log(bp, "%s\n", line)
+		Logf("%s %s\n", bp.ID(), line)
 	}
 
 	return err
@@ -83,14 +83,14 @@ func (bp *BasePackage) Create() error {
 
 // Delete deletes the package
 func (bp *BasePackage) Delete() error {
-	Log(bp, "removing package\n")
+	Logf("%s removing package\n", bp.ID())
 
 	bp.deinstallArgs = append(bp.deinstallArgs, bp.Package)
 	cmd := exec.Command(bp.manager, bp.deinstallArgs...)
 	out, err := cmd.CombinedOutput()
 
 	for _, line := range strings.Split(string(out), "\n") {
-		Log(bp, "%s\n", line)
+		Logf("%s %s\n", bp.ID(), line)
 	}
 
 	return err
@@ -98,14 +98,14 @@ func (bp *BasePackage) Delete() error {
 
 // Update updates the package
 func (bp *BasePackage) Update() error {
-	Log(bp, "updating package\n")
+	Logf("%s updating package\n", bp.ID())
 
 	bp.updateArgs = append(bp.updateArgs, bp.Package)
 	cmd := exec.Command(bp.manager, bp.updateArgs...)
 	out, err := cmd.CombinedOutput()
 
 	for _, line := range strings.Split(string(out), "\n") {
-		Log(bp, "%s\n", line)
+		Logf("%s %s\n", bp.ID(), line)
 	}
 
 	return err

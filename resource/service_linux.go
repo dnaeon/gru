@@ -105,7 +105,7 @@ func (s *Service) Evaluate() (State, error) {
 
 // Create starts the service.
 func (s *Service) Create() error {
-	Log(s, "starting service\n")
+	Logf("%s starting service\n", s.ID())
 
 	ch := make(chan string)
 	jobID, err := s.conn.StartUnit(s.unit, "replace", ch)
@@ -114,14 +114,14 @@ func (s *Service) Create() error {
 	}
 
 	result := <-ch
-	Log(s, "systemd job id %d result: %s\n", jobID, result)
+	Logf("%s systemd job id %d result: %s\n", s.ID(), jobID, result)
 
 	return nil
 }
 
 // Delete stops the service.
 func (s *Service) Delete() error {
-	Log(s, "stopping service\n")
+	Logf("%s stopping service\n", s.ID())
 
 	ch := make(chan string)
 	jobID, err := s.conn.StopUnit(s.unit, "replace", ch)
@@ -130,7 +130,7 @@ func (s *Service) Delete() error {
 	}
 
 	result := <-ch
-	Log(s, "systemd job id %d result: %s\n", jobID, result)
+	Logf("%s systemd job id %d result: %s\n", s.ID(), jobID, result)
 
 	return nil
 }
@@ -144,7 +144,7 @@ func (s *Service) Close() error {
 
 // enableUnit enables the service unit during boot-time
 func (s *Service) enableUnit() error {
-	Log(s, "enabling service\n")
+	Logf("%s enabling service\n", s.ID())
 
 	units := []string{s.unit}
 	_, changes, err := s.conn.EnableUnitFiles(units, false, false)
@@ -153,7 +153,7 @@ func (s *Service) enableUnit() error {
 	}
 
 	for _, change := range changes {
-		Log(s, "%s %s -> %s\n", change.Type, change.Filename, change.Destination)
+		Logf("%s %s %s -> %s\n", s.ID(), change.Type, change.Filename, change.Destination)
 	}
 
 	return nil
@@ -161,7 +161,7 @@ func (s *Service) enableUnit() error {
 
 // disableUnit disables the service unit during boot-time
 func (s *Service) disableUnit() error {
-	Log(s, "disabling service\n")
+	Logf("%s disabling service\n", s.ID())
 
 	units := []string{s.unit}
 	changes, err := s.conn.DisableUnitFiles(units, false)
@@ -170,7 +170,7 @@ func (s *Service) disableUnit() error {
 	}
 
 	for _, change := range changes {
-		Log(s, "%s %s\n", change.Type, change.Filename)
+		Logf("%s %s %s\n", s.ID(), change.Type, change.Filename)
 	}
 
 	return nil

@@ -110,20 +110,14 @@ type Config struct {
 	Logger *log.Logger
 }
 
-// DefaultLogger is the default logger instance used for
-// logging events from the resources
-var DefaultLogger = log.New(os.Stdout, "", log.LstdFlags)
-
 // DefaultConfig is the default configuration used by the resources
 var DefaultConfig = &Config{
-	Logger: DefaultLogger,
+	Logger: log.New(os.Stdout, "", log.LstdFlags),
 }
 
-// Log writes an event to the default logger and prepends the
-// resource id to the output
-func Log(r Resource, format string, a ...interface{}) {
-	f := fmt.Sprintf("%s %s", r.ID(), format)
-	DefaultConfig.Logger.Printf(f, a...)
+// Logf writes an event to the default logger.
+func Logf(format string, a ...interface{}) {
+	DefaultConfig.Logger.Printf(format, a...)
 }
 
 // Base is the base resource type for all resources

@@ -69,6 +69,8 @@ func (d *Datacenter) Evaluate() (State, error) {
 
 // Create creates a new datacenter.
 func (d *Datacenter) Create() error {
+	Logf("%s creating datacenter in %s\n", d.ID(), d.Path)
+
 	folder, err := d.finder.FolderOrDefault(d.ctx, d.Path)
 	if err != nil {
 		return err
@@ -81,6 +83,8 @@ func (d *Datacenter) Create() error {
 
 // Delete removes the datacenter.
 func (d *Datacenter) Delete() error {
+	Logf("%s removing datacenter from %s\n", d.ID(), d.Path)
+
 	dc, err := d.finder.Datacenter(d.ctx, d.Name)
 	if err != nil {
 		return err

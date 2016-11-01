@@ -103,6 +103,8 @@ func (ch *ClusterHost) Evaluate() (State, error) {
 
 // Create adds the host to the cluster.
 func (ch *ClusterHost) Create() error {
+	Logf("%s adding host to %s\n", ch.ID(), ch.Path)
+
 	obj, err := ch.finder.ClusterComputeResource(ch.ctx, ch.Path)
 	if err != nil {
 		return err
@@ -128,6 +130,8 @@ func (ch *ClusterHost) Create() error {
 
 // Delete disconnects the host and then removes it.
 func (ch *ClusterHost) Delete() error {
+	Logf("%s removing host from %s\n", ch.ID(), ch.Path)
+
 	obj, err := ch.finder.HostSystem(ch.ctx, path.Join(ch.Path, ch.Name))
 	if err != nil {
 		return err

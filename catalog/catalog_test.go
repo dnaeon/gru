@@ -1,6 +1,8 @@
 package catalog
 
 import (
+	"log"
+	"os"
 	"testing"
 
 	"github.com/dnaeon/gru/resource"
@@ -15,7 +17,7 @@ func TestCatalog(t *testing.T) {
 	config := &Config{
 		Module:   "",
 		DryRun:   true,
-		Logger:   resource.DefaultLogger,
+		Logger:   log.New(os.Stdout, "", log.LstdFlags),
 		SiteRepo: "",
 		L:        L,
 	}

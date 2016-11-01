@@ -1,10 +1,11 @@
 package command
 
 import (
+	"log"
+	"os"
 	"runtime"
 
 	"github.com/dnaeon/gru/catalog"
-	"github.com/dnaeon/gru/resource"
 	"github.com/urfave/cli"
 	"github.com/yuin/gopher-lua"
 )
@@ -51,10 +52,13 @@ func execApplyCommand(c *cli.Context) error {
 
 	L := lua.NewState()
 	defer L.Close()
+
+	logger := log.New(os.Stdout, "", log.LstdFlags)
+
 	config := &catalog.Config{
 		Module:      c.Args()[0],
 		DryRun:      c.Bool("dry-run"),
-		Logger:      resource.DefaultLogger,
+		Logger:      logger,
 		SiteRepo:    c.String("siterepo"),
 		L:           L,
 		Concurrency: concurrency,
@@ -68,7 +72,7 @@ func execApplyCommand(c *cli.Context) error {
 	}
 
 	status := katalog.Run()
-	status.Summary(resource.DefaultLogger)
+	status.Summary(logger)
 
 	return nil
 }

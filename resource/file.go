@@ -52,6 +52,8 @@ func (bf *BaseFile) isModeSynced() (bool, error) {
 
 // setMode sets the permissions on the file managed by the resource.
 func (bf *BaseFile) setMode() error {
+	Logf("%s setting permissions to %#o\n", bf.ID(), bf.Mode)
+
 	dst := utils.NewFileUtil(bf.Path)
 
 	return dst.Chmod(bf.Mode)
@@ -75,6 +77,8 @@ func (bf *BaseFile) isOwnerSynced() (bool, error) {
 
 // setOwner sets the ownership of the file.
 func (bf *BaseFile) setOwner() error {
+	Logf("%s setting ownership to %s:%s\n", bf.ID(), bf.Owner, bf.Group)
+
 	dst := utils.NewFileUtil(bf.Path)
 
 	return dst.SetOwner(bf.Owner, bf.Group)
@@ -124,6 +128,14 @@ func (f *File) isContentSynced() (bool, error) {
 
 // setContent sets the content of the file.
 func (f *File) setContent() error {
+	dst := utils.NewFileUtil(f.Path)
+	dstMd5, err := dst.Md5()
+	if err != nil {
+		return err
+	}
+
+	Logf("%s setting content to md5:%s\n", f.ID(), dstMd5)
+
 	return ioutil.WriteFile(f.Path, f.Content, f.Mode)
 }
 
@@ -238,11 +250,15 @@ func (f *File) Evaluate() (State, error) {
 
 // Create creates the file managed by the resource.
 func (f *File) Create() error {
+	Logf("%s creating file\n", f.ID())
+
 	return ioutil.WriteFile(f.Path, f.Content, f.Mode)
 }
 
 // Delete deletes the file managed by the resource.
 func (f *File) Delete() error {
+	Logf("%s removing file\n", f.ID())
+
 	return os.Remove(f.Path)
 }
 
@@ -337,6 +353,8 @@ func (d *Directory) Evaluate() (State, error) {
 
 // Create creates the directory.
 func (d *Directory) Create() error {
+	Logf("%s creating directory\n", d.ID())
+
 	if d.Parents {
 		return os.MkdirAll(d.Path, d.Mode)
 	}
@@ -346,6 +364,8 @@ func (d *Directory) Create() error {
 
 // Delete removes the directory.
 func (d *Directory) Delete() error {
+	Logf("%s removing directory\n")
+
 	if d.Parents {
 		return os.RemoveAll(d.Path)
 	}
@@ -432,6 +452,8 @@ func (l *Link) Evaluate() (State, error) {
 
 // Create creates the link.
 func (l *Link) Create() error {
+	Logf("%s creating link\n", l.ID())
+
 	if l.Hard {
 		return os.Link(l.Source, l.Path)
 	}
@@ -441,6 +463,8 @@ func (l *Link) Create() error {
 
 // Delete removes the link.
 func (l *Link) Delete() error {
+	Logf("%s removing link\n", l.ID())
+
 	return os.Remove(l.Path)
 }
 

@@ -1,6 +1,7 @@
 package command
 
 import (
+	"log"
 	"os"
 
 	"github.com/dnaeon/gru/catalog"
@@ -43,7 +44,7 @@ func execGraphCommand(c *cli.Context) error {
 	config := &catalog.Config{
 		Module:   module,
 		DryRun:   true,
-		Logger:   resource.DefaultLogger,
+		Logger:   log.New(os.Stdout, "", log.LstdFlags),
 		SiteRepo: c.String("siterepo"),
 		L:        L,
 	}

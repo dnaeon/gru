@@ -83,6 +83,8 @@ func (c *Cluster) isClusterConfigSynced() (bool, error) {
 
 // setClusterConfig sets the cluster configuration to the desired state.
 func (c *Cluster) setClusterConfig() error {
+	Logf("%s setting cluster config\n", c.ID())
+
 	spec := types.ClusterConfigSpec{
 		DasConfig: &types.ClusterDasConfigInfo{
 			Enabled: &c.Config.EnableHA,
@@ -172,6 +174,8 @@ func (c *Cluster) Evaluate() (State, error) {
 
 // Create creates a new cluster.
 func (c *Cluster) Create() error {
+	Logf("%s creating cluster\n", c.ID())
+
 	spec := types.ClusterConfigSpecEx{
 		DasConfig: &types.ClusterDasConfigInfo{
 			Enabled: &c.Config.EnableHA,
@@ -194,6 +198,8 @@ func (c *Cluster) Create() error {
 
 // Delete removes the cluster.
 func (c *Cluster) Delete() error {
+	Logf("%s removing cluster\n", c.ID())
+
 	obj, err := c.finder.ClusterComputeResource(c.ctx, path.Join(c.Path, c.Name))
 	if err != nil {
 		return err
