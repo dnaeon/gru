@@ -186,6 +186,7 @@ func (vm *VirtualMachine) setVmHardware() error {
 	return task.Wait(vm.ctx)
 }
 
+// isVmExtraConfigSynced checks if the extra settings are in sync.
 func (vm *VirtualMachine) isVmExtraConfigSynced() (bool, error) {
 	// If we don't have a config, assume configuration is correct
 	if vm.ExtraConfig == nil {
@@ -239,6 +240,46 @@ func (vm *VirtualMachine) setVmExtraConfig() error {
 
 }
 
+// isVmAnnotationSynced checks if the annotation is synced.
+func (vm *VirtualMachine) isVmAnnotationSynced() (bool, error) {
+	// If we don't have an annotation given, assume configuration is correct
+	if vm.Annotation == "" {
+		return true, nil
+	}
+
+	machine, err := vm.vmProperties([]string{"config"})
+	if err != nil {
+		if _, ok := err.(*find.NotFoundError); ok {
+			return true, ErrResourceAbsent
+		}
+		return false, err
+	}
+
+	return vm.Annotation == machine.Config.Annotation, nil
+}
+
+// setVmAnnotation sets the annotation property of the virtual machine.
+func (vm *VirtualMachine) setVmAnnotation() error {
+	Logf("%s setting annotation\n", vm.ID())
+
+	obj, err := vm.finder.VirtualMachine(vm.ctx, path.Join(vm.Path, vm.Name))
+	if err != nil {
+		return err
+	}
+
+	spec := types.VirtualMachineConfigSpec{
+		Annotation: vm.Annotation,
+	}
+
+	task, err := obj.Reconfigure(vm.ctx, spec)
+	if err != nil {
+		return err
+	}
+
+	return task.Wait(vm.ctx)
+
+}
+
 // NewVirtualMachine creates a new resource for managing
 // virtual machines in a vSphere environment.
 func NewVirtualMachine(name string) (Resource, error) {
@@ -280,6 +321,11 @@ func NewVirtualMachine(name string) (Resource, error) {
 			PropertyName:         "extra-config",
 			PropertySetFunc:      vm.setVmExtraConfig,
 			PropertyIsSyncedFunc: vm.isVmExtraConfigSynced,
+		},
+		&ResourceProperty{
+			PropertyName:         "annotation",
+			PropertySetFunc:      vm.setVmAnnotation,
+			PropertyIsSyncedFunc: vm.isVmAnnotationSynced,
 		},
 	}
 
