@@ -128,6 +128,59 @@ func (vm *VirtualMachine) vmProperties(ps []string) (mo.VirtualMachine, error) {
 	return machine, nil
 }
 
+// isVmHardwareSynced checks if the virtual machine hardware is in sync.
+func (vm *VirtualMachine) isVmHardwareSynced() (bool, error) {
+	// If we don't have a config, assume configuration is correct
+	if vm.Hardware == nil {
+		return true, nil
+	}
+
+	machine, err := vm.vmProperties([]string{"config.hardware"})
+	if err != nil {
+		if _, ok := err.(*find.NotFoundError); ok {
+			return true, ErrResourceAbsent
+		}
+		return false, err
+	}
+
+	if vm.Hardware.Cpu != machine.Config.Hardware.NumCPU {
+		return false, nil
+	}
+
+	if vm.Hardware.Cores != machine.Config.Hardware.NumCoresPerSocket {
+		return false, nil
+	}
+
+	if vm.Hardware.Memory != int64(machine.Config.Hardware.MemoryMB) {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+// setVmHardware configures the virtual machine hardware.
+func (vm *VirtualMachine) setVmHardware() error {
+	Logf("%s re-configuring hardware\n", vm.ID())
+
+	obj, err := vm.finder.VirtualMachine(vm.ctx, path.Join(vm.Path, vm.Name))
+	if err != nil {
+		return err
+	}
+
+	spec := types.VirtualMachineConfigSpec{
+		NumCPUs:           vm.Hardware.Cpu,
+		NumCoresPerSocket: vm.Hardware.Cores,
+		MemoryMB:          vm.Hardware.Memory,
+	}
+
+	task, err := obj.Reconfigure(vm.ctx, spec)
+	if err != nil {
+		return err
+	}
+
+	return task.Wait(vm.ctx)
+}
+
 // NewVirtualMachine creates a new resource for managing
 // virtual machines in a vSphere environment.
 func NewVirtualMachine(name string) (Resource, error) {
@@ -149,7 +202,7 @@ func NewVirtualMachine(name string) (Resource, error) {
 			Insecure: false,
 			Path:     "/",
 		},
-		Hardware:          new(VirtualMachineHardware),
+		Hardware:          nil,
 		ExtraConfig:       new(VirtualMachineExtraConfig),
 		GuestID:           "otherGuest",
 		Annotation:        "",
@@ -159,7 +212,13 @@ func NewVirtualMachine(name string) (Resource, error) {
 		Host:              "",
 	}
 
-	// TODO: Add properties
+	vm.PropertyList = []Property{
+		&ResourceProperty{
+			PropertyName:         "hardware",
+			PropertySetFunc:      vm.setVmHardware,
+			PropertyIsSyncedFunc: vm.isVmHardwareSynced,
+		},
+	}
 
 	return vm, nil
 }
@@ -170,22 +229,6 @@ func (vm *VirtualMachine) Validate() error {
 
 	if err := vm.BaseVSphere.Validate(); err != nil {
 		return err
-	}
-
-	if vm.Hardware.Cpu <= 0 {
-		return errors.New("Invalid number of CPUs")
-	}
-
-	if vm.Hardware.Cores <= 0 {
-		return errors.New("Invalid number of cores")
-	}
-
-	if vm.Hardware.Memory <= 0 {
-		return errors.New("Invalid size of memory")
-	}
-
-	if vm.Hardware.Version == "" {
-		return errors.New("Invalid hardware version")
 	}
 
 	if vm.MaxMksConnections <= 0 {
@@ -234,6 +277,10 @@ func (vm *VirtualMachine) Evaluate() (State, error) {
 // Create creates the virtual machine.
 func (vm *VirtualMachine) Create() error {
 	Logf("%s creating virtual machine\n", vm.ID())
+
+	if vm.Hardware == nil {
+		return errors.New("Missing hardware configuration")
+	}
 
 	folder, err := vm.finder.Folder(vm.ctx, vm.Path)
 	if err != nil {
