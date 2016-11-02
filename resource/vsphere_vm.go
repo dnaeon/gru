@@ -66,6 +66,11 @@ type VirtualMachineExtraConfig struct {
 //   vm.guest_id = "otherGuest"
 //   vm.annotation = "my brand new virtual machine"
 //   vm.max_mks = 10
+//   vm.extra_config = {
+//     cpu_hotadd = true,
+//     cpu_hotremove = true,
+//     memory_hotadd = true
+//   }
 //
 // Example:
 //   vm = vsphere.vm.new("vm-to-be-deleted")
