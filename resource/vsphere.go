@@ -162,5 +162,11 @@ func init() {
 		Namespace: VSphereNamespace,
 	}
 
-	RegisterProvider(datacenter, cluster, clusterHost, host)
+	vm := ProviderItem{
+		Type:      "vm",
+		Provider:  NewVirtualMachine,
+		Namespace: VSphereNamespace,
+	}
+
+	RegisterProvider(datacenter, cluster, clusterHost, host, vm)
 }

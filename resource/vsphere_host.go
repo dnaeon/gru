@@ -40,7 +40,7 @@ type HostDnsConfig struct {
 //   host.endpoint = "https://vc01.example.org/sdk"
 //   host.username = "root"
 //   host.password = "myp4ssw0rd"
-//   host.folder = "/MyDatacenter/host/MyCluster"
+//   host.path = "/MyDatacenter/host/MyCluster"
 //   host.lockdown_mode = "lockdownNormal"
 //   host.dns = {
 //      servers = { "1.2.3.4", "2.3.4.5" },

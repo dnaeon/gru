@@ -45,7 +45,7 @@ func NewDatacenter(name string) (Resource, error) {
 
 // Evaluate evaluates the state of the datacenter.
 func (d *Datacenter) Evaluate() (State, error) {
-	s := State{
+	state := State{
 		Current: "unknown",
 		Want:    d.State,
 	}
@@ -54,17 +54,17 @@ func (d *Datacenter) Evaluate() (State, error) {
 	if err != nil {
 		// Datacenter is absent
 		if _, ok := err.(*find.NotFoundError); ok {
-			s.Current = "absent"
-			return s, nil
+			state.Current = "absent"
+			return state, nil
 		}
 
 		// Something else happened
-		return s, err
+		return state, err
 	}
 
-	s.Current = "present"
+	state.Current = "present"
 
-	return s, nil
+	return state, nil
 }
 
 // Create creates a new datacenter.
