@@ -111,6 +111,7 @@ type VirtualMachine struct {
 
 	// Datastore is the datastore where the virtual machine
 	// disk will be placed.
+	//
 	// TODO: Update this property, so that multiple disks
 	// can be specified, each with their own datastore path.
 	Datastore string `luar:"datastore"`
@@ -334,8 +335,6 @@ func NewVirtualMachine(name string) (Resource, error) {
 
 // Validate validates the virtual machine resource.
 func (vm *VirtualMachine) Validate() error {
-	// TODO: make this errors in the resource package
-
 	if err := vm.BaseVSphere.Validate(); err != nil {
 		return err
 	}
