@@ -6,6 +6,7 @@ import (
 
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/object"
+	"github.com/vmware/govmomi/vim25/mo"
 	"github.com/vmware/govmomi/vim25/types"
 )
 
@@ -110,6 +111,21 @@ type VirtualMachine struct {
 	Datastore string `luar:"datastore"`
 
 	// TODO: Add properties for, power state, disks, network.
+}
+
+func (vm *VirtualMachine) vmProperties(ps []string) (mo.VirtualMachine, error) {
+	var machine mo.VirtualMachine
+
+	obj, err := vm.finder.VirtualMachine(vm.ctx, path.Join(vm.Path, vm.Name))
+	if err != nil {
+		return machine, err
+	}
+
+	if err := obj.Properties(vm.ctx, obj.Reference(), ps, &machine); err != nil {
+		return machine, err
+	}
+
+	return machine, nil
 }
 
 // NewVirtualMachine creates a new resource for managing
