@@ -65,6 +65,14 @@ type VirtualMachineExtraConfig struct {
 //   vm.guest_id = "otherGuest"
 //   vm.annotation = "my brand new virtual machine"
 //   vm.max_mks = 10
+//
+// Example:
+//   vm = vsphere.vm.new("vm-to-be-deleted")
+//   vm.endpoint = "https://vc01.example.org/sdk"
+//   vm.username = "root"
+//   vm.password = "myp4ssw0rd"
+//   vm.state = "absent"
+//   vm.path = "/MyDatacenter/vm"
 type VirtualMachine struct {
 	BaseVSphere
 
