@@ -28,8 +28,19 @@ type VirtualMachineHardware struct {
 // VirtualMachineExtraConfig type represents extra
 // configuration of the vSphere virtual machine.
 type VirtualMachineExtraConfig struct {
-	CpuHotAdd    bool `luar:"cpu_hotadd"`
+	// CpuHotAdd flag specifies whether or not to enable the
+	// cpu hot-add feature for the virtual machine.
+	// Defaults to false.
+	CpuHotAdd bool `luar:"cpu_hotadd"`
+
+	// CpuHotRemove flag specifies whether or not to enable the
+	// cpu hot-remove feature for the virtual machine.
+	// Defaults to false.
 	CpuHotRemove bool `luar:"cpu_hotremove"`
+
+	// MemoryHotAdd flag specifies whether or not to enable the
+	// memory hot-add feature for the virtual machine.
+	// Defaults to false.
 	MemoryHotAdd bool `luar:"memory_hotadd"`
 }
 
