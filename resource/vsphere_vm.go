@@ -165,7 +165,7 @@ func (vm *VirtualMachine) isVmHardwareSynced() (bool, error) {
 
 // setVmHardware configures the virtual machine hardware.
 func (vm *VirtualMachine) setVmHardware() error {
-	Logf("%s re-configuring hardware\n", vm.ID())
+	Logf("%s configuring hardware\n", vm.ID())
 
 	obj, err := vm.finder.VirtualMachine(vm.ctx, path.Join(vm.Path, vm.Name))
 	if err != nil {
@@ -184,6 +184,59 @@ func (vm *VirtualMachine) setVmHardware() error {
 	}
 
 	return task.Wait(vm.ctx)
+}
+
+func (vm *VirtualMachine) isVmExtraConfigSynced() (bool, error) {
+	// If we don't have a config, assume configuration is correct
+	if vm.ExtraConfig == nil {
+		return true, nil
+	}
+
+	machine, err := vm.vmProperties([]string{"config"})
+	if err != nil {
+		if _, ok := err.(*find.NotFoundError); ok {
+			return true, ErrResourceAbsent
+		}
+		return false, err
+	}
+
+	if vm.ExtraConfig.CpuHotAdd != *machine.Config.CpuHotAddEnabled {
+		return false, nil
+	}
+
+	if vm.ExtraConfig.CpuHotRemove != *machine.Config.CpuHotRemoveEnabled {
+		return false, nil
+	}
+
+	if vm.ExtraConfig.MemoryHotAdd != *machine.Config.MemoryHotAddEnabled {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+// setVmExtraConfig configures extra settings of the virtual machine.
+func (vm *VirtualMachine) setVmExtraConfig() error {
+	Logf("%s configuring extra settings\n", vm.ID())
+
+	obj, err := vm.finder.VirtualMachine(vm.ctx, path.Join(vm.Path, vm.Name))
+	if err != nil {
+		return err
+	}
+
+	spec := types.VirtualMachineConfigSpec{
+		CpuHotAddEnabled:    &vm.ExtraConfig.CpuHotAdd,
+		CpuHotRemoveEnabled: &vm.ExtraConfig.CpuHotRemove,
+		MemoryHotAddEnabled: &vm.ExtraConfig.MemoryHotAdd,
+	}
+
+	task, err := obj.Reconfigure(vm.ctx, spec)
+	if err != nil {
+		return err
+	}
+
+	return task.Wait(vm.ctx)
+
 }
 
 // NewVirtualMachine creates a new resource for managing
@@ -208,7 +261,7 @@ func NewVirtualMachine(name string) (Resource, error) {
 			Path:     "/",
 		},
 		Hardware:          nil,
-		ExtraConfig:       new(VirtualMachineExtraConfig),
+		ExtraConfig:       nil,
 		GuestID:           "otherGuest",
 		Annotation:        "",
 		MaxMksConnections: 8,
@@ -222,6 +275,11 @@ func NewVirtualMachine(name string) (Resource, error) {
 			PropertyName:         "hardware",
 			PropertySetFunc:      vm.setVmHardware,
 			PropertyIsSyncedFunc: vm.isVmHardwareSynced,
+		},
+		&ResourceProperty{
+			PropertyName:         "extra-config",
+			PropertySetFunc:      vm.setVmExtraConfig,
+			PropertyIsSyncedFunc: vm.isVmExtraConfigSynced,
 		},
 	}
 
@@ -311,17 +369,14 @@ func (vm *VirtualMachine) Create() error {
 	}
 
 	config := types.VirtualMachineConfigSpec{
-		Name:                vm.Name,
-		Version:             vm.Hardware.Version,
-		GuestId:             vm.GuestID,
-		Annotation:          vm.Annotation,
-		NumCPUs:             vm.Hardware.Cpu,
-		NumCoresPerSocket:   vm.Hardware.Cores,
-		MemoryMB:            vm.Hardware.Memory,
-		MemoryHotAddEnabled: &vm.ExtraConfig.MemoryHotAdd,
-		CpuHotAddEnabled:    &vm.ExtraConfig.CpuHotAdd,
-		CpuHotRemoveEnabled: &vm.ExtraConfig.CpuHotRemove,
-		MaxMksConnections:   vm.MaxMksConnections,
+		Name:              vm.Name,
+		Version:           vm.Hardware.Version,
+		GuestId:           vm.GuestID,
+		Annotation:        vm.Annotation,
+		NumCPUs:           vm.Hardware.Cpu,
+		NumCoresPerSocket: vm.Hardware.Cores,
+		MemoryMB:          vm.Hardware.Memory,
+		MaxMksConnections: vm.MaxMksConnections,
 		Files: &types.VirtualMachineFileInfo{
 			VmPathName: datastore.Path(vm.Name),
 		},
