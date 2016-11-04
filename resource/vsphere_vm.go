@@ -1,6 +1,7 @@
 package resource
 
 import (
+	"context"
 	"errors"
 	"path"
 
@@ -71,6 +72,7 @@ type VirtualMachineExtraConfig struct {
 //     cpu_hotremove = true,
 //     memory_hotadd = true
 //   }
+//   vm.power_state = "poweredOn"
 //
 // Example:
 //   vm = vsphere.vm.new("vm-to-be-deleted")
@@ -116,7 +118,12 @@ type VirtualMachine struct {
 	// can be specified, each with their own datastore path.
 	Datastore string `luar:"datastore"`
 
-	// TODO: Add properties for, power state, disks, network.
+	// PowerState specifies the power state of the virtual machine.
+	// Valid vSphere power states are "poweredOff", "poweredOn" and
+	// "suspended".
+	PowerState types.VirtualMachinePowerState `luar:"power_state"`
+
+	// TODO: Add properties for disks, network.
 }
 
 func (vm *VirtualMachine) vmProperties(ps []string) (mo.VirtualMachine, error) {
@@ -281,6 +288,60 @@ func (vm *VirtualMachine) setVmAnnotation() error {
 
 }
 
+// isVmPowerStateSynced checks if the power state of the
+// virtual machine is in sync.
+func (vm *VirtualMachine) isVmPowerStateSynced() (bool, error) {
+	// If we don't have a power state given, assume configuration is correct
+	if vm.PowerState == "" {
+		return true, nil
+	}
+
+	obj, err := vm.finder.VirtualMachine(vm.ctx, path.Join(vm.Path, vm.Name))
+	if err != nil {
+		if _, ok := err.(*find.NotFoundError); ok {
+			return true, ErrResourceAbsent
+		}
+		return false, err
+	}
+
+	powerState, err := obj.PowerState(vm.ctx)
+	if err != nil {
+		return false, err
+	}
+
+	return vm.PowerState == powerState, nil
+}
+
+// setVmPowerState sets the power state of the virtual machine in the
+// desired state.
+func (vm *VirtualMachine) setVmPowerState() error {
+	Logf("%s setting power state to %s\n", vm.ID(), vm.PowerState)
+
+	obj, err := vm.finder.VirtualMachine(vm.ctx, path.Join(vm.Path, vm.Name))
+	if err != nil {
+		return err
+	}
+
+	var operation func(context.Context) (*object.Task, error)
+	switch vm.PowerState {
+	case "poweredOn":
+		operation = obj.PowerOn
+	case "poweredOff":
+		operation = obj.PowerOff
+	case "suspended":
+		operation = obj.Suspend
+	default:
+		return errors.New("Invalid virtual machine power state")
+	}
+
+	task, err := operation(vm.ctx)
+	if err != nil {
+		return err
+	}
+
+	return task.Wait(vm.ctx)
+}
+
 // NewVirtualMachine creates a new resource for managing
 // virtual machines in a vSphere environment.
 func NewVirtualMachine(name string) (Resource, error) {
@@ -310,6 +371,7 @@ func NewVirtualMachine(name string) (Resource, error) {
 		Pool:              "",
 		Datastore:         "",
 		Host:              "",
+		PowerState:        "",
 	}
 
 	vm.PropertyList = []Property{
@@ -327,6 +389,11 @@ func NewVirtualMachine(name string) (Resource, error) {
 			PropertyName:         "annotation",
 			PropertySetFunc:      vm.setVmAnnotation,
 			PropertyIsSyncedFunc: vm.isVmAnnotationSynced,
+		},
+		&ResourceProperty{
+			PropertyName:         "power-state",
+			PropertySetFunc:      vm.setVmPowerState,
+			PropertyIsSyncedFunc: vm.isVmPowerStateSynced,
 		},
 	}
 
