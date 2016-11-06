@@ -57,6 +57,7 @@ func (c *Cluster) isClusterConfigSynced() (bool, error) {
 		if _, ok := err.(*find.NotFoundError); ok {
 			return false, ErrResourceAbsent
 		}
+		return false, err
 	}
 
 	// Check DRS settings

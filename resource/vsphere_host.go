@@ -94,6 +94,7 @@ func (h *Host) isDnsConfigSynced() (bool, error) {
 		if _, ok := err.(*find.NotFoundError); ok {
 			return false, ErrResourceAbsent
 		}
+		return false, err
 	}
 
 	dnsConfig := host.Config.Network.DnsConfig.GetHostDnsConfig()
