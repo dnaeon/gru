@@ -77,3 +77,13 @@ func LuaRegisterBuiltin(L *lua.LState) {
 		L.SetField(namespace, item.Type, tbl)
 	}
 }
+
+func init() {
+	logf := FunctionItem{
+		Name:      "logf",
+		Namespace: "stdlib",
+		Function:  Logf,
+	}
+
+	RegisterFunction(logf)
+}
