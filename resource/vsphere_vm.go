@@ -91,6 +91,7 @@ type VirtualMachineTemplateConfig struct {
 //     memory_hotadd = true
 //   }
 //   vm.power_state = "poweredOn"
+//   vm.wait_for_ip = true
 //
 // Example:
 //   vm = vsphere.vm.new("my-cloned-vm")
@@ -159,6 +160,11 @@ type VirtualMachine struct {
 	// Valid vSphere power states are "poweredOff", "poweredOn" and
 	// "suspended".
 	PowerState types.VirtualMachinePowerState `luar:"power_state"`
+
+	// WaitForIP specifies whether to wait the virtual machine
+	// to get an IP address after a powerOn operation.
+	// Defaults to false.
+	WaitForIP bool `luar:"wait_for_ip"`
 
 	// TODO: Add properties for disks, network.
 }
@@ -376,7 +382,20 @@ func (vm *VirtualMachine) setVmPowerState() error {
 		return err
 	}
 
-	return task.Wait(vm.ctx)
+	if err := task.Wait(vm.ctx); err != nil {
+		return err
+	}
+
+	if vm.WaitForIP && vm.PowerState == types.VirtualMachinePowerStatePoweredOn {
+		Logf("%s waiting for IP address\n", vm.ID())
+		ip, err := obj.WaitForIP(vm.ctx)
+		if err != nil {
+			return err
+		}
+		Logf("%s virtual machine IP address is %s\n", vm.ID(), ip)
+	}
+
+	return nil
 }
 
 // NewVirtualMachine creates a new resource for managing
