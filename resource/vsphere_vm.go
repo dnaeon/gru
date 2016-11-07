@@ -46,6 +46,23 @@ type VirtualMachineExtraConfig struct {
 	MemoryHotAdd bool `luar:"memory_hotadd"`
 }
 
+// VirtualMachineTemplateConfig type represents configuration
+// settings of the virtual machine when using a template
+// for creating the virtual machine.
+type VirtualMachineTemplateConfig struct {
+	// Use specifies the source template to use when creating the
+	// virtual machine.
+	Use string `luar:"use"`
+
+	// PowerOn specifies whether to power on the virtual machine
+	// after cloning it from the template.
+	PowerOn bool `luar:"power_on"`
+
+	// MarkAsTemplate flag specifies whether the virtual machine will be
+	// marked as template after creation.
+	MarkAsTemplate bool `luar:"mark_as_template"`
+}
+
 // VirtualMachine type is a resource which manages
 // Virtual Machines in a VMware vSphere environment.
 //
@@ -75,6 +92,21 @@ type VirtualMachineExtraConfig struct {
 //   vm.power_state = "poweredOn"
 //
 // Example:
+//   vm = vsphere.vm.new("my-cloned-vm")
+//   vm.endpoint = "https://vc01.example.org/sdk"
+//   vm.username = "root"
+//   vm.password = "myp4ssw0rd"
+//   vm.state = "present"
+//   vm.path = "/MyDatacenter/vm"
+//   vm.pool = "/MyDatacenter/host/MyCluster"
+//   vm.datastore = "/MyDatacenter/datastore/vm-storage"
+//   vm.template_config = {
+//     use = "/Templates/my-vm-template",
+//     power_on = true,
+//     mark_as_template = false,
+//   }
+//
+// Example:
 //   vm = vsphere.vm.new("vm-to-be-deleted")
 //   vm.endpoint = "https://vc01.example.org/sdk"
 //   vm.username = "root"
@@ -89,6 +121,10 @@ type VirtualMachine struct {
 
 	// ExtraConfig is the extra configuration of the virtual mahine.
 	ExtraConfig *VirtualMachineExtraConfig `luar:"extra_config"`
+
+	// TemplateConfig specifies configuration settings to use
+	// when creating the virtual machine from a template.
+	TemplateConfig *VirtualMachineTemplateConfig `luar:"template_config"`
 
 	// GuestID is the short guest operating system identifier.
 	// Defaults to otherGuest.
@@ -365,6 +401,7 @@ func NewVirtualMachine(name string) (Resource, error) {
 		},
 		Hardware:          nil,
 		ExtraConfig:       nil,
+		TemplateConfig:    nil,
 		GuestID:           "otherGuest",
 		Annotation:        "",
 		MaxMksConnections: 8,
@@ -449,14 +486,76 @@ func (vm *VirtualMachine) Evaluate() (State, error) {
 	return state, nil
 }
 
-// Create creates the virtual machine.
-func (vm *VirtualMachine) Create() error {
-	Logf("%s creating virtual machine\n", vm.ID())
-
+// newVm creates a new virtual machine.
+func (vm *VirtualMachine) newVm(f *object.Folder, p *object.ResourcePool, ds *object.Datastore, h *object.HostSystem) error {
 	if vm.Hardware == nil {
 		return errors.New("Missing hardware configuration")
 	}
 
+	Logf("%s creating virtual machine\n", vm.ID())
+
+	spec := types.VirtualMachineConfigSpec{
+		Name:              vm.Name,
+		Version:           vm.Hardware.Version,
+		GuestId:           vm.GuestID,
+		Annotation:        vm.Annotation,
+		NumCPUs:           vm.Hardware.Cpu,
+		NumCoresPerSocket: vm.Hardware.Cores,
+		MemoryMB:          vm.Hardware.Memory,
+		MaxMksConnections: vm.MaxMksConnections,
+		Files: &types.VirtualMachineFileInfo{
+			VmPathName: ds.Path(vm.Name),
+		},
+	}
+
+	task, err := f.CreateVM(vm.ctx, spec, p, h)
+	if err != nil {
+		return err
+	}
+
+	return task.Wait(vm.ctx)
+}
+
+// cloneVm creates the virtual machine using a template.
+func (vm *VirtualMachine) cloneVm(f *object.Folder, p *object.ResourcePool, ds *object.Datastore, h *object.HostSystem) error {
+	Logf("%s cloning virtual machine from %s\n", vm.ID(), vm.TemplateConfig.Use)
+
+	obj, err := vm.finder.VirtualMachine(vm.ctx, vm.TemplateConfig.Use)
+	if err != nil {
+		return err
+	}
+
+	folderRef := f.Reference()
+	datastoreRef := ds.Reference()
+	poolRef := p.Reference()
+
+	var hostRef *types.ManagedObjectReference
+	if h != nil {
+		ref := h.Reference()
+		hostRef = &ref
+	}
+
+	spec := types.VirtualMachineCloneSpec{
+		Location: types.VirtualMachineRelocateSpec{
+			Folder:    &folderRef,
+			Datastore: &datastoreRef,
+			Pool:      &poolRef,
+			Host:      hostRef,
+		},
+		Template: vm.TemplateConfig.MarkAsTemplate,
+		PowerOn:  vm.TemplateConfig.PowerOn,
+	}
+
+	task, err := obj.Clone(vm.ctx, f, vm.Name, spec)
+	if err != nil {
+		return err
+	}
+
+	return task.Wait(vm.ctx)
+}
+
+// Create creates the virtual machine.
+func (vm *VirtualMachine) Create() error {
 	folder, err := vm.finder.Folder(vm.ctx, vm.Path)
 	if err != nil {
 		return err
@@ -480,26 +579,13 @@ func (vm *VirtualMachine) Create() error {
 		}
 	}
 
-	config := types.VirtualMachineConfigSpec{
-		Name:              vm.Name,
-		Version:           vm.Hardware.Version,
-		GuestId:           vm.GuestID,
-		Annotation:        vm.Annotation,
-		NumCPUs:           vm.Hardware.Cpu,
-		NumCoresPerSocket: vm.Hardware.Cores,
-		MemoryMB:          vm.Hardware.Memory,
-		MaxMksConnections: vm.MaxMksConnections,
-		Files: &types.VirtualMachineFileInfo{
-			VmPathName: datastore.Path(vm.Name),
-		},
+	// If we have a template config, clone the virtual machine
+	if vm.TemplateConfig != nil {
+		return vm.cloneVm(folder, pool, datastore, host)
 	}
 
-	task, err := folder.CreateVM(vm.ctx, config, pool, host)
-	if err != nil {
-		return err
-	}
-
-	return task.Wait(vm.ctx)
+	// Otherwise create a new virtual machine
+	return vm.newVm(folder, pool, datastore, host)
 }
 
 // Delete removes the virtual machine.
