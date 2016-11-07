@@ -361,11 +361,11 @@ func (vm *VirtualMachine) setVmPowerState() error {
 
 	var operation func(context.Context) (*object.Task, error)
 	switch vm.PowerState {
-	case "poweredOn":
+	case types.VirtualMachinePowerStatePoweredOn:
 		operation = obj.PowerOn
-	case "poweredOff":
+	case types.VirtualMachinePowerStatePoweredOff:
 		operation = obj.PowerOff
-	case "suspended":
+	case types.VirtualMachinePowerStateSuspended:
 		operation = obj.Suspend
 	default:
 		return errors.New("Invalid virtual machine power state")
