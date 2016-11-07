@@ -598,6 +598,23 @@ func (vm *VirtualMachine) Delete() error {
 		return err
 	}
 
+	powerState, err := obj.PowerState(vm.ctx)
+	if err != nil {
+		return err
+	}
+
+	// Power off the virtual machine if it is not already
+	if powerState != types.VirtualMachinePowerStatePoweredOff {
+		Logf("%s powering off virtual machine\n", vm.ID())
+		task, err := obj.PowerOff(vm.ctx)
+		if err != nil {
+			return err
+		}
+		if err := task.Wait(vm.ctx); err != nil {
+			return err
+		}
+	}
+
 	task, err := obj.Destroy(vm.ctx)
 	if err != nil {
 		return err
