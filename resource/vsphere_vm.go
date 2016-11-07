@@ -75,6 +75,7 @@ type VirtualMachineTemplateConfig struct {
 //   vm.path = "/MyDatacenter/vm"
 //   vm.pool = "/MyDatacenter/host/MyCluster"
 //   vm.datastore = "/MyDatacenter/datastore/vm-storage"
+//   vm.host = "/MyDatacenter/host/MyCluster/esxi01.example.org"
 //   vm.hardware = {
 //     cpu = 1,
 //     cores = 1,
