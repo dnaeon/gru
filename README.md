@@ -48,6 +48,7 @@ Gru is Open Source and licensed under the
 
 References to articles related to this project in one way or another.
 
+* [Introducing triggers in Gru orchestration framework](http://dnaeon.github.io/introducing-triggers-in-gru/)
 * [Puppet vs Gru - Benchmarking Speed & Concurrency](http://dnaeon.github.io/puppet-vs-gru-benchmarking-speed-and-concurrency/)
 * [Extending Lua with Go types](http://dnaeon.github.io/extending-lua-with-go-types/)
 * [Choosing Lua as the data description and configuration language](http://dnaeon.github.io/choosing-lua-as-the-ddl-and-config-language/)
