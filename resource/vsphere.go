@@ -168,5 +168,11 @@ func init() {
 		Namespace: VSphereNamespace,
 	}
 
-	RegisterProvider(datacenter, cluster, clusterHost, host, vm)
+	datastoreNfs := ProviderItem{
+		Type:      "datastore_nfs",
+		Provider:  NewDatastoreNfs,
+		Namespace: VSphereNamespace,
+	}
+
+	RegisterProvider(datacenter, cluster, clusterHost, host, vm, datastoreNfs)
 }
