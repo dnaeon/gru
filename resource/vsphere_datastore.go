@@ -156,8 +156,7 @@ func (ds *DatastoreNfs) Create() error {
 	return nil
 }
 
-// Delete removes the NFS datastore from all hosts which are
-// currently mounting it.
+// Delete unmounts the NFS datastore from the ESXi hosts.
 func (ds *DatastoreNfs) Delete() error {
 	datastore, err := ds.finder.Datastore(ds.ctx, path.Join(ds.Path, ds.Name))
 	if err != nil {
