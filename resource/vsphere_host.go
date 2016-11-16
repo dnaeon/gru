@@ -41,6 +41,7 @@ type HostDnsConfig struct {
 //   host.username = "root"
 //   host.password = "myp4ssw0rd"
 //   host.path = "/MyDatacenter/host/MyCluster"
+//   host.state = "present"
 //   host.lockdown_mode = "lockdownNormal"
 //   host.dns = {
 //      servers = { "1.2.3.4", "2.3.4.5" },
