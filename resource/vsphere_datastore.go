@@ -4,6 +4,7 @@ import (
 	"errors"
 	"path"
 
+	"github.com/dnaeon/gru/utils"
 	"github.com/vmware/govmomi/find"
 	"github.com/vmware/govmomi/vim25/types"
 )
@@ -46,6 +47,10 @@ type DatastoreNfs struct {
 	// Valid values are "readOnly" and "readWrite".
 	// Defaults to "readWrite".
 	Mode string `luar:"mode"`
+
+	// shouldMountOnHosts contains hosts that are out of date and should
+	// have the NFS datastore mounted.
+	shouldMountOnHosts []string `luar:"-"`
 }
 
 // mountOn mounts the NFS datastore on an ESXi host.
@@ -75,6 +80,57 @@ func (ds *DatastoreNfs) mountOn(host string) error {
 	return err
 }
 
+// isHostsPropertySynced checks if the datastore is mounted on all hosts.
+func (ds *DatastoreNfs) isHostsPropertySynced() (bool, error) {
+	datastore, err := ds.finder.Datastore(ds.ctx, path.Join(ds.Path, ds.Name))
+	if err != nil {
+		if _, ok := err.(*find.NotFoundError); ok {
+			return false, ErrResourceAbsent
+		}
+		return false, err
+	}
+
+	hosts, err := datastore.AttachedHosts(ds.ctx)
+	if err != nil {
+		return false, err
+	}
+
+	hostNames := make([]string, len(hosts))
+	for _, obj := range hosts {
+		name, err := obj.ObjectName(ds.ctx)
+		if err != nil {
+			return false, err
+		}
+		hostNames = append(hostNames, name)
+	}
+
+	isSynced := true
+	hostsList := utils.NewList(hostNames...)
+	for _, host := range ds.Hosts {
+		if !hostsList.Contains(path.Base(host)) {
+			ds.shouldMountOnHosts = append(ds.shouldMountOnHosts, host)
+			isSynced = false
+		}
+	}
+
+	for _, host := range ds.shouldMountOnHosts {
+		Logf("%s datastore should be mounted on %s\n", ds.ID(), path.Base(host))
+	}
+
+	return isSynced, nil
+}
+
+// setHostsProperty mounts the datastore on hosts which are out of date.
+func (ds *DatastoreNfs) setHostsProperty() error {
+	for _, host := range ds.shouldMountOnHosts {
+		if err := ds.mountOn(host); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // NewDatastoreNfs creates a new resource for managing NFS datastores on ESXi hosts.
 func NewDatastoreNfs(name string) (Resource, error) {
 	ds := &DatastoreNfs{
@@ -95,6 +151,15 @@ func NewDatastoreNfs(name string) (Resource, error) {
 		NfsType:   "NFS",
 		NfsPath:   "",
 		Mode:      "readWrite",
+	}
+
+	// Set resource properties
+	ds.PropertyList = []Property{
+		&ResourceProperty{
+			PropertyName:         "attached-hosts",
+			PropertyIsSyncedFunc: ds.isHostsPropertySynced,
+			PropertySetFunc:      ds.setHostsProperty,
+		},
 	}
 
 	return ds, nil
