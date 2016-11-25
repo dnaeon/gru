@@ -1,3 +1,60 @@
+## 0.5.0 (November 24, 2016)
+
+* Added support for managing VMware vSphere environments. Check the
+  list of new resources below.
+* Added `Property` interface type used for evaluating and setting
+  properties of resources.
+* Impelemented resource triggers. Example code using triggers can be
+  found [here](https://github.com/dnaeon/gru/blob/master/site/code/triggers.lua)
+* Existing resources have been refactored to use properties
+* Use latest version of `go-vcr` for the integration tests.
+* Use ldflags when building the `gructl` binary to reduce the resulting binary size
+* Start using `context.Context` from Go 1.7 instead of `golang.org/x/net/context`
+* The `resource.Logf()` function is now registered in Lua and
+  available from the `stdlib` table
+* Go functions can be registered in Lua as well allowing for further
+  extending the Lua-based DSL with Go functionality
+
+Changes in `resource.Resource` interface type:
+
+* The `Update()` method is now gone. From now on we use properties to
+  describe changes that can be evaluated and set on resources.
+* The `Log()` method is gone, instead use `resource.Logf()`
+* New method `Properties()` has been added, which returns the list of
+  properties for a resource.
+* New method `Initialize()` has been added, which is used for
+  performing initialization of the resource if needed, e.g.
+  establishing connection to a remote API endpoint.
+* New method `Close()` has been added, which is called after a resource
+  has been processed can be used for cleanup tasks.
+* Resources for which properties make no sense when absent now
+  return the `resource.ErrResourceAbsent` error.
+* New method `SubscribedTo` returns a `resource.TriggerMap`
+  containing the resources to which it is subscribed and the Lua
+  function that will be executed if the resource has changed.
+
+New resources implemented:
+
+* `File` resource now manages only files instead of files and directories.
+* `Directory` manages directories.
+* `Link` manages symbolic and hard file links.
+* `SysRc` resource manages sysrc variables on FreeBSD systems. Contributed by @kaey
+* `PkgNg` resource manages packages on FreeBSD systems. Contributed by @kaey
+* `Service` resource for FreeBSD systems. Contributed by @kaey
+* `Datacenter` resource manages datacenters in a VMware vSphere environment
+* `Cluster` resource manages VMware vSphere clusters
+* `ClusterHost` manages ESXi hosts in a VMware vSphere cluster.
+* `Host` manages ESXi host settings in a VMware vSphere environment
+* `VirtualMachine` resource manages virtual machines in a VMware vSphere environment
+* `DatastoreNfs` resource manages NFS datastores on ESXi hosts
+
+Changes in the `catalog` package.
+
+* Added `catalog.Status` type
+* `Catalog.Run()` now returns `catalog.Status` instance, so that
+  result can be further examined if needed
+* Resource properties are processed after executing the resource
+
 ## 0.4.0 (August 24, 2016)
 
 * Use Go 1.7 as the default stable version used for building and testing
