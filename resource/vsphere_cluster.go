@@ -51,6 +51,11 @@ type Cluster struct {
 
 // isClusterConfigSynced checks if the vSphere cluster configuration is synced.
 func (c *Cluster) isClusterConfigSynced() (bool, error) {
+	// If we don't have a config, assume configuration is correct
+	if c.Config == nil {
+		return true, nil
+	}
+
 	obj, err := c.finder.ClusterComputeResource(c.ctx, path.Join(c.Path, c.Name))
 	if err != nil {
 		// Cluster is absent
@@ -130,11 +135,7 @@ func NewCluster(name string) (Resource, error) {
 			Insecure: false,
 			Path:     "/",
 		},
-		Config: &ClusterConfig{
-			EnableDrs:   false,
-			DrsBehavior: types.DrsBehaviorFullyAutomated,
-			EnableHA:    false,
-		},
+		Config: nil,
 	}
 
 	// Set resource properties
@@ -177,22 +178,12 @@ func (c *Cluster) Evaluate() (State, error) {
 func (c *Cluster) Create() error {
 	Logf("%s creating cluster\n", c.ID())
 
-	spec := types.ClusterConfigSpecEx{
-		DasConfig: &types.ClusterDasConfigInfo{
-			Enabled: &c.Config.EnableHA,
-		},
-		DrsConfig: &types.ClusterDrsConfigInfo{
-			Enabled:           &c.Config.EnableDrs,
-			DefaultVmBehavior: types.DrsBehavior(c.Config.DrsBehavior),
-		},
-	}
-
-	folder, err := c.finder.FolderOrDefault(c.ctx, c.Path)
+	folder, err := c.finder.Folder(c.ctx, c.Path)
 	if err != nil {
 		return err
 	}
 
-	_, err = folder.CreateCluster(c.ctx, c.Name, spec)
+	_, err = folder.CreateCluster(c.ctx, c.Name, types.ClusterConfigSpecEx{})
 
 	return err
 }
