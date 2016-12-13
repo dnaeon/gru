@@ -50,7 +50,7 @@ func (c Collection) DependencyGraph() (*graph.Graph, error) {
 
 		// Create edges between the nodes and the resources for
 		// which we subscribe for changes to
-		for dep, _ := range r.SubscribedTo() {
+		for dep := range r.SubscribedTo() {
 			if _, ok := c[dep]; !ok {
 				return g, fmt.Errorf("%s subscribes to %s, which does not exist", id, dep)
 			}

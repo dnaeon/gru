@@ -212,7 +212,7 @@ func (f *File) Validate() error {
 // Initialize initializes the file resource.
 func (f *File) Initialize() error {
 	// Set file content from the given source file if any.
-	// TODO: Currenly this works only for files in the site repo.
+	// TODO: Currently this works only for files in the site repo.
 	// TODO: Implement a generic file content fetcher.
 	if f.Source != "" {
 		src := filepath.Join(DefaultConfig.SiteRepo, f.Source)
@@ -364,7 +364,7 @@ func (d *Directory) Create() error {
 
 // Delete removes the directory.
 func (d *Directory) Delete() error {
-	Logf("%s removing directory\n")
+	Logf("%s removing directory\n", d.ID())
 
 	if d.Parents {
 		return os.RemoveAll(d.Path)

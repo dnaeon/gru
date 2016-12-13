@@ -256,6 +256,7 @@ func NewHost(name string) (Resource, error) {
 	return h, nil
 }
 
+// Evaluate evaluate the state of the ESXi host.
 func (h *Host) Evaluate() (State, error) {
 	state := State{
 		Current: "unknown",
