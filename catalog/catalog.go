@@ -33,8 +33,8 @@ import (
 	"github.com/dnaeon/gru/graph"
 	"github.com/dnaeon/gru/resource"
 	"github.com/dnaeon/gru/utils"
-	"github.com/layeh/gopher-luar"
 	"github.com/yuin/gopher-lua"
+	"layeh.com/gopher-luar"
 )
 
 // Catalog type contains a collection of resources

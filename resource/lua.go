@@ -26,8 +26,8 @@
 package resource
 
 import (
-	"github.com/layeh/gopher-luar"
 	"github.com/yuin/gopher-lua"
+	"layeh.com/gopher-luar"
 )
 
 // functionRegistry contains the functions to be registered in Lua.
