@@ -145,7 +145,7 @@ func (s *Service) setEnable() error {
 	// TODO: rcvar should probably be deleted from rc.conf, when disabling service.
 	// Compare default value (sysrc -D) with requested (rcValue) and if they match, delete rcvar.
 	// Currently we just set it to NO.
-	err := exec.Command("sysrc", fmt.Sprintf(`%s="%s"`, s.RCVar, rcValue)).Run()
+	err := exec.Command("sysrc", fmt.Sprintf(`%s=%s`, s.RCVar, rcValue)).Run()
 
 	return err
 }
