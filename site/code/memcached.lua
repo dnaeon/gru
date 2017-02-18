@@ -10,9 +10,8 @@ pkg.state = "present"
 systemd_dir = "/etc/systemd/system/memcached.service.d/"
 
 -- Manage the systemd drop-in unit directory
-unit_dir = resource.file.new(systemd_dir)
+unit_dir = resource.directory.new(systemd_dir)
 unit_dir.state = "present"
-unit_dir.filetype = "directory"
 unit_dir.require = {
    pkg:ID(),
 }
