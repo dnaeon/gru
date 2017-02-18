@@ -68,9 +68,6 @@ type State struct {
 
 	// Wanted state of the resource
 	Want string
-
-	// Outdated indicates that a property of the resource is out of date
-	Outdated bool
 }
 
 // Resource is the interface type for resources.

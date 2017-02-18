@@ -66,15 +66,13 @@ func NewSysRC(name string) (Resource, error) {
 // Evaluate evaluates the state of the resource.
 func (s *SysRC) Evaluate() (State, error) {
 	state := State{
-		Current:  "unknown",
-		Want:     s.State,
-		Outdated: false,
+		Current: "unknown",
+		Want:    s.State,
 	}
 
 	out, err := exec.Command("sysrc", s.Name).CombinedOutput()
 	if err != nil {
 		state.Current = "absent"
-		state.Outdated = true
 		return state, nil
 	}
 	state.Current = "present"
@@ -90,7 +88,6 @@ func (s *SysRC) Evaluate() (State, error) {
 
 	if s.Value != v {
 		state.Current = "absent"
-		state.Outdated = true
 	}
 
 	return state, nil
