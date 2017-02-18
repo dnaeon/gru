@@ -89,6 +89,7 @@ func (s *SysRC) Evaluate() (State, error) {
 	}
 
 	if s.Value != v {
+		state.Current = "absent"
 		state.Outdated = true
 	}
 
@@ -99,21 +100,21 @@ func (s *SysRC) Evaluate() (State, error) {
 func (s *SysRC) Create() error {
 	Logf("%s adding rcvar\n", s.ID())
 
-	return exec.Command("sysrc", s.Name, s.Value).Run()
+	return exec.Command("sysrc", fmt.Sprintf("%s=%s", s.Name, s.Value)).Run()
 }
 
 // Delete removes variable from rc.conf.
 func (s *SysRC) Delete() error {
 	Logf("%s removing rcvar\n", s.ID())
 
-	return exec.Command("sysrc", "-x", s.Value).Run()
+	return exec.Command("sysrc", "-x", s.Name).Run()
 }
 
 // Update sets variable in rc.conf to s.Value.
 func (s *SysRC) Update() error {
 	Logf("%s setting rcvar to %s\n", s.ID(), s.Value)
 
-	return exec.Command("sysrc", s.Name, s.Value).Run()
+	return exec.Command("sysrc", fmt.Sprintf("%s=%s", s.Name, s.Value)).Run()
 }
 
 var sysRCre = regexp.MustCompile("(.*): (.*)")
