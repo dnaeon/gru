@@ -27,28 +27,13 @@ package utils
 
 import "testing"
 
-func TestListContains(t *testing.T) {
-	l := NewList("foo", "bar", "qux")
-	want := "foo"
+func TestConcurrentMap_Len(t *testing.T) {
+	cm := NewConcurrentMap()
+	cm.Set("foo", "FOO")
+	cm.Set("bar", "BAR")
+	cm.Set("qux", "QUX")
 
-	if !l.Contains(want) {
-		t.Errorf("list does not contain %q", want)
-	}
-}
-
-func TestStringInList(t *testing.T) {
-	l := NewList("foo", "bar", "qux")
-	s := NewString("foo")
-
-	if !s.IsInList(l) {
-		t.Errorf("string %q is not in list", s)
-	}
-}
-
-func TestList_Len(t *testing.T) {
-	l := NewList("foo", "bar", "qux")
-
-	if n := l.Len(); n != 3 {
-		t.Errorf("the number of items in the list is not 3 but %v", n)
+	if n := cm.Len(); n != 3 {
+		t.Errorf("the number of items in the concurrent map is not 3 but %v", n)
 	}
 }

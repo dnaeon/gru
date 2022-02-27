@@ -86,3 +86,11 @@ func (cm *ConcurrentMap) Iter() <-chan ConcurrentMapItem {
 
 	return c
 }
+
+// Len is the number of items in the concurrent map.
+func (cm *ConcurrentMap) Len() int {
+	cm.RLock()
+	defer cm.RUnlock()
+
+	return len(cm.items)
+}

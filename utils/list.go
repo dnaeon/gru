@@ -30,7 +30,7 @@ type List []string
 
 // NewList creates a new list with the given items
 func NewList(s ...string) List {
-	l := make(List, len(s))
+	l := make(List, 0, len(s))
 	for _, v := range s {
 		l = append(l, v)
 	}
@@ -48,6 +48,11 @@ func (l List) Contains(x string) bool {
 	}
 
 	return false
+}
+
+// Len is the number of items in the list.
+func (l List) Len() int {
+	return len(l)
 }
 
 // String type represents a string

@@ -27,28 +27,13 @@ package utils
 
 import "testing"
 
-func TestListContains(t *testing.T) {
-	l := NewList("foo", "bar", "qux")
-	want := "foo"
+func TestConcurrentSlice_Len(t *testing.T) {
+	cs := NewConcurrentSlice()
+	cs.Append("foo")
+	cs.Append("bar")
+	cs.Append("qux")
 
-	if !l.Contains(want) {
-		t.Errorf("list does not contain %q", want)
-	}
-}
-
-func TestStringInList(t *testing.T) {
-	l := NewList("foo", "bar", "qux")
-	s := NewString("foo")
-
-	if !s.IsInList(l) {
-		t.Errorf("string %q is not in list", s)
-	}
-}
-
-func TestList_Len(t *testing.T) {
-	l := NewList("foo", "bar", "qux")
-
-	if n := l.Len(); n != 3 {
-		t.Errorf("the number of items in the list is not 3 but %v", n)
+	if n := cs.Len(); n != 3 {
+		t.Errorf("the number of items in the concurrent slice is not 3 but %v", n)
 	}
 }

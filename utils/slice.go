@@ -75,3 +75,11 @@ func (cs *ConcurrentSlice) Iter() <-chan ConcurrentSliceItem {
 
 	return c
 }
+
+// Len is the number of items in the concurrent slice.
+func (cs *ConcurrentSlice) Len() int {
+	cs.RLock()
+	defer cs.RUnlock()
+
+	return len(cs.items)
+}
